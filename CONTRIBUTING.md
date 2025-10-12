@@ -21,6 +21,7 @@ This project users the MERN (MongoDb, Express.js, React.js, Node.js) stack.
 - install [React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
 - navigate your web browser to http://localhost:7002
 
-
+# Building and Testing
+(update with this information once the project reaches that stag)
 
 
