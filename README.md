@@ -24,11 +24,11 @@ A stock screening and analysis tool built for beginner investors who want to lea
 
 ## Product Vision
 
-**For beginner investors** who want to build wealth but don't know where to start, **TickerPicker** is a stock screening application that helps users evaluate publicly traded companies using fundamental metrics. **Unlike** platforms like Yahoo Finance or Robinhood, which are either too shallow to be useful or throw too much information at users, **our product** provides an intuitive filtering system with educational context, making it easy to discover stocks that match your investment criteria.
+**For beginner investors** who want to build wealth but don't know where to start. **TickerPicker** is a stock screening application that helps users evaluate publicly traded companies using fundamental metrics. **Unlike** platforms like Yahoo Finance or Robinhood, which are either too shallow to be useful or throw too much information at users, **our product** provides an intuitive filtering system with educational context, making it easy to discover stocks that match your investment criteria.
 
 ### What We're Building (MVP)
 
-Our minimum viable product focuses on the core functionality needed for effective stock research:
+Our Minimum Viable Product focuses on the core functionality needed for effective stock research:
 
 - **Stock filtering system** - Filter by industry and adjust sliders for key metrics (P/E ratio, EPS growth, debt-to-equity, beta, etc.)
 - **Price charts** - View stock performance over time using interactive charts
@@ -48,7 +48,7 @@ If time permits, we'd like to add:
 
 ### Sprint 0 Roles
 - **Product Owner:** [Lauren Throve](https://github.com/laurenst17)
-- **Scrum Master:** [Lauren Throve](https://github.com/laurenst17)
+- **Scrum Master:** [Julien Soto-Raspa](https://github.com/jlnsr)
 
 ### Developers
 - [Lauren Throve](https://github.com/laurenst17)
