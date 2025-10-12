@@ -1,4 +1,4 @@
-# Project Repository
+<!-- # Project Repository
 
 This repository will be used for team projects.
 
@@ -16,4 +16,124 @@ Several sets of instructions are included in this repository. They should each b
 
 1. See the [Database Integration instructions](./instructions-3-database.md) for the requirements of integrating a database into the back-end.
 
-1. See the [Deployment instructions](./instructions-4-deployment.md) for the requirements of deploying an app.
+1. See the [Deployment instructions](./instructions-4-deployment.md) for the requirements of deploying an app. -->
+
+# TickerPicker
+
+A stock screening and analysis tool built for beginner investors who want to learn fundamental analysis without getting overwhelmed.
+
+## Product Vision
+
+**For beginner investors** who want to build wealth but don't know where to start, **TickerPicker** is a stock screening application that helps users evaluate publicly traded companies using fundamental metrics. **Unlike** platforms like Yahoo Finance or Robinhood, which are either too shallow to be useful or throw too much information at users, **our product** provides an intuitive filtering system with educational context, making it easy to discover stocks that match your investment criteria.
+
+### What We're Building (MVP)
+
+Our minimum viable product focuses on the core functionality needed for effective stock research:
+
+- **Stock filtering system** - Filter by industry and adjust sliders for key metrics (P/E ratio, EPS growth, debt-to-equity, beta, etc.)
+- **Price charts** - View stock performance over time using interactive charts
+- **Fundamental data display** - See the key metrics that matter for each stock
+- **User accounts** - Login/logout functionality with secure authentication
+- **Watchlist** - Save stocks you're interested in tracking
+- **Earnings notifications** - Get notified via email and in-app when your watchlisted stocks have earnings calls
+
+### What's Coming Later
+
+If time permits, we'd like to add:
+- **AI chatbot** - Ask questions like "What does P/E ratio mean?" and get beginner-friendly explanations
+- **Saved filters** - Store your favorite filter configurations for quick access
+- **Multi-language support** - Make the platform accessible to non-English speakers
+
+## Team
+
+### Sprint 0 Roles
+- **Product Owner:** [Lauren Throve](https://github.com/laurenst17)
+- **Scrum Master:** [Lauren Throve](https://github.com/laurenst17)
+
+### Developers
+- [Lauren Throve](https://github.com/laurenst17)
+- [Apoorv Belgundi](https://github.com/apoorvib)
+- [Michael Mvano](https://github.com/michx02)
+- [Julien Soto-Raspa](https://github.com/jlnsr)
+- Jerry
+
+*Note: Scrum Master and Product Owner roles rotate each sprint so everyone gets experience in each role.*
+
+## History
+
+TickerPicker started during our project proposal assignment when Apoorv, Lauren, and Michael noticed a problem: every stock platform is either useless or overwhelming for beginners.
+
+Platforms like Robinhood show you a price chart and not much else—fine for buying, terrible for research. Professional tools like Bloomberg Terminal or even Yahoo Finance dump every possible metric on you without explaining what matters or why. We wanted something in between: a tool that shows beginners the important fundamentals, lets them filter by what matters to their strategy, and doesn't assume they already have a finance degree.
+
+After Julien and Jerry joined, we refined the concept and started planning. We're currently in Sprint 0, setting up our development environment and finalizing our technical architecture.
+
+## Contributing
+
+Want to contribute? Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) for:
+- Team norms and values
+- Git workflow and branching strategy  
+- How to set up your development environment
+- Code review process
+
+## Tech Stack
+
+- **Frontend:** React
+- **Charts:** TradingView Lightweight Charts API
+- **Backend:** Express.js (Node.js) + Python
+- **Database:** TBD
+- **Authentication:** TBD
+
+## Building and Testing
+
+*Coming soon - we'll update this once we start development.*
+
+## Product Backlog Themes
+
+Our user stories are organized into these themes:
+
+### 1. Stock Discovery & Filtering
+Features that help users find stocks matching their criteria
+- Industry/sector filtering
+- Metric-based filtering with sliders
+- Search functionality
+
+### 2. Data Visualization  
+Features that display stock information clearly
+- Interactive price charts
+- Fundamental data presentation
+- Performance metrics display
+
+### 3. User Account Management
+Features for personalized experiences
+- Authentication (login/logout)
+- User profiles
+- Account settings
+
+### 4. Portfolio Tracking
+Features for monitoring stocks over time
+- Watchlist functionality
+- Earnings call notifications
+- Price alerts
+
+### 5. User Education *(Nice-to-Have)*
+Features that explain financial concepts
+- AI chatbot for metric explanations
+- Tooltips and help text
+- Educational resources
+
+## Project Links
+
+- [Product Backlog](./PRODUCT_BACKLOG.md) *(coming soon)*
+- [Sprint Planning](./SPRINTS.md) *(coming soon)*  
+- [Team Norms](./TEAM_NORMS.md) *(coming soon)*
+
+## Project Status
+
+**Current Sprint:** Sprint 0  
+**Status:** Planning and setup phase
+
+We're currently:
+- Setting up development environment
+- Finalizing technical architecture decisions
+- Creating initial product backlog
+- Establishing team workflows
