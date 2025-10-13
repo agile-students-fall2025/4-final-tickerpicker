@@ -55,7 +55,7 @@ If time permits, we'd like to add:
 - [Apoorv Belgundi](https://github.com/apoorvib)
 - [Michael Mvano](https://github.com/michx02)
 - [Julien Soto-Raspa](https://github.com/jlnsr)
-- Jerry
+- [Muyao (Jerry) Kong](https://github.com/Jerry-K5050)
 
 *Note: Scrum Master and Product Owner roles rotate each sprint so everyone gets experience in each role.*
 
