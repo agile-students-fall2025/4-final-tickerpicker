@@ -50,7 +50,7 @@ If time permits, we'd like to add:
 ### Sprint 0 Roles
 
 - **Product Owner:** [Lauren Throve](https://github.com/laurenst17)
-- **Scrum Master:** [Lauren Throve](https://github.com/laurenst17)
+- **Scrum Master:** [Julien Soto-Raspa](https://github.com/jlnsr)
 
 ### Developers
 
