@@ -1,3 +1,17 @@
+# Contributing to TickerPicker
+
+Thanks for your interest in contributing! This document outlines how our team works and how you can contribute effectively.
+
+## Table of Contents
+
+- [Team Norms](#team-norms)
+- [Sprint Cadence](#sprint-cadence)
+- [Git Workflow](#git-workflow)
+- [Coding Standards](#coding-standards)
+- [Development Environment Setup](#development-environment-setup)
+- [Building and Testing](#building-and-testing)
+- [How to Contribute](#how-to-contribute)
+
 ## Team Norms
 - We discuss ideas during our weekly meetings
 - Approved ideas are formalized into tasks that are put on the [Task Board](https://github.com/orgs/agile-students-fall2025/projects/20/views/3)
