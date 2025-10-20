@@ -21,7 +21,7 @@ Displays the user’s watchlist, top performer graph, and recommended ticker pic
 
 ### 2. Log In  
 Allows returning users to log in with their credentials.  
-![Log In](./ux-design/TickerPicker_Laptop/Log_In.png)
+![Log In](./ux-design/TickerPicker_Laptop/Log%20In.png)
 
 ### 3. Notifications  
 Displays alerts and updates related to watched or favorited stocks.  
@@ -41,7 +41,7 @@ Our filtering screen, showing a list of all stock and allows users to filter by 
 
 ### 7. Stock  
 Displays detailed data and charts for the selected stock.  
-![Stock](./ux-design/TickerPicker_Laptop/Stock.png)
+![Stock](./ux-design/TickerPicker_Laptop/stock.png)
 
 ### 8. Watchlist  
 Lists all user-tracked stocks and quick performance summaries.  
