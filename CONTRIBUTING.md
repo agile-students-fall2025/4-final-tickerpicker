@@ -2,6 +2,9 @@
 
 Thanks for your interest in contributing! This document outlines how our team works and how you can contribute effectively.
 
+## About You
+To anyone wishing to join, we invite you to briefly share your experience with investing (across any asset class) and give us any ideas about how to “streamline” the search and pick, as this is the main objective of our product. Any insights in fintech or quantitative analysis are highly coveted, for our purposes. If you have such insights, please share! We are open to expanding our product and receptive to any relevant metrics or strategies you propose. 
+
 ## Table of Contents
 
 - [Team Norms](#team-norms)
