@@ -2,6 +2,9 @@
 
 Thanks for your interest in contributing! This document outlines how our team works and how you can contribute effectively.
 
+## For those interested in TickerPicker
+To anyone wishing to join, we invite you to briefly share your experience with investing (across any asset class) and give us any ideas about how to “streamline” the search and pick, as this is the main objective of our product. Moreover, any insights in fintech and or quant analysis are highly coveted, for our purposes. Thus, if you have such insights, please share! We are open to expanding our product and if you believe any relevant metrics or strategies are missing, do let us know. 
+
 ## Table of Contents
 
 - [Team Norms](#team-norms)
