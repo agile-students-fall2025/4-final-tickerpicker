@@ -48,6 +48,16 @@ export function getChartConfig(theme = 'light'){
     return {
         width: DEFAULT_CHART_WIDTH,
         height: DEFAULT_CHART_HEIGHT,
-        ...themeConfig
+        ...themeConfig,
+        crosshair : {
+            mode : 0 // 0: normal , 1: magnet
+        },
+        timeScale : {
+            timeVisible : true, // Show time labels
+            secondsVisible : true, // Show seconds in time
+        },
+        rightPriceScale : {
+            borderColor : '#485c7b' // Border color
+        }
     }
 }
