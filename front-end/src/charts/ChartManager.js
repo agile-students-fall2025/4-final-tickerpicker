@@ -68,6 +68,39 @@ class ChartManager{
         return series
     }
 
+    removeChart(chartId){
+        if(!this.charts[chartId]){
+            throw new Error(`Chart with id ${chartId} does not exist`)
+        }
+        this.charts[chartId].remove()
+
+        delete this.charts[chartId]
+        delete this.series[chartId]
+
+        console.log(`Chart with id ${chartId} removed successfully`)
+        return true
+    }
+
+    removeAllCharts(){
+        const chartIds = Object.keys(this.charts)
+        for (const chartId of chartIds){
+            this.removeChart(chartId)
+        }
+        console.log(`All charts removed successfully`)
+        return true
+    }
+    
+    // This function will probably never be used unless we want to swap out a series for another. But we might as well just delete the chart instance and make a new one.
+    removeSeries(chartId, seriesId){
+        if(!this.charts[chartId] || !this.series[chartId][seriesId]){
+            throw new Error(`Series with id ${seriesId} does not exist on chart ${chartId}`)
+        }
+        this.series[chartId][seriesId].remove()
+        delete this.series[chartId][seriesId]
+        console.log(`Series with id ${seriesId} removed from chart ${chartId} successfully`)
+        return true
+    }
+
     getChart(chartId){
         return this.charts[chartId] || null
     }
@@ -77,6 +110,18 @@ class ChartManager{
             throw new Error(`Series with id ${seriesId} does not exist on chart ${chartId}`)
         }
         return this.series[chartId][seriesId] || null
+    }
+
+    hasChart(chartId){
+        return this.charts[chartId] ? true : false
+    }
+
+    getChartIds(){
+        return Object.keys(this.charts)
+    }
+
+    getChartCount(){
+        return Object.keys(this.charts).length
     }
 }
 
