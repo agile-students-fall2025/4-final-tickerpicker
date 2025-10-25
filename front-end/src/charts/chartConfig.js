@@ -33,6 +33,17 @@ export const DARK_THEME = {
     }
 }
 
+export const LINE_COLORS = {
+    color: 'green', // green color
+    lineWidth: 2, // line width
+    lineType: 'solid', // line type
+    lineStyle: 'solid', // line style
+    lineDash: [], // line dash
+    lineDashOffset: 0, // line dash offset
+    lineDashSize: 10, // line dash size
+    lineDashOffset: 0, // line dash offset
+}
+
 export const CANDLESTICK_COLORS = {
     upColor: '#26a69a', // teal accent-3
     downColor: '#ef5350', // red accent-4

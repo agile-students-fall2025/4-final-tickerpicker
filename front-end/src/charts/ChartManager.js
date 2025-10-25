@@ -1,4 +1,4 @@
-import { createChart, CandlestickSeries } from "lightweight-charts";
+import { createChart, CandlestickSeries, LineSeries } from "lightweight-charts";
 import { getChartConfig, CANDLESTICK_COLORS } from "./chartConfig.js";
 
 class ChartManager {
@@ -77,6 +77,21 @@ class ChartManager {
     // Return a placeholder for now
     return null;
   }
+
+   addLineSeries(chartId, seriesId, options = {}) {
+    if (!this.charts[chartId]) {
+      throw new Error(`Chart with id ${chartId} does not exist`);
+    }
+    if (this.series[chartId][seriesId]) {
+      console.warn(`Series with id ${seriesId} already exists on chart ${chartId}`);
+      return this.series[chartId][seriesId];
+    }
+     const lineOptions = { ...LINE_COLORS, ...options };
+     const series = this.charts[chartId].addSeries(LineSeries, lineOptions);
+     this.series[chartId][seriesId] = series;
+     console.log(`Line series with id ${seriesId} added to chart ${chartId} successfully`);
+     return series;
+   }
 
   removeChart(chartId) {
     if (!this.charts[chartId]) {
