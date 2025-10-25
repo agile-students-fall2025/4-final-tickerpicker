@@ -1,36 +1,9 @@
 /**
  * Bullish Market Data - Strong upward trend with mostly green candles
+ * Generated using positive skew for bullish bias
  */
 
-export const bullishMarketData = [
-  { time: "2024-12-01", open: 150.25, high: 152.8, low: 149.1, close: 151.45 },
-  { time: "2024-12-02", open: 151.45, high: 153.2, low: 150.3, close: 152.75 },
-  { time: "2024-12-03", open: 152.75, high: 154.9, low: 151.8, close: 153.2 },
-  { time: "2024-12-04", open: 153.2, high: 155.15, low: 152.4, close: 154.6 },
-  { time: "2024-12-05", open: 154.6, high: 156.25, low: 153.85, close: 155.9 },
-  { time: "2024-12-06", open: 155.9, high: 157.4, low: 154.2, close: 156.3 },
-  { time: "2024-12-07", open: 156.3, high: 158.75, low: 155.1, close: 157.85 },
-  { time: "2024-12-08", open: 157.85, high: 159.2, low: 156.5, close: 158.4 },
-  { time: "2024-12-09", open: 158.4, high: 160.15, low: 157.25, close: 159.7 },
-  { time: "2024-12-10", open: 159.7, high: 161.3, low: 158.9, close: 160.25 },
-  { time: "2024-12-11", open: 160.25, high: 162.8, low: 159.4, close: 161.95 },
-  { time: "2024-12-12", open: 161.95, high: 163.5, low: 160.75, close: 162.8 },
-  { time: "2024-12-13", open: 162.8, high: 164.25, low: 161.2, close: 163.4 },
-  { time: "2024-12-14", open: 163.4, high: 165.1, low: 162.15, close: 164.75 },
-  { time: "2024-12-15", open: 164.75, high: 166.6, low: 163.8, close: 165.9 },
-  { time: "2024-12-16", open: 165.9, high: 167.25, low: 164.3, close: 166.4 },
-  { time: "2024-12-17", open: 166.4, high: 168.15, low: 165.5, close: 167.8 },
-  { time: "2024-12-18", open: 167.8, high: 169.4, low: 166.25, close: 168.6 },
-  { time: "2024-12-19", open: 168.6, high: 170.25, low: 167.1, close: 169.75 },
-  { time: "2024-12-20", open: 169.75, high: 171.5, low: 168.4, close: 170.3 },
-  { time: "2024-12-21", open: 170.3, high: 172.15, low: 169.2, close: 171.45 },
-  { time: "2024-12-22", open: 171.45, high: 173.8, low: 170.6, close: 172.9 },
-  { time: "2024-12-23", open: 172.9, high: 174.25, low: 171.4, close: 173.6 },
-  { time: "2024-12-24", open: 173.6, high: 175.1, low: 172.15, close: 174.4 },
-  { time: "2024-12-25", open: 174.4, high: 176.3, low: 173.2, close: 175.85 },
-  { time: "2024-12-26", open: 175.85, high: 177.5, low: 174.6, close: 176.9 },
-  { time: "2024-12-27", open: 176.9, high: 178.25, low: 175.4, close: 177.6 },
-  { time: "2024-12-28", open: 177.6, high: 179.15, low: 176.3, close: 178.75 },
-  { time: "2024-12-29", open: 178.75, high: 180.4, low: 177.5, close: 179.9 },
-  { time: "2024-12-30", open: 179.9, high: 181.25, low: 178.6, close: 180.85 },
-];
+import { generateStockData } from "./dataGenerator.js";
+
+// Generate bullish data with positive skew (more up days than down days)
+export const bullishMarketData = generateStockData(150, 30, 0.02, 0.3);
