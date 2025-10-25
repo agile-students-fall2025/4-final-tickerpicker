@@ -1,0 +1,36 @@
+/**
+ * Bearish Market Data - Strong downward trend with mostly red candles
+ */
+
+export const bearishMarketData = [
+  { time: "2024-12-01", open: 180.25, high: 182.8, low: 179.1, close: 181.45 },
+  { time: "2024-12-02", open: 181.45, high: 183.2, low: 180.3, close: 182.75 },
+  { time: "2024-12-03", open: 182.75, high: 184.9, low: 181.8, close: 183.2 },
+  { time: "2024-12-04", open: 183.2, high: 185.15, low: 182.4, close: 184.6 },
+  { time: "2024-12-05", open: 184.6, high: 186.25, low: 183.85, close: 185.9 },
+  { time: "2024-12-06", open: 185.9, high: 187.4, low: 184.2, close: 186.3 },
+  { time: "2024-12-07", open: 186.3, high: 188.75, low: 185.1, close: 187.85 },
+  { time: "2024-12-08", open: 187.85, high: 189.2, low: 186.5, close: 188.4 },
+  { time: "2024-12-09", open: 188.4, high: 190.15, low: 187.25, close: 189.7 },
+  { time: "2024-12-10", open: 189.7, high: 191.3, low: 188.9, close: 190.25 },
+  { time: "2024-12-11", open: 190.25, high: 192.8, low: 189.4, close: 191.95 },
+  { time: "2024-12-12", open: 191.95, high: 193.5, low: 190.75, close: 192.8 },
+  { time: "2024-12-13", open: 192.8, high: 194.25, low: 191.2, close: 193.4 },
+  { time: "2024-12-14", open: 193.4, high: 195.1, low: 192.15, close: 194.75 },
+  { time: "2024-12-15", open: 194.75, high: 196.6, low: 193.8, close: 195.9 },
+  { time: "2024-12-16", open: 195.9, high: 197.25, low: 194.3, close: 196.4 },
+  { time: "2024-12-17", open: 196.4, high: 198.15, low: 195.5, close: 197.8 },
+  { time: "2024-12-18", open: 197.8, high: 199.4, low: 196.25, close: 198.6 },
+  { time: "2024-12-19", open: 198.6, high: 200.25, low: 197.1, close: 199.75 },
+  { time: "2024-12-20", open: 199.75, high: 201.5, low: 198.4, close: 200.3 },
+  { time: "2024-12-21", open: 200.3, high: 202.15, low: 199.2, close: 201.45 },
+  { time: "2024-12-22", open: 201.45, high: 203.8, low: 200.6, close: 202.9 },
+  { time: "2024-12-23", open: 202.9, high: 204.25, low: 201.4, close: 203.6 },
+  { time: "2024-12-24", open: 203.6, high: 205.1, low: 202.15, close: 204.4 },
+  { time: "2024-12-25", open: 204.4, high: 206.3, low: 203.2, close: 205.85 },
+  { time: "2024-12-26", open: 205.85, high: 207.5, low: 204.6, close: 206.9 },
+  { time: "2024-12-27", open: 206.9, high: 208.25, low: 205.4, close: 207.6 },
+  { time: "2024-12-28", open: 207.6, high: 209.15, low: 206.3, close: 208.75 },
+  { time: "2024-12-29", open: 208.75, high: 210.4, low: 207.5, close: 209.9 },
+  { time: "2024-12-30", open: 209.9, high: 211.25, low: 208.6, close: 210.85 },
+];
