@@ -26,13 +26,18 @@ function createChartContainer(
   return chartDiv;
 }
 
-const chartManager = new ChartManager();
+const chartManager = ChartManager;
 
 // Initialize chart using the high-level method
-chartManager.initializeChart(
-  "AAPL",
-  "2024-01-01",
-  "2024-01-31",
-  "1d",
-  createChartContainer
-);
+async function initializeApp() {
+  chartManager.initializeChart(
+    "AAPL",
+    "2024-01-01",
+    "2024-01-31",
+    "1d",
+    createChartContainer
+  );
+}
+
+// Start the app
+initializeApp();
