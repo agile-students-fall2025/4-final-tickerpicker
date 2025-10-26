@@ -50,7 +50,7 @@ If time permits, we'd like to add:
 ### Sprint 0 Roles
 
 - **Product Owner:** [Lauren Throve](https://github.com/laurenst17)
-- **Scrum Master:** [Lauren Throve](https://github.com/laurenst17)
+- **Scrum Master:** [Julien Soto-Raspa](https://github.com/jlnsr)
 
 ### Developers
 
@@ -58,7 +58,7 @@ If time permits, we'd like to add:
 - [Apoorv Belgundi](https://github.com/apoorvib)
 - [Michael Mvano](https://github.com/michx02)
 - [Julien Soto-Raspa](https://github.com/jlnsr)
-- Jerry
+- [Muyao (Jerry) Kong](https://github.com/Jerry-K5050)
 
 _Note: Scrum Master and Product Owner roles rotate each sprint so everyone gets experience in each role._
 
@@ -170,12 +170,12 @@ Features that explain financial concepts
 
 ## Project Status
 
-**Current Sprint:** Sprint 0  
-**Status:** Planning and setup phase
+**Current Sprint:** Sprint 1 
+**Status:** Frontend and UI Development Phase
 
 We're currently:
 
-- Setting up development environment
-- Finalizing technical architecture decisions
-- Creating initial product backlog
-- Establishing team workflows
+- Developing multiple web pages
+- Developing a modular charting class
+- Creating a basic backend which can fetch real data
+- Establishing exactly what needs to be developed in the backend (next) sprint
