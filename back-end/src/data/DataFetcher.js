@@ -15,7 +15,13 @@ import YahooFinance from "yahoo-finance2";
  * @param {string} timeframe - Data interval ('1d', '1wk', '1mo', '1m', '5m', etc.)
  * @returns {Object} Chart data with quotes array and metadata
  */
-export async function queryData(ticker, startDate, endDate, timeframe = "1d") {
+export async function queryData(
+  ticker,
+  startDate,
+  endDate,
+  timeframe = "1d",
+  getMetaData = false
+) {
   try {
     const yahooFinance = new YahooFinance();
 
@@ -24,8 +30,11 @@ export async function queryData(ticker, startDate, endDate, timeframe = "1d") {
       period2: endDate,
       interval: timeframe,
     });
-
-    return data;
+    if (getMetaData) {
+      return data;
+    } else {
+      return data.quotes;
+    }
   } catch (error) {
     console.error(`Error fetching data for ${ticker}:`, error.message);
     throw error;
@@ -54,13 +63,19 @@ export async function getFundamentals(ticker) {
 }
 
 // Example usage and testing functions (uncomment to test)
-/*
 async function testDataFetching() {
   try {
     // Test historical data
-    const historicalData = await queryData("AAPL", "2024-01-01", "2024-01-31", "1d");
-    console.log(`Fetched ${historicalData.quotes.length} days of AAPL data`);
-    
+    const historicalData = await queryData(
+      "AAPL",
+      "2024-01-01",
+      "2024-01-31",
+      "1d"
+    );
+    console.log(`Fetched ${historicalData.length} days of AAPL data`);
+    console.log(historicalData);
+    console.log(historicalData[0]);
+
     // Test fundamentals
     const fundamentals = await getFundamentals("AAPL");
     console.log("AAPL fundamentals:", fundamentals.summaryDetail);
@@ -70,5 +85,4 @@ async function testDataFetching() {
 }
 
 // Uncomment to run test:
-// testDataFetching();
-*/
+testDataFetching();
