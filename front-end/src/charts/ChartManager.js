@@ -1,5 +1,11 @@
 import { createChart, CandlestickSeries, LineSeries } from "lightweight-charts";
-import { getChartConfig, CANDLESTICK_COLORS } from "./chartConfig.js";
+import {
+  getChartConfig,
+  CANDLESTICK_COLORS,
+  DEFAULT_CHART_WIDTH,
+  DEFAULT_CHART_HEIGHT,
+} from "./chartConfig.js";
+import { queryData } from "../../back-end/src/data/DataFetcher.js";
 
 class ChartManager {
   constructor() {
@@ -158,6 +164,50 @@ class ChartManager {
 
   getChartCount() {
     return Object.keys(this.charts).length;
+  }
+
+  generateChartId(ticker, startDate, endDate, timeframe = "1d") {
+    return `${ticker}-${startDate}-${endDate}-${timeframe}-chart`;
+  }
+
+  generateChartTitle(ticker) {
+    return `${ticker}`;
+  }
+
+  generateSeriesId(ticker, startDate, endDate, timeframe = "1d") {
+    return `${ticker}-${startDate}-${endDate}-${timeframe}-series`;
+  }
+
+  async initializeChart(
+    ticker,
+    startDate,
+    endDate,
+    timeframe = "1d",
+    containerCreator,
+    width = DEFAULT_CHART_WIDTH,
+    height = DEFAULT_CHART_HEIGHT
+  ) {
+    const chartId = this.generateChartId(ticker, startDate, endDate, timeframe);
+    const chartTitle = this.generateChartTitle(ticker);
+    const chartDiv = containerCreator(chartId, chartTitle, width, height);
+
+    const chart = this.addChart(chartId, chartDiv);
+
+    // Add series and wait for it to be created
+    const seriesId = this.generateSeriesId(
+      ticker,
+      startDate,
+      endDate,
+      timeframe
+    );
+    const series = await this.addCandlestickSeries(chartId, seriesId);
+    const data = await queryData(ticker, startDate, endDate, timeframe);
+    series.setData(data);
+    chart.timeScale().fitContent();
+
+    console.log("Created chart successfully");
+
+    return chart;
   }
 }
 
