@@ -165,20 +165,20 @@ class ChartManager {
     return Object.keys(this.charts).length;
   }
 
-  generateChartId(ticker, startDate, endDate, timeframe = "1d") {
-    return `${ticker}-${startDate}-${endDate}-${timeframe}-chart`;
+  generateChartId(symbol, startDate, endDate, timeframe = "1d") {
+    return `${symbol}-${startDate}-${endDate}-${timeframe}-chart`;
   }
 
-  generateChartTitle(ticker) {
-    return `${ticker}`;
+  generateChartTitle(symbol) {
+    return `${symbol}`;
   }
 
-  generateSeriesId(ticker, startDate, endDate, timeframe = "1d") {
-    return `${ticker}-${startDate}-${endDate}-${timeframe}-series`;
+  generateSeriesId(symbol, startDate, endDate, timeframe = "1d") {
+    return `${symbol}-${startDate}-${endDate}-${timeframe}-series`;
   }
 
   async initializeChart(
-    ticker,
+    symbol,
     startDate,
     endDate,
     timeframe = "1d",
@@ -186,15 +186,15 @@ class ChartManager {
     width = DEFAULT_CHART_WIDTH,
     height = DEFAULT_CHART_HEIGHT
   ) {
-    const chartId = this.generateChartId(ticker, startDate, endDate, timeframe);
-    const chartTitle = this.generateChartTitle(ticker);
+    const chartId = this.generateChartId(symbol, startDate, endDate, timeframe);
+    const chartTitle = this.generateChartTitle(symbol);
     const chartDiv = containerCreator(chartId, chartTitle, width, height);
 
     const chart = this.addChart(chartId, chartDiv);
 
     // Add series and wait for it to be created
     const seriesId = this.generateSeriesId(
-      ticker,
+      symbol,
       startDate,
       endDate,
       timeframe
@@ -202,8 +202,8 @@ class ChartManager {
     const series = await this.addCandlestickSeries(chartId, seriesId);
 
     // Fetch data from backend API
-    const data = await this.fetchStockData(
-      ticker,
+    const data = await this.fetchPriceData(
+      symbol,
       startDate,
       endDate,
       timeframe
@@ -216,10 +216,10 @@ class ChartManager {
     return chart;
   }
 
-  async fetchStockData(ticker, startDate, endDate, timeframe) {
+  async fetchPriceData(symbol, startDate, endDate, timeframe) {
     try {
       const response = await fetch(
-        `http://localhost:3001/api/stock-data/${ticker}?startDate=${startDate}&endDate=${endDate}&timeframe=${timeframe}`
+        `http://localhost:3001/api/price-data/${symbol}?startDate=${startDate}&endDate=${endDate}&timeframe=${timeframe}`
       );
 
       if (!response.ok) {
@@ -239,7 +239,7 @@ class ChartManager {
         volume: quote.volume,
       }));
     } catch (error) {
-      console.error("Error fetching stock data:", error);
+      console.error("Error fetching price data:", error);
       throw error;
     }
   }

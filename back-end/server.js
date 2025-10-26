@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
-const { queryData, getFundamentals } = require("./src/data/DataFetcher.js");
+const {
+  queryPriceData,
+  getFundamentals,
+} = require("./src/data/DataFetcher.js");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -10,9 +13,9 @@ app.use(cors());
 app.use(express.json());
 
 // API Routes
-app.get("/api/stock-data/:ticker", async (req, res) => {
+app.get("/api/price-data/:symbol", async (req, res) => {
   try {
-    const { ticker } = req.params;
+    const { symbol } = req.params;
     const { startDate, endDate, timeframe = "1d" } = req.query;
 
     if (!startDate || !endDate) {
@@ -21,21 +24,21 @@ app.get("/api/stock-data/:ticker", async (req, res) => {
       });
     }
 
-    const data = await queryData(ticker, startDate, endDate, timeframe);
+    const data = await queryPriceData(symbol, startDate, endDate, timeframe);
     res.json(data);
   } catch (error) {
-    console.error("Error fetching stock data:", error);
+    console.error("Error fetching price data:", error);
     res.status(500).json({
-      error: "Failed to fetch stock data",
+      error: "Failed to fetch price data",
       message: error.message,
     });
   }
 });
 
-app.get("/api/fundamentals/:ticker", async (req, res) => {
+app.get("/api/fundamentals/:symbol", async (req, res) => {
   try {
-    const { ticker } = req.params;
-    const data = await getFundamentals(ticker);
+    const { symbol } = req.params;
+    const data = await getFundamentals(symbol);
     res.json(data);
   } catch (error) {
     console.error("Error fetching fundamentals:", error);
