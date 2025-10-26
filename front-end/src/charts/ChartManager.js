@@ -178,15 +178,8 @@ class ChartManager {
     return `${ticker}-${startDate}-${endDate}-${timeframe}-series`;
   }
 
-  async initializeChart(
-    ticker,
-    startDate,
-    endDate,
-    timeframe = "1d",
-    containerCreator,
-    width = DEFAULT_CHART_WIDTH,
-    height = DEFAULT_CHART_HEIGHT
-  ) {
+  async initializeChart(ticker, startDate, endDate, timeframe = "1d", containerCreator, width = DEFAULT_CHART_WIDTH, height = DEFAULT_CHART_HEIGHT) {
+    
     const chartId = this.generateChartId(ticker, startDate, endDate, timeframe);
     const chartTitle = this.generateChartTitle(ticker);
     const chartDiv = containerCreator(chartId, chartTitle, width, height);
