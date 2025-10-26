@@ -52,6 +52,11 @@ If time permits, we'd like to add:
 - **Product Owner:** [Lauren Throve](https://github.com/laurenst17)
 - **Scrum Master:** [Julien Soto-Raspa](https://github.com/jlnsr)
 
+### Sprint 1 Roles
+
+- **Product Owner:** [Muyao (Jerry) Kong](https://github.com/Jerry-K5050)
+- **Scrum Master:** [Apoorv Belgundi](https://github.com/apoorvib)
+
 ### Developers
 
 - [Lauren Throve](https://github.com/laurenst17)
