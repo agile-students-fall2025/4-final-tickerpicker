@@ -1,5 +1,11 @@
-import { createChart, CandlestickSeries } from "lightweight-charts";
-import { getChartConfig, CANDLESTICK_COLORS } from "./chartConfig.js";
+import { createChart, CandlestickSeries, LineSeries } from "lightweight-charts";
+import {
+  getChartConfig,
+  CANDLESTICK_COLORS,
+  DEFAULT_CHART_WIDTH,
+  DEFAULT_CHART_HEIGHT,
+} from "./chartConfig.js";
+import { queryData } from "../../back-end/src/data/DataFetcher.js";
 
 class ChartManager {
   constructor() {
@@ -40,7 +46,7 @@ class ChartManager {
    * @returns { object } The created series instance
    */
 
-  addCandlestickSeries(chartId, seriesId, options = {}) {
+  async addCandlestickSeries(chartId, seriesId, options = {}) {
     // Check if the chart exists
     if (!this.charts[chartId]) {
       throw new Error(`Chart with id ${chartId} does not exist`);
@@ -58,24 +64,44 @@ class ChartManager {
     const chart = this.charts[chartId];
 
     // Wait for the chart to be ready before adding series
-    setTimeout(() => {
-      try {
-        // Merge default candlestick options with user options. User options override default options.
-        const candlestickOptions = { ...CANDLESTICK_COLORS, ...options };
-        // Add the series to the chart
-        const series = chart.addSeries(CandlestickSeries, candlestickOptions);
-        // Store the series instance in the series object
-        this.series[chartId][seriesId] = series;
-        console.log(
-          `Candlestick series with id ${seriesId} added to chart ${chartId} successfully`
-        );
-      } catch (error) {
-        console.error(`Error adding series to chart ${chartId}:`, error);
-      }
-    }, 100);
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        try {
+          // Merge default candlestick options with user options. User options override default options.
+          const candlestickOptions = { ...CANDLESTICK_COLORS, ...options };
+          // Add the series to the chart
+          const series = chart.addSeries(CandlestickSeries, candlestickOptions);
+          // Store the series instance in the series object
+          this.series[chartId][seriesId] = series;
+          console.log(
+            `Candlestick series with id ${seriesId} added to chart ${chartId} successfully`
+          );
+          resolve(series);
+        } catch (error) {
+          console.error(`Error adding series to chart ${chartId}:`, error);
+          reject(error);
+        }
+      }, 100);
+    });
+  }
 
-    // Return a placeholder for now
-    return null;
+  addLineSeries(chartId, seriesId, options = {}) {
+    if (!this.charts[chartId]) {
+      throw new Error(`Chart with id ${chartId} does not exist`);
+    }
+    if (this.series[chartId][seriesId]) {
+      console.warn(
+        `Series with id ${seriesId} already exists on chart ${chartId}`
+      );
+      return this.series[chartId][seriesId];
+    }
+    const lineOptions = { ...LINE_COLORS, ...options };
+    const series = this.charts[chartId].addSeries(LineSeries, lineOptions);
+    this.series[chartId][seriesId] = series;
+    console.log(
+      `Line series with id ${seriesId} added to chart ${chartId} successfully`
+    );
+    return series;
   }
 
   removeChart(chartId) {
@@ -139,6 +165,44 @@ class ChartManager {
   getChartCount() {
     return Object.keys(this.charts).length;
   }
+
+  generateChartId(ticker, startDate, endDate, timeframe = "1d") {
+    return `${ticker}-${startDate}-${endDate}-${timeframe}-chart`;
+  }
+
+  generateChartTitle(ticker) {
+    return `${ticker}`;
+  }
+
+  generateSeriesId(ticker, startDate, endDate, timeframe = "1d") {
+    return `${ticker}-${startDate}-${endDate}-${timeframe}-series`;
+  }
+
+  async initializeChart(ticker, startDate, endDate, timeframe = "1d", containerCreator, width = DEFAULT_CHART_WIDTH, height = DEFAULT_CHART_HEIGHT) {
+    
+    const chartId = this.generateChartId(ticker, startDate, endDate, timeframe);
+    const chartTitle = this.generateChartTitle(ticker);
+    const chartDiv = containerCreator(chartId, chartTitle, width, height);
+
+    const chart = this.addChart(chartId, chartDiv);
+
+    // Add series and wait for it to be created
+    const seriesId = this.generateSeriesId(
+      ticker,
+      startDate,
+      endDate,
+      timeframe
+    );
+    const series = await this.addCandlestickSeries(chartId, seriesId);
+    const data = await queryData(ticker, startDate, endDate, timeframe);
+    series.setData(data);
+    chart.timeScale().fitContent();
+
+    console.log("Created chart successfully");
+
+    return chart;
+  }
 }
 
-export default ChartManager;
+const chartManagerInstance = new ChartManager();
+export default chartManagerInstance;

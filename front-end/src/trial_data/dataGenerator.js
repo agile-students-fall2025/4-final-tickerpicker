@@ -6,7 +6,8 @@
 export function generateStockData(
   startPrice = 150,
   days = 30,
-  volatility = 0.02
+  volatility = 0.02,
+  skew = 0.1
 ) {
   const data = [];
   let currentPrice = startPrice;
@@ -16,8 +17,10 @@ export function generateStockData(
     date.setDate(date.getDate() - (days - i));
     const timeString = date.toISOString().split("T")[0];
 
-    // Random direction (60% up, 40% down for slight bullish bias)
-    const isUp = Math.random() < 0.6;
+    // Direction based on skew parameter
+    // skew > 0 = bullish bias, skew < 0 = bearish bias, skew = 0 = neutral
+    const upProbability = 0.5 + skew;
+    const isUp = Math.random() < upProbability;
 
     // Random volatility multiplier (0.5x to 2x base volatility)
     const volatilityMultiplier = 0.5 + Math.random() * 1.5;
