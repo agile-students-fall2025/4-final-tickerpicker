@@ -87,9 +87,37 @@ Want to contribute? Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 - **Database:** TBD
 - **Authentication:** TBD
 
-## Building and Testing
+## How to Run
 
-_Coming soon - we'll update this once we start development._
+### Prerequisites
+
+- Node.js installed
+- npm installed
+
+### Running the Application
+
+**1. Start the Backend Server:**
+
+```bash
+cd back-end
+npm install
+npm run dev
+```
+
+Backend will run on `http://localhost:3001`
+
+**2. Start the Frontend (in a new terminal):**
+
+```bash
+npm install
+npm run dev
+```
+
+Frontend will run on `http://localhost:5173`
+
+**3. Open your browser to `http://localhost:5173`**
+
+Both servers must be running simultaneously for the application to work properly.
 
 ## Product Backlog Themes
 
