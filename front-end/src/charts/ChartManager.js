@@ -5,7 +5,6 @@ import {
   DEFAULT_CHART_WIDTH,
   DEFAULT_CHART_HEIGHT,
 } from "./chartConfig.js";
-import { queryData } from "../../back-end/src/data/DataFetcher.js";
 
 class ChartManager {
   constructor() {
@@ -166,41 +165,114 @@ class ChartManager {
     return Object.keys(this.charts).length;
   }
 
-  generateChartId(ticker, startDate, endDate, timeframe = "1d") {
-    return `${ticker}-${startDate}-${endDate}-${timeframe}-chart`;
+  generateChartId(symbol, startDate, endDate, timeframe = "1d") {
+    return `${symbol}-${startDate}-${endDate}-${timeframe}-chart`;
   }
 
-  generateChartTitle(ticker) {
-    return `${ticker}`;
+  generateChartTitle(symbol) {
+    return `${symbol}`;
   }
 
-  generateSeriesId(ticker, startDate, endDate, timeframe = "1d") {
-    return `${ticker}-${startDate}-${endDate}-${timeframe}-series`;
+  generateSeriesId(symbol, startDate, endDate, timeframe = "1d") {
+    return `${symbol}-${startDate}-${endDate}-${timeframe}-series`;
   }
 
-  async initializeChart(ticker, startDate, endDate, timeframe = "1d", containerCreator, width = DEFAULT_CHART_WIDTH, height = DEFAULT_CHART_HEIGHT) {
-    
-    const chartId = this.generateChartId(ticker, startDate, endDate, timeframe);
-    const chartTitle = this.generateChartTitle(ticker);
-    const chartDiv = containerCreator(chartId, chartTitle, width, height);
+  createDefaultChartContainer(
+    id,
+    title,
+    width = DEFAULT_CHART_WIDTH,
+    height = DEFAULT_CHART_HEIGHT
+  ) {
+    const app = document.getElementById("app");
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "chart-container";
+
+    const titleElement = document.createElement("h3");
+    titleElement.className = "chart-title";
+    titleElement.textContent = title;
+
+    const chartDiv = document.createElement("div");
+    chartDiv.id = id;
+    chartDiv.style.width = width + "px";
+    chartDiv.style.height = height + "px";
+
+    wrapper.appendChild(titleElement);
+    wrapper.appendChild(chartDiv);
+    app.appendChild(wrapper);
+
+    return chartDiv;
+  }
+
+  async initializeChart(
+    symbol,
+    startDate,
+    endDate,
+    timeframe = "1d",
+    containerCreator = null,
+    width = DEFAULT_CHART_WIDTH,
+    height = DEFAULT_CHART_HEIGHT
+  ) {
+    const chartId = this.generateChartId(symbol, startDate, endDate, timeframe);
+    const chartTitle = this.generateChartTitle(symbol);
+
+    // Use default container creator if none provided
+    const createContainer =
+      containerCreator || this.createDefaultChartContainer.bind(this);
+    const chartDiv = createContainer(chartId, chartTitle, width, height);
 
     const chart = this.addChart(chartId, chartDiv);
 
     // Add series and wait for it to be created
     const seriesId = this.generateSeriesId(
-      ticker,
+      symbol,
       startDate,
       endDate,
       timeframe
     );
     const series = await this.addCandlestickSeries(chartId, seriesId);
-    const data = await queryData(ticker, startDate, endDate, timeframe);
+
+    // Fetch data from backend API
+    const data = await this.fetchPriceData(
+      symbol,
+      startDate,
+      endDate,
+      timeframe
+    );
     series.setData(data);
     chart.timeScale().fitContent();
 
     console.log("Created chart successfully");
 
     return chart;
+  }
+
+  async fetchPriceData(symbol, startDate, endDate, timeframe) {
+    try {
+      const response = await fetch(
+        `http://localhost:3001/api/price-data/${symbol}?startDate=${startDate}&endDate=${endDate}&timeframe=${timeframe}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const quotes = data.quotes || data; // Handle both full response and quotes array
+
+      // Transform data format for lightweight-charts
+      return quotes.map((quote) => ({
+        time: Math.floor(new Date(quote.date).getTime() / 1000), // Convert to Unix timestamp
+        open: quote.open,
+        high: quote.high,
+        low: quote.low,
+        close: quote.close,
+        volume: quote.volume,
+      }));
+    } catch (error) {
+      console.error("Error fetching price data:", error);
+      throw error;
+    }
   }
 }
 

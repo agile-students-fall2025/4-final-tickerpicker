@@ -52,6 +52,11 @@ If time permits, we'd like to add:
 - **Product Owner:** [Lauren Throve](https://github.com/laurenst17)
 - **Scrum Master:** [Julien Soto-Raspa](https://github.com/jlnsr)
 
+### Sprint 1 Roles
+
+- **Product Owner:** [Muyao (Jerry) Kong](https://github.com/Jerry-K5050)
+- **Scrum Master:** [Apoorv Belgundi](https://github.com/apoorvib)
+
 ### Developers
 
 - [Lauren Throve](https://github.com/laurenst17)
@@ -87,9 +92,37 @@ Want to contribute? Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 - **Database:** TBD
 - **Authentication:** TBD
 
-## Building and Testing
+## How to Run
 
-_Coming soon - we'll update this once we start development._
+### Prerequisites
+
+- Node.js installed
+- npm installed
+
+### Running the Application
+
+**1. Start the Backend Server:**
+
+```bash
+cd back-end
+npm install
+npm run dev
+```
+
+Backend will run on `http://localhost:3001`
+
+**2. Start the Frontend (in a new terminal):**
+
+```bash
+npm install
+npm run dev
+```
+
+Frontend will run on `http://localhost:5173`
+
+**3. Open your browser to `http://localhost:5173`**
+
+Both servers must be running simultaneously for the application to work properly.
 
 ## Product Backlog Themes
 
@@ -142,12 +175,12 @@ Features that explain financial concepts
 
 ## Project Status
 
-**Current Sprint:** Sprint 0  
-**Status:** Planning and setup phase
+**Current Sprint:** Sprint 1 
+**Status:** Frontend and UI Development Phase
 
 We're currently:
 
-- Setting up development environment
-- Finalizing technical architecture decisions
-- Creating initial product backlog
-- Establishing team workflows
+- Developing multiple web pages
+- Developing a modular charting class
+- Creating a basic backend which can fetch real data
+- Establishing exactly what needs to be developed in the backend (next) sprint
