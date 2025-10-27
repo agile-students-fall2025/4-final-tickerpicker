@@ -1,42 +1,19 @@
 import ChartManager from "./charts/chartManager.js";
+// Importing the chart config in case we need to use default values in the future
 import {
   DEFAULT_CHART_WIDTH,
   DEFAULT_CHART_HEIGHT,
 } from "./charts/chartConfig.js";
 
-function createChartContainer(
-  id,
-  title,
-  chartWidth = DEFAULT_CHART_WIDTH,
-  chartHeight = DEFAULT_CHART_HEIGHT
-) {
-  const app = document.getElementById("app");
-  const wrapper = document.createElement("div");
-  wrapper.className = "chart-container";
-  const titleElement = document.createElement("h3");
-  titleElement.className = "chart-title";
-  titleElement.textContent = title;
-  const chartDiv = document.createElement("div");
-  chartDiv.id = id;
-  chartDiv.style.width = chartWidth + "px";
-  chartDiv.style.height = chartHeight + "px";
-  wrapper.appendChild(titleElement);
-  wrapper.appendChild(chartDiv);
-  app.appendChild(wrapper);
-  return chartDiv;
-}
-
 const chartManager = ChartManager;
 
-// Initialize chart using the high-level method
+// Initialize chart using the clip-level method with default container
 async function initializeApp() {
-  chartManager.initializeChart(
-    "AAPL",
-    "2024-01-01",
-    "2024-01-31",
-    "1d",
-    createChartContainer
-  );
+  // Using service container (no need to pass createChartContainer)
+  await chartManager.initializeChart("AAPL", "2024-01-01", "2024-01-31", "1d");
+
+  // Example with custom width/height
+  // await chartManager.initializeChart("MSFT", "2024-01-01", "2024-01-31", "1d", null, 1200, 600);
 }
 
 // Start the app

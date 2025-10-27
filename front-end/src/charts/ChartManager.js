@@ -177,18 +177,49 @@ class ChartManager {
     return `${symbol}-${startDate}-${endDate}-${timeframe}-series`;
   }
 
+  createDefaultChartContainer(
+    id,
+    title,
+    width = DEFAULT_CHART_WIDTH,
+    height = DEFAULT_CHART_HEIGHT
+  ) {
+    const app = document.getElementById("app");
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "chart-container";
+
+    const titleElement = document.createElement("h3");
+    titleElement.className = "chart-title";
+    titleElement.textContent = title;
+
+    const chartDiv = document.createElement("div");
+    chartDiv.id = id;
+    chartDiv.style.width = width + "px";
+    chartDiv.style.height = height + "px";
+
+    wrapper.appendChild(titleElement);
+    wrapper.appendChild(chartDiv);
+    app.appendChild(wrapper);
+
+    return chartDiv;
+  }
+
   async initializeChart(
     symbol,
     startDate,
     endDate,
     timeframe = "1d",
-    containerCreator,
+    containerCreator = null,
     width = DEFAULT_CHART_WIDTH,
     height = DEFAULT_CHART_HEIGHT
   ) {
     const chartId = this.generateChartId(symbol, startDate, endDate, timeframe);
     const chartTitle = this.generateChartTitle(symbol);
-    const chartDiv = containerCreator(chartId, chartTitle, width, height);
+
+    // Use default container creator if none provided
+    const createContainer =
+      containerCreator || this.createDefaultChartContainer.bind(this);
+    const chartDiv = createContainer(chartId, chartTitle, width, height);
 
     const chart = this.addChart(chartId, chartDiv);
 
