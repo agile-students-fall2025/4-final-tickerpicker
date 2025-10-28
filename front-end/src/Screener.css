@@ -1,0 +1,43 @@
+/* C. screener */
+/* container div */
+#Screener-Container {
+    margin-right: 10px;
+}
+#Screener-Container #Screener-Header {
+    h1 { margin: 0; 
+        background-color: var(--secondary-color);
+        background: var(--secondary-gradient); 
+        color: white;}
+}
+#Screener-Container #Screener {
+    border: 2px solid black;
+    height: 60vh; overflow: scroll;
+}
+#Screener .stock {
+    padding: 10px; margin: 10px; margin-bottom: 30px;
+    background-color: whitesmoke; border-radius: 10px;
+    border: 2px solid var(--secondary-color);
+    > * { margin: 0; }
+    img { height: 50px; }
+}
+#Screener .stock:hover{ background-color: darkgray; }
+#Screener .stock .stock-metrics {
+    display: grid; grid-template-columns: 50% 50%;;
+    gap: 10px;
+    span { 
+        padding: 5px;
+        font-size: 1.2em; width: 90%;
+    }
+}
+#Screener .stock .stock-chart {
+    text-align: center; align-content: center;
+    width: 200px; height: 200px;
+    background-color: lightgray;
+}
+#Screener-Container button{
+    /*background-color: var(--secondary-color);*/ background: var(--brand-gradient-2);
+    border: 2px solid goldenrod; border-image: var(--brand-gradient) 1;
+    color: whitesmoke;
+    height: 50px; width: 200px;
+    display: block; margin: 10px auto;
+}
