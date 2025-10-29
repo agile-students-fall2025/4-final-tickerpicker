@@ -9,7 +9,7 @@ import { useAuth } from "./context/AuthContext.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
-import HomePage from "./pages/HomePage.jsx";
+// import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 // import ProfilePage from "./pages/ProfilePage.jsx";
@@ -30,7 +30,7 @@ export default function App() {
                     <main className="flex-1 min-w-0 flex items-center justify-center">
                         <div className="w-full max-w-md">
                             <Routes>
-                                <Route path="/" element={<HomePage />} />
+                                {/* <Route path="/" element={<HomePage />} /> */}
                                 <Route path="/login" element={<LoginPage />} />
                                 <Route path="/register" element={<RegisterPage />} />
                             </Routes>
