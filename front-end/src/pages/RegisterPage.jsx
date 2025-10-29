@@ -49,48 +49,49 @@ export default function RegisterPage() {
             <div className="tp-card p-8 flex flex-col gap-6">
                 <div className="flex flex-col gap-2 text-center">
                     <h1 className="text-2xl font-semibold text-black">
-                        Create your account
+                        REGISTER
                     </h1>
                 </div>
 
                 <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
                     <AuthFormInput
-                      label="Name"
-                      name="name"
-                      placeholder="Your Name"
-                      value={form.name}
-                      onChange={handleChange}
-                      error={errors.name}
+                        label="Username:"
+                        name="name"
+                        placeholder="Your Name"
+                        value={form.name}
+                        onChange={handleChange}
+                        error={errors.name}
+                    />
+                
+                
+                    <AuthFormInput
+                        label="Email:"
+                        type="email"
+                        name="email"
+                        placeholder="example@nyu.edu"
+                        value={form.email}
+                        onChange={handleChange}
+                        error={errors.email}
                     />
 
                     <AuthFormInput
-                      label="Email"
-                      type="email"
-                      name="email"
-                      placeholder="example@nyu.edu"
-                      value={form.email}
-                      onChange={handleChange}
-                      error={errors.email}
+                        label="Password:"
+                        type="password"
+                        name="password"
+                        placeholder="••••••••"
+                        value={form.password}
+                        onChange={handleChange}
+                        error={errors.password}
                     />
 
                     <AuthFormInput
-                      label="Password"
-                      type="password"
-                      name="password"
-                      placeholder="••••••••"
-                      value={form.password}
-                      onChange={handleChange}
-                      error={errors.password}
-                    />
-
-                    <AuthFormInput
-                      label="Confirm Password"
-                      type="password"
-                      name="confirmPassword"
-                      placeholder="••••••••"
-                      value={form.confirmPassword}
-                      onChange={handleChange}
-                      error={errors.confirmPassword}
+                        label="Confirm Password:"
+                        type="password"
+                        name="confirmPassword"
+                        placeholder="••••••••"
+                        value={form.confirmPassword}
+                        onChange={handleChange}
+                        error={errors.confirmPassword}
                     />
 
                     {submitErr && (
@@ -100,18 +101,25 @@ export default function RegisterPage() {
                     <button
                         type="submit"
                         className="tp-btn-primary w-full text-sm font-semibold">
-                        Sign Up
+                        Register
                     </button>
                 </form>
                 
-                <p className="text-center text-xs text-tp-text-dim">
-                    Already have an account?{" "}
-                    <Link
-                        to="/login"
-                        className="text-tp-accent hover:underline">
-                        Log in
-                    </Link>
-                </p>
+                <div className="flex flex-col justify-center items-center space-y-4">
+                    <p className="text-center text-xs text-tp-text-dim">
+                        ----------------- OR -----------------
+                    </p>
+
+                    <p className="text-center text-xs text-tp-text-dim">
+                        {" "}
+                        <Link
+                            to="/login"
+                            className="text-tp-text-dim underline hover:text-tp-accent">
+                            SIGN IN
+                        </Link>
+                    </p>
+                </div>
+                
             </div>
         </section>
     );

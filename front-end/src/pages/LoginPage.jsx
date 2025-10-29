@@ -38,13 +38,14 @@ export default function LoginPage() {
             <div className="tp-card p-8 flex flex-col gap-6">
                 <div className="flex flex-col gap-2 text-center">
                     <h1 className="text-2xl font-semibold text-black">
-                        Login
+                        SIGN IN
                     </h1>
                 </div>
 
                 <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+
                     <AuthFormInput
-                        label="Email"
+                        label="Email:"
                         type="email"
                         name="email"
                         placeholder="example@nyu.edu"
@@ -53,7 +54,7 @@ export default function LoginPage() {
                     />
 
                     <AuthFormInput
-                        label="Password"
+                        label="Password:"
                         type="password"
                         name="password"
                         placeholder="••••••••"
@@ -72,14 +73,20 @@ export default function LoginPage() {
                     </button>
                 </form>
                 
-                <p className="text-center text-xs text-tp-text-dim">
-                    Don't have an account?{" "}
-                    <Link
-                        to="/register"
-                        className="text-tp-accent hover:underline">
-                        Sign up
-                    </Link>
-                </p>
+                <div className="flex flex-col justify-center items-center space-y-4">
+                    <p className="text-center text-xs text-tp-text-dim">
+                        ----------------- OR -----------------
+                    </p>
+                    <p className="text-center text-xs text-tp-text">
+                        {" "}
+                        <Link
+                            to="/register"
+                            className="text-tp-text-dim underline hover:text-tp-accent">
+                            REGISTER YOUR ACCOUNT
+                        </Link>
+                    </p>
+                </div>
+                
             </div>
         </section>
     );

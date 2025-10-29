@@ -15,7 +15,7 @@ export default function AuthFormInput({
 }) {
     return (
         <div className="flex flex-col">
-            <label className="tp-label" htmlFor={name}>
+            <label className="tp-label mb-2" htmlFor={name}>
                 {label}
             </label>
 

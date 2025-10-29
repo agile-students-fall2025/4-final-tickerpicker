@@ -15,7 +15,7 @@ export default function LeftNav() {
                 <NavLink
                     to="/home"
                     className={({ isActive }) =>
-                        "block text-sm px-2 py-2 rounded-md transition-colors " +
+                        "block text-md px-2 py-2 rounded-md transition-colors " +
                         (isActive
                             ? "text-black font-medium"
                             : "text-tp-text-dim hover:text-black")
@@ -27,7 +27,7 @@ export default function LeftNav() {
                 <NavLink
                     to="/watchlist"
                     className={({ isActive }) =>
-                        "block text-sm px-2 py-2 rounded-md transition-colors " +
+                        "block text-md px-2 py-2 rounded-md transition-colors " +
                         (isActive
                             ? "text-black font-medium"
                             : "text-tp-text-dim hover:text-black")
@@ -39,7 +39,7 @@ export default function LeftNav() {
                 <NavLink
                     to="/dashboard"
                     className={({ isActive }) =>
-                        "block text-sm px-2 py-2 rounded-md transition-colors " +
+                        "block text-md px-2 py-2 rounded-md transition-colors " +
                         (isActive
                             ? "text-black font-medium"
                             : "text-tp-text-dim hover:text-black")

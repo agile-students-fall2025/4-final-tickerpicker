@@ -8,7 +8,7 @@ export default {
             colors: {
                 "tp-bg": "#ffffff",        // white background
                 "tp-card": "#ffffffff",      // shallow grey card
-                "tp-accent": "#213291ff",
+                "tp-accent": "#1d2a79ff",
                 "tp-text-dim": "#6b7280",  // 次要文字 灰
                 "tp-border": "#334155"     // 边框浅灰
             },
