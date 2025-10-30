@@ -6,7 +6,7 @@ export default function Navbar() {
     const { isAuthenticated, user } = useAuth();
 
     // for searching bar, searching query
-    const [query] = useState("")
+    const [query, setQuery] = useState("")
 
     const avatarUrl = `https://picsum.photos/seed/${
         user?.email || "guest"
