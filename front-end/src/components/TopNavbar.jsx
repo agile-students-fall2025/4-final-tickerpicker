@@ -26,7 +26,7 @@ export default function Navbar() {
                 {/* Ticker Picker logo and search bar */}
                 <div className=" flex items-center gap-10">
                     <Link
-                        to="/"
+                        to="/home"
                         className="text-lg font-semibold text-white hover:text-tp-text-dim transition-colors">
                         TickerPicker
                     </Link>

@@ -10,12 +10,12 @@ export default function LeftNav() {
         "text-black font-medium";
 
     return (
-        <aside className="flex flex-col w-48 shrink-0">
+        <aside className="flex flex-col w-40 shrink-0">
             <nav className="flex flex-col gap-3">
                 <NavLink
                     to="/home"
                     className={({ isActive }) =>
-                        "block text-md px-2 py-2 rounded-md transition-colors " +
+                        "block text-md py-2 rounded-md transition-colors " +
                         (isActive
                             ? "text-black font-medium"
                             : "text-tp-text-dim hover:text-black")
@@ -27,7 +27,7 @@ export default function LeftNav() {
                 <NavLink
                     to="/watchlist"
                     className={({ isActive }) =>
-                        "block text-md px-2 py-2 rounded-md transition-colors " +
+                        "block text-md py-2 rounded-md transition-colors " +
                         (isActive
                             ? "text-black font-medium"
                             : "text-tp-text-dim hover:text-black")
@@ -39,13 +39,25 @@ export default function LeftNav() {
                 <NavLink
                     to="/dashboard"
                     className={({ isActive }) =>
-                        "block text-md px-2 py-2 rounded-md transition-colors " +
+                        "block text-md py-2 rounded-md transition-colors " +
                         (isActive
                             ? "text-black font-medium"
                             : "text-tp-text-dim hover:text-black")
                     }
                 >
                     TickerPicker
+                </NavLink>
+                
+                <NavLink
+                    to="/profile"
+                    className={({ isActive }) =>
+                        "block text-md py-2 rounded-md transition-colors " +
+                        (isActive
+                            ? "text-black font-medium"
+                            : "text-tp-text-dim hover:text-black")
+                    }
+                >
+                    Profile
                 </NavLink>
             </nav>
         </aside>
