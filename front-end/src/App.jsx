@@ -15,7 +15,7 @@ import RegisterPage from "./pages/RegisterPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import LogoutPage from "./pages/LogoutPage.jsx";
 import WatchlistPage from "./pages/WatchlistPage.jsx";
-// import ScreenerPage from "./pages/ScreenerPage.jsx";
+import TickerPickerPage from "./pages/TickerPickerPage.jsx";
 // Here I wrote these just for the team's convenience. If screener and watchlist gets
 //implemented and linked by routes then these can be commented out
 
@@ -81,6 +81,15 @@ export default function App() {
                   element={
                     <ProtectedRoute>
                       <WatchlistPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <TickerPickerPage />
                     </ProtectedRoute>
                   }
                 />
