@@ -27,8 +27,17 @@ class ChartManager {
       this.removeChart(chartId);
     }
 
+    // Get container dimensions - lightweight-charts uses container size, not config width/height
+    const containerWidth = containerId.clientWidth || options.width;
+    const containerHeight = containerId.clientHeight || options.height;
+
     // Merge default config with user options. User options override default config.
+    // Don't pass width/height to getChartConfig - let lightweight-charts use container size
     const chartConfig = { ...getChartConfig(), ...options };
+    
+    // Remove width/height from config as lightweight-charts uses container dimensions
+    delete chartConfig.width;
+    delete chartConfig.height;
 
     const chart = createChart(containerId, chartConfig);
     this.charts[chartId] = chart;

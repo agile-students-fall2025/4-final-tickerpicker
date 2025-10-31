@@ -9,7 +9,7 @@ import { useAuth } from "./context/AuthContext.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
-// import HomePage from "./pages/HomePage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
@@ -58,6 +58,15 @@ export default function App() {
           <main className="flex-1 min-w-0 flex items-start justify-center">
             <div className="w-full px-20 py-20 justify-center items-center">
               <Routes>
+                <Route
+                  path="/home"
+                  element={
+                    <ProtectedRoute>
+                      <HomePage />
+                    </ProtectedRoute>
+                  }
+                />
+
                 <Route
                   path="/profile"
                   element={
