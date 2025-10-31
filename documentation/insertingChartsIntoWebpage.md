@@ -10,50 +10,23 @@ This guide shows you how to add interactive price charts to any webpage in your 
 import ChartManager from "./charts/chartManager.js";
 ```
 
-### 2. Create a Chart Container Function
-
-You need a function that creates the DOM element where your chart will live:
+### 2. Initialize Your Chart
 
 ```javascript
-function createChartContainer(id, title, width = 800, height = 400) {
-  const app = document.getElementById("app"); // or your container element
-  const wrapper = document.createElement("div");
-  wrapper.className = "chart-container";
-
-  const titleElement = document.createElement("h3");
-  titleElement.className = "chart-title";
-  titleElement.textContent = title;
-
-  const chartDiv = document.createElement("div");
-  chartDiv.id = id;
-  chartDiv.style.width = width + "px";
-  chartDiv.style.height = height + "px";
-
-  wrapper.appendChild(titleElement);
-  wrapper.appendChild(chartDiv);
-  app.appendChild(wrapper);
-
-  return chartDiv;
-}
-```
-
-### 3. Initialize Your Chart
-
-```javascript
-const chartManager = ChartManager; // Use the singleton instance
+const chartManager = ChartManager;
 
 async function addChart() {
-  await chartManager.initializeChart(
-    "AAPL", // Symbol (stocks, crypto, ETFs work)
-    "2024-01-01", // Start date
-    "2024-12-31", // End date
-    "1d", // Timeframe (1d, 1wk, 1mo, 1m, 5m, etc.)
-    createChartContainer
-  );
+  // Default container and size
+  await chartManager.initializeChart("AAPL", "2024-01-01", "2024-12-31", "1d");
+  
+  // With custom width/height
+  await chartManager.initializeChart("MSFT", "2024-01-01", "2024-12-31", "1d", null, 1200, 600);
 }
 
 addChart();
 ```
+
+ChartManager handles container creation automatically - no manual DOM setup needed!
 
 ## What You Get
 
@@ -73,38 +46,14 @@ NOTE: Multiple timeframes capability already exists, but in its current capacity
 
 ```javascript
 // Stocks
-await chartManager.initializeChart(
-  "AAPL",
-  "2024-01-01",
-  "2024-12-31",
-  "1d",
-  createChartContainer
-);
-await chartManager.initializeChart(
-  "MSFT",
-  "2024-01-01",
-  "2024-12-31",
-  "1d",
-  createChartContainer
-);
+await chartManager.initializeChart("AAPL", "2024-01-01", "2024-12-31", "1d");
+await chartManager.initializeChart("MSFT", "2024-01-01", "2024-12-31", "1d");
 
 // Crypto
-await chartManager.initializeChart(
-  "BTC-USD",
-  "2024-01-01",
-  "2024-12-31",
-  "1d",
-  createChartContainer
-);
+await chartManager.initializeChart("BTC-USD", "2024-01-01", "2024-12-31", "1d");
 
 // ETFs
-await chartManager.initializeChart(
-  "SPY",
-  "2024-01-01",
-  "2024-12-31",
-  "1d",
-  createChartContainer
-);
+await chartManager.initializeChart("SPY", "2024-01-01", "2024-12-31", "1d");
 ```
 
 ### Different Timeframes
@@ -116,7 +65,6 @@ await chartManager.initializeChart(
   "2024-01-01",
   "2024-12-31",
   "1d",
-  createChartContainer
 );
 
 // Weekly data
@@ -125,7 +73,6 @@ await chartManager.initializeChart(
   "2023-01-01",
   "2024-12-31",
   "1wk",
-  createChartContainer
 );
 
 // Intraday (5-minute)
@@ -134,16 +81,14 @@ await chartManager.initializeChart(
   "2024-01-01",
   "2024-01-02",
   "5m",
-  createChartContainer
 );
 ```
 
 ### Custom Chart Sizes
 
 ```javascript
-function createCustomChartContainer(id, title) {
-  return createChartContainer(id, title, 1200, 600); // Wider and taller
-}
+// Pass null for container, then custom width/height
+await chartManager.initializeChart("AAPL", "2024-01-01", "2024-12-31", "1d", null, 1200, 600);
 ```
 
 ## Multiple Charts on One Page
@@ -156,21 +101,18 @@ async function addMultipleCharts() {
     "2024-01-01",
     "2024-12-31",
     "1d",
-    createChartContainer
   );
   await chartManager.initializeChart(
     "GOOGL",
     "2024-01-01",
     "2024-12-31",
     "1d",
-    createChartContainer
   );
   await chartManager.initializeChart(
     "TSLA",
     "2024-01-01",
     "2024-12-31",
     "1d",
-    createChartContainer
   );
 }
 ```
@@ -185,7 +127,6 @@ async function addChartWithErrorHandling() {
       "2024-01-01",
       "2024-12-31",
       "1d",
-      createChartContainer
     );
   } catch (error) {
     console.error("Failed to create chart:", error);
@@ -234,7 +175,6 @@ async function createDashboard() {
       "2024-01-01",
       "2024-12-31",
       "1d",
-      createChartContainer
     );
   }
 }
@@ -249,7 +189,6 @@ function createChartForSymbol(symbol) {
     "2024-01-01",
     "2024-12-31",
     "1d",
-    createChartContainer
   );
 }
 
