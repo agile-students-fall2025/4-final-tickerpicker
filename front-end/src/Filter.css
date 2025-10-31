@@ -1,0 +1,77 @@
+#Filter-Container {
+    border: 2px solid black;
+}
+#Filter-Container #Filter-Header{
+    display: flex; flex-direction: row;
+    h1 { 
+      width: 75%; margin: 0;
+      color: white;
+      background-color: var(--secondary-color);/* fall back */
+      background: var(--secondary-gradient);
+    }
+    span { 
+      width: 25%; background-color: whitesmoke; border: 2px solid #f52555; color: #f52555; 
+      text-align: center; align-content: center; 
+    }
+    span:hover {
+        background-color: #f52555; color: whitesmoke;
+    }
+}
+#Filter-Container button {
+    background-color: var(--secondary-color); background: var(--secondary-gradient);
+    border: 2px solid whitesmoke; color: whitesmoke;
+    height: 50px; width: 200px;
+    display: block; margin: 10px auto;
+}
+#Filter-Container button:hover {
+    border: 2px solid #ff5555;
+}
+#Filter-Container #Filter-Apply {
+  padding: 5px; background: var(--secondary-color);
+  border-top: 2px solid goldenrod; border-image: var(--brand-gradient) 1;
+}
+
+/* B. UL for filter metrics */
+#Filter-Container #Filter {
+  height: 60vh; overflow: scroll;
+  background-color: whitesmoke;
+}
+
+/* each METRIC rows in the #Filter-Container #Filter */
+#Filter-Container #Filter .FilterMetric:hover {
+  /*h2,span { color: #c5ffc5; }
+  h2 { background-color: #8f8f8f; }*/
+  /*span { background-color: black; }*/
+  background-color: #8f8f8f;
+}
+#Filter-Container #Filter .FilterMetric {
+  display: flex; flex-direction: row; justify-content: space-between;
+  margin: 10px; padding: 5px; 
+  background-color: lightgrey; border: 2px solid var(--secondary-color); border-radius: 10px; 
+  /* LEFT */
+  h2 {
+    width: 25%; margin: 0;
+    align-content: center;
+  }
+  /* RIGHT */
+  .FilterMetricSlider-container {
+    width: 300px; margin-right: 10px;
+  }
+  .range-labels-container { 
+    display: flex; flex-direction: row; 
+    justify-content: space-between; align-items: flex-end;
+  }
+  .range-label {
+    text-align: center;
+    width: fit-content; height: auto;
+  }
+  .max { font-size: 2em;}
+  .metric-value { font-size: 1.5em; }
+  
+  input { width: 300px; }
+}
+#Filter-Container #Filter .FilterMetric .range-labels {
+  display: flex; flex-direction: row;
+  justify-content: space-between;
+
+}

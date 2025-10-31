@@ -1,0 +1,62 @@
+/* CSS VARIABLES */
+:root { 
+  --main-color : white; /*#c5ffc5*/
+  --secondary-color: #050535;
+  --secondary-gradient: linear-gradient(to right,#050535, #353565, #050535);
+  --ternary-gradient: linear-gradient(to right, #6868eb, #a5a5d5, #6868eb);
+  --brand-gradient: linear-gradient(to right, #ebd197 0%, #b48811 50%, #a2790d 51%, #bb9b49 100%);
+  --brand-gradient-2: linear-gradient(45deg, #ba625d, #ff6863, #be6c67);
+}
+
+.App-Header {
+  height: 150px;
+  background: var(--secondary-gradient); color: var(--main-color);
+  border-bottom: 2px solid goldenrod;
+
+  display: flex;
+  flex-direction: row; align-items: center; justify-content: space-evenly;
+
+  .brandText {
+    font-size: 4em; font-weight: bold;
+    background: var(--brand-gradient); /* Define the gradient */
+    -webkit-background-clip: text; /* Clip the background to the text */
+    -webkit-text-fill-color: transparent; /* Make the text itself transparent */
+  }
+}
+
+input {
+  height: 50px; width: 25%;
+  background-color: transparent; border: 2px solid goldenrod; border-image: var(--brand-gradient) 1;
+  color: white; font-size: 1.5em;
+}
+.logo {
+  height: 100px;
+  justify-self:end;
+}
+.icon {
+  height: 50px;
+}
+
+.App-Main {
+  display: grid;
+  grid-template-columns: 20% 40% 40%;
+  grid-column-gap: 10px;
+  /* a) navbar, b) filter, c) screener */
+}
+/* Each component has a .Container */
+#Filter-Container, #Screener-Container {
+  width: 95%;
+  margin-top: 10px;
+}
+
+/* GENERAL */
+.red {
+  color: red;
+}
+.green {
+  color: green;
+}
+ul {
+  list-style-type: none;
+  margin: 0; padding: 0;
+}
