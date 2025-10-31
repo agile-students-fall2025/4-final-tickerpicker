@@ -22,7 +22,7 @@
   "homepage": "https://github.com/agile-students-fall2025/4-final-tickerpicker#readme",
   "dependencies": {
     "lightweight-charts": "^5.0.9",
-    "react": "^18.2.0",
+    "react": "^18.3.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.28.0",
     "yahoo-finance2": "^3.10.0"
