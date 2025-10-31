@@ -56,9 +56,8 @@ export function getChartConfig(theme = 'light'){
 
     const themeConfig = theme === 'light' ? LIGHT_THEME : DARK_THEME // set the theme
 
+    // Don't include width/height - lightweight-charts uses container dimensions
     return {
-        width: DEFAULT_CHART_WIDTH,
-        height: DEFAULT_CHART_HEIGHT,
         ...themeConfig,
         crosshair : {
             mode : 0 // 0: normal , 1: magnet
