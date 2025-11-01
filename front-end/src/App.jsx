@@ -1,7 +1,7 @@
 // gives all the necessary routes
 import React from "react";
 
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import TopNavbar from "./components/TopNavbar.jsx";
 import LeftNavbar from "./components/LeftNavbar.jsx";
 
@@ -16,6 +16,7 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 import LogoutPage from "./pages/LogoutPage.jsx";
 import WatchlistPage from "./pages/WatchlistPage.jsx";
 import TickerPickerPage from "./pages/TickerPickerPage.jsx";
+import StockPage from "./pages/StockPage.jsx";
 // Here I wrote these just for the team's convenience. If screener and watchlist gets
 //implemented and linked by routes then these can be commented out
 
@@ -102,6 +103,16 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
+              <Route
+                  path="/stock"
+                  element={
+                    <ProtectedRoute>
+                      <StockPage />
+                    </ProtectedRoute>
+                  }
+                />
+
               </Routes>
             </div>
           </main>
