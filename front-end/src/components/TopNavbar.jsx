@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Navbar() {
@@ -7,6 +7,7 @@ export default function Navbar() {
 
     // for searching bar, searching query
     const [query, setQuery] = useState("")
+    const navigate = useNavigate(); 
 
     const avatarUrl = `https://picsum.photos/seed/${
         user?.email || "guest"
@@ -19,6 +20,15 @@ export default function Navbar() {
         // so far this does nothing since we don't have a backend. Once we have a backend
         // we can use this trimmedQuery to search in our database about anything
     };
+
+
+    //temporary to route to stock page on search
+    const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    // ignore what user typed; always go to /stock (AAPL)
+    navigate("/stock");
+    setQuery(""); // optional: clear search bar
+  };
 
     return (
         <header className="border-b border-tp-border bg-[#0f172a] text-white sticky top-0 z-50">
@@ -34,6 +44,7 @@ export default function Navbar() {
                     {isAuthenticated && (
                         <>
                             <div className="flex items-center">
+                                <form onSubmit={handleSearchSubmit}>
                                 <input
                                     type="text"
                                     className="flex-1 ml-2 tp-search-bar placeholder-tp-text-dim"
@@ -49,6 +60,8 @@ export default function Navbar() {
                                 >
                                     Search
                                 </button> */}
+
+                                </form>
                             </div>
                         </>
                     )}
