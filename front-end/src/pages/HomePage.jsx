@@ -292,7 +292,7 @@ export default function HomePage() {
                           </span>
                         </div>
                       </div>
-                      <Link to={`/stock/${stock.ticker}`}>
+                      <Link to={`/stock/${stock.symbol}`}>
                         <button className="tp-btn-primary text-xs px-3 py-1">
                           View
                         </button>
@@ -360,7 +360,7 @@ export default function HomePage() {
                           {stock.changePercent.toFixed(2)}%)
                         </span>
                         <Link
-                          to={`/stock/${stock.ticker}`}>
+                          to={`/stock/${stock.symbol}`}>
                           <button className="tp-btn-primary text-xs px-3 py-1">
                             View
                         </button>
