@@ -56,15 +56,15 @@ export default function Filter({
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-black">Ticker Filter</h3>
         <button
-  onClick={onToggleLock}
-  className={
-    locked
-      ? "tp-btn-lock-locked text-xs px-3 py-1"
-      : "tp-btn-white-outlined text-xs px-3 py-1"
-  }
->
-  {locked ? "Unlock" : "Lock"}
-</button>
+          onClick={onToggleLock}
+          className={
+          locked
+            ? "tp-btn-lock-locked text-xs px-3 py-1"
+            : "tp-btn-white-outlined text-xs px-3 py-1"
+          }
+        >
+          {locked ? "Unlock" : "Lock"}
+        </button>
       </div>
 
       <ul className="space-y-4">
