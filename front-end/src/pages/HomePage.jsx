@@ -224,12 +224,7 @@ export default function HomePage() {
                       className="tp-card p-3 flex items-center justify-between"
                     >
                       <span className="font-semibold text-black">{symbol}</span>
-                      <Link
-                        to={`/stock/${symbol}`}
-                        className="text-sm text-tp-text-dim hover:underline"
-                      >
-                        View →
-                      </Link>
+                      <span className="text-sm text-tp-text-dim">View →</span>
                     </li>
                   ))}
                 </ul>
@@ -292,11 +287,9 @@ export default function HomePage() {
                           </span>
                         </div>
                       </div>
-                      <Link to={`/stock/${stock.ticker}`}>
-                        <button className="tp-btn-primary text-xs px-3 py-1">
-                          View
-                        </button>
-                      </Link>
+                      <button className="tp-btn-primary text-xs px-3 py-1">
+                        View
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -359,13 +352,9 @@ export default function HomePage() {
                           {stock.changePercent >= 0 ? "+" : ""}
                           {stock.changePercent.toFixed(2)}%)
                         </span>
-                        <Link
-                          to={`/stock/${stock.ticker}`}>
-                          <button className="tp-btn-primary text-xs px-3 py-1">
-                            View
+                        <button className="tp-btn-primary text-xs px-3 py-1">
+                          View
                         </button>
-                        </Link>
-                        
                       </div>
                     </li>
                   ))}

@@ -57,11 +57,9 @@ export default function Filter({
         <h3 className="text-lg font-semibold text-black">Ticker Filter</h3>
         <button
           onClick={onToggleLock}
-          className={
-          locked
-            ? "tp-btn-lock-locked text-xs px-3 py-1"
-            : "tp-btn-white-outlined text-xs px-3 py-1"
-          }
+          className={`tp-btn-outline text-xs px-3 py-1 ${
+            locked ? "bg-tp-accent text-white" : ""
+          }`}
         >
           {locked ? "Unlock" : "Lock"}
         </button>

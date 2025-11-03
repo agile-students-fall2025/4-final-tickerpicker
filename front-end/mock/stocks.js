@@ -10,6 +10,5 @@ export const AAPL_stock = [
     beta: 1.2,
     "52_week_range": { low: 129.04, high: 182.94 },
   },
-
 ];
 
