@@ -1,20 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
+
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 export default function WatchlistPage() {
   const { isAuthenticated } = useAuth();
 
-  // Default hardcoded watchlists
-  const defaultWatchlists = [
-    { id: 1, name: "Tech Stocks", stocks: ["AAPL", "MSFT", "GOOGL"] },
-    { id: 2, name: "My Favorites", stocks: ["NVDA", "TSLA"] },
-  ];
-
   // State management
-  const [watchlists, setWatchlists] = useState(defaultWatchlists);
-  const [selectedWatchlistId, setSelectedWatchlistId] = useState(
-    defaultWatchlists[0]?.id || null
-  );
+  const [watchlists, setWatchlists] = useState([]);
+  const [selectedWatchlistId, setSelectedWatchlistId] = useState(null);
   const [newStockSymbol, setNewStockSymbol] = useState("");
   const [newWatchlistName, setNewWatchlistName] = useState("");
   const [stockMessage, setStockMessage] = useState({ type: "", text: "" });
@@ -22,15 +16,42 @@ export default function WatchlistPage() {
     type: "",
     text: "",
   });
+  const [priceDataMap, setPriceDataMap] = useState({});
 
-  // Mock price data for display
-  const mockPriceData = {
-    AAPL: { price: 172.15, change: 2.45, changePercent: 1.44 },
-    MSFT: { price: 378.85, change: -1.25, changePercent: -0.33 },
-    GOOGL: { price: 139.92, change: 3.12, changePercent: 2.28 },
-    NVDA: { price: 472.35, change: 12.5, changePercent: 2.71 },
-    TSLA: { price: 248.5, change: -5.25, changePercent: -2.07 },
-  };
+  // Load initial data based on VITE_USE_MOCK setting
+  useEffect(() => {
+    const loadInitialData = async () => {
+      console.log(
+        "WatchlistPage: VITE_USE_MOCK =",
+        import.meta.env.VITE_USE_MOCK
+      );
+      console.log("WatchlistPage: USE_MOCK =", USE_MOCK);
+
+      if (USE_MOCK) {
+        // Load mock data
+        const { mockWatchlists, mockPriceData } = await import(
+          "../../mock/data.js"
+        );
+        console.log("WatchlistPage: Loaded mock watchlists:", mockWatchlists);
+        setWatchlists(mockWatchlists);
+        setSelectedWatchlistId(mockWatchlists[0]?.id || null);
+        setPriceDataMap(mockPriceData);
+      } else {
+        // In production, fetch from API
+        // TODO: Implement API calls when backend is ready
+        // Example:
+        // const response = await fetch('/api/watchlists');
+        // const data = await response.json();
+        // setWatchlists(data);
+        console.log("WatchlistPage: USE_MOCK is false, no data loaded");
+        setWatchlists([]);
+        setSelectedWatchlistId(null);
+        setPriceDataMap({});
+      }
+    };
+
+    loadInitialData();
+  }, []);
 
   if (!isAuthenticated) {
     console.log(
@@ -279,7 +300,7 @@ export default function WatchlistPage() {
             <div className="text-sm text-black">
               <ul className="space-y-3">
                 {selectedWatchlist.stocks.map((symbol) => {
-                  const priceData = mockPriceData[symbol];
+                  const priceData = priceDataMap[symbol];
                   return (
                     <li
                       key={symbol}
