@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import ChartManager from "../charts/ChartManager.js";
 
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
 
@@ -17,8 +19,10 @@ export default function HomePage() {
   const [chartErrors, setChartErrors] = useState({});
   const chartIdsRef = useRef([]);
 
-  // Watchlist data (read from localStorage, same as WatchlistPage)
+  // Data states
   const [watchlists, setWatchlists] = useState([]);
+  const [recommendedPicks, setRecommendedPicks] = useState([]);
+  const [topPerformers, setTopPerformers] = useState([]);
 
   // Calculate date range (last 6 months)
   const getDateRange = () => {
@@ -39,13 +43,35 @@ export default function HomePage() {
     };
   };
 
-  // Load watchlists from localStorage
+  // Load data based on VITE_USE_MOCK setting
   useEffect(() => {
-    const defaultWatchlists = [
-      { id: 1, name: "Tech Stocks", stocks: ["AAPL", "MSFT", "GOOGL"] },
-      { id: 2, name: "My Favorites", stocks: ["NVDA", "TSLA"] },
-    ];
-    setWatchlists(defaultWatchlists);
+    const loadData = async () => {
+      console.log("HomePage: VITE_USE_MOCK =", import.meta.env.VITE_USE_MOCK);
+      console.log("HomePage: USE_MOCK =", USE_MOCK);
+
+      if (USE_MOCK) {
+        // Load mock data
+        const { mockWatchlists, mockRecommendedPicks, mockTopPerformers } =
+          await import("../../mock/data.js");
+        console.log("HomePage: Loaded mock data:", {
+          watchlists: mockWatchlists,
+          recommendedPicks: mockRecommendedPicks,
+          topPerformers: mockTopPerformers.length,
+        });
+        setWatchlists(mockWatchlists);
+        setRecommendedPicks(mockRecommendedPicks);
+        setTopPerformers(mockTopPerformers);
+      } else {
+        // In production, fetch from API
+        // TODO: Implement API calls when backend is ready
+        console.log("HomePage: USE_MOCK is false, no data loaded");
+        setWatchlists([]);
+        setRecommendedPicks([]);
+        setTopPerformers([]);
+      }
+    };
+
+    loadData();
   }, []);
 
   // Initialize charts
@@ -229,79 +255,51 @@ export default function HomePage() {
             </h3>
 
             <div className="flex flex-col gap-3">
-              <ul className="space-y-2">
-                {[
-                  {
-                    symbol: "AAPL",
-                    company: "Apple Inc.",
-                    price: 172.15,
-                    change: 2.45,
-                    changePercent: 1.44,
-                  },
-                  {
-                    symbol: "NVDA",
-                    company: "NVIDIA Corporation",
-                    price: 472.35,
-                    change: 12.5,
-                    changePercent: 2.71,
-                  },
-                  {
-                    symbol: "MSFT",
-                    company: "Microsoft Corporation",
-                    price: 378.85,
-                    change: -1.25,
-                    changePercent: -0.33,
-                  },
-                  {
-                    symbol: "GOOGL",
-                    company: "Alphabet Inc.",
-                    price: 139.92,
-                    change: 3.12,
-                    changePercent: 2.28,
-                  },
-                  {
-                    symbol: "AMZN",
-                    company: "Amazon.com Inc.",
-                    price: 148.5,
-                    change: 2.8,
-                    changePercent: 1.92,
-                  },
-                ].map((stock) => (
-                  <li
-                    key={stock.symbol}
-                    className="tp-card p-4 flex items-center justify-between"
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-black text-lg">
-                        {stock.symbol}
-                      </span>
-                      <span className="text-xs text-tp-text-dim">
-                        {stock.company}
-                      </span>
-                      <div className="flex items-center gap-4 mt-1">
-                        <span className="text-black text-sm">
-                          ${stock.price.toFixed(2)}
+              {recommendedPicks.length > 0 ? (
+                <ul className="space-y-2">
+                  {recommendedPicks.map((stock) => (
+                    <li
+                      key={stock.symbol}
+                      className="tp-card p-4 flex items-center justify-between"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-black text-lg">
+                          {stock.symbol}
                         </span>
-                        <span
-                          className={
-                            stock.change >= 0
-                              ? "text-green-600 text-sm"
-                              : "text-red-600 text-sm"
-                          }
-                        >
-                          {stock.change >= 0 ? "+" : ""}
-                          {stock.change.toFixed(2)} (
-                          {stock.changePercent >= 0 ? "+" : ""}
-                          {stock.changePercent.toFixed(2)}%)
+                        <span className="text-xs text-tp-text-dim">
+                          {stock.company}
                         </span>
+                        <div className="flex items-center gap-4 mt-1">
+                          <span className="text-black text-sm">
+                            ${stock.price.toFixed(2)}
+                          </span>
+                          <span
+                            className={
+                              stock.change >= 0
+                                ? "text-green-600 text-sm"
+                                : "text-red-600 text-sm"
+                            }
+                          >
+                            {stock.change >= 0 ? "+" : ""}
+                            {stock.change.toFixed(2)} (
+                            {stock.changePercent >= 0 ? "+" : ""}
+                            {stock.changePercent.toFixed(2)}%)
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <button className="tp-btn-primary text-xs px-3 py-1">
-                      View
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      <button className="tp-btn-primary text-xs px-3 py-1">
+                        View
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <p className="text-sm text-tp-text-dim text-center">
+                    No recommended picks available.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -316,191 +314,58 @@ export default function HomePage() {
           </h3>
 
           <div className="flex flex-col gap-2">
-            <ul className="space-y-2">
-              {[
-                {
-                  symbol: "NVDA",
-                  company: "NVIDIA Corporation",
-                  price: 472.35,
-                  change: 12.5,
-                  changePercent: 2.71,
-                },
-                {
-                  symbol: "GOOGL",
-                  company: "Alphabet Inc.",
-                  price: 139.92,
-                  change: 3.12,
-                  changePercent: 2.28,
-                },
-                {
-                  symbol: "AMZN",
-                  company: "Amazon.com Inc.",
-                  price: 148.5,
-                  change: 2.8,
-                  changePercent: 1.92,
-                },
-                {
-                  symbol: "META",
-                  company: "Meta Platforms Inc.",
-                  price: 485.2,
-                  change: 8.5,
-                  changePercent: 1.78,
-                },
-                {
-                  symbol: "TSLA",
-                  company: "Tesla, Inc.",
-                  price: 248.5,
-                  change: 4.25,
-                  changePercent: 1.74,
-                },
-                {
-                  symbol: "AVGO",
-                  company: "Broadcom Inc.",
-                  price: 1250.0,
-                  change: 20.0,
-                  changePercent: 1.63,
-                },
-                {
-                  symbol: "COST",
-                  company: "Costco Wholesale Corp.",
-                  price: 780.5,
-                  change: 12.3,
-                  changePercent: 1.6,
-                },
-                {
-                  symbol: "AMD",
-                  company: "Advanced Micro Devices",
-                  price: 125.75,
-                  change: 1.95,
-                  changePercent: 1.57,
-                },
-                {
-                  symbol: "NFLX",
-                  company: "Netflix, Inc.",
-                  price: 495.8,
-                  change: 7.25,
-                  changePercent: 1.48,
-                },
-                {
-                  symbol: "CRM",
-                  company: "Salesforce, Inc.",
-                  price: 245.6,
-                  change: 3.5,
-                  changePercent: 1.45,
-                },
-                {
-                  symbol: "AAPL",
-                  company: "Apple Inc.",
-                  price: 172.15,
-                  change: 2.45,
-                  changePercent: 1.44,
-                },
-                {
-                  symbol: "ADBE",
-                  company: "Adobe Inc.",
-                  price: 525.4,
-                  change: 7.2,
-                  changePercent: 1.39,
-                },
-                {
-                  symbol: "INTC",
-                  company: "Intel Corporation",
-                  price: 38.25,
-                  change: 0.5,
-                  changePercent: 1.32,
-                },
-                {
-                  symbol: "CMCSA",
-                  company: "Comcast Corporation",
-                  price: 42.8,
-                  change: 0.55,
-                  changePercent: 1.3,
-                },
-                {
-                  symbol: "TXN",
-                  company: "Texas Instruments",
-                  price: 165.3,
-                  change: 2.1,
-                  changePercent: 1.29,
-                },
-                {
-                  symbol: "QCOM",
-                  company: "QUALCOMM Inc.",
-                  price: 142.5,
-                  change: 1.8,
-                  changePercent: 1.28,
-                },
-                {
-                  symbol: "AMAT",
-                  company: "Applied Materials",
-                  price: 185.75,
-                  change: 2.3,
-                  changePercent: 1.25,
-                },
-                {
-                  symbol: "ISRG",
-                  company: "Intuitive Surgical",
-                  price: 385.9,
-                  change: 4.75,
-                  changePercent: 1.25,
-                },
-                {
-                  symbol: "MU",
-                  company: "Micron Technology",
-                  price: 98.5,
-                  change: 1.2,
-                  changePercent: 1.23,
-                },
-                {
-                  symbol: "KLAC",
-                  company: "KLA Corporation",
-                  price: 595.8,
-                  change: 7.15,
-                  changePercent: 1.22,
-                },
-              ]
-                .sort((a, b) => b.changePercent - a.changePercent)
-                .map((stock, index) => (
-                  <li
-                    key={stock.symbol}
-                    className="tp-card p-4 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="text-tp-text-dim text-sm font-medium w-8">
-                        #{index + 1}
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-black text-lg">
-                          {stock.symbol}
+            {topPerformers.length > 0 ? (
+              <ul className="space-y-2">
+                {topPerformers
+                  .sort((a, b) => b.changePercent - a.changePercent)
+                  .map((stock, index) => (
+                    <li
+                      key={stock.symbol}
+                      className="tp-card p-4 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-tp-text-dim text-sm font-medium w-8">
+                          #{index + 1}
                         </span>
-                        <span className="text-xs text-tp-text-dim">
-                          {stock.company}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-black text-lg">
+                            {stock.symbol}
+                          </span>
+                          <span className="text-xs text-tp-text-dim">
+                            {stock.company}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <span className="text-black text-sm font-medium">
-                        ${stock.price.toFixed(2)}
-                      </span>
-                      <span
-                        className={
-                          stock.change >= 0
-                            ? "text-green-600 text-sm font-medium"
-                            : "text-red-600 text-sm font-medium"
-                        }
-                      >
-                        {stock.change >= 0 ? "+" : ""}
-                        {stock.change.toFixed(2)} (
-                        {stock.changePercent >= 0 ? "+" : ""}
-                        {stock.changePercent.toFixed(2)}%)
-                      </span>
-                      <button className="tp-btn-primary text-xs px-3 py-1">
-                        View
-                      </button>
-                    </div>
-                  </li>
-                ))}
-            </ul>
+                      <div className="flex items-center gap-6">
+                        <span className="text-black text-sm font-medium">
+                          ${stock.price.toFixed(2)}
+                        </span>
+                        <span
+                          className={
+                            stock.change >= 0
+                              ? "text-green-600 text-sm font-medium"
+                              : "text-red-600 text-sm font-medium"
+                          }
+                        >
+                          {stock.change >= 0 ? "+" : ""}
+                          {stock.change.toFixed(2)} (
+                          {stock.changePercent >= 0 ? "+" : ""}
+                          {stock.changePercent.toFixed(2)}%)
+                        </span>
+                        <button className="tp-btn-primary text-xs px-3 py-1">
+                          View
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <p className="text-sm text-tp-text-dim text-center">
+                  No top performers data available.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
