@@ -105,7 +105,7 @@ export default function App() {
                 />
 
               <Route
-                  path="/stock"
+                  path="/stock/:ticker"
                   element={
                     <ProtectedRoute>
                       <StockPage />
