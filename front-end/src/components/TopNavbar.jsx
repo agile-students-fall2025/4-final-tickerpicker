@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link,useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { FaBell } from "react-icons/fa";
+
 
 export default function Navbar() {
     const { isAuthenticated, user } = useAuth();
@@ -84,6 +86,23 @@ export default function Navbar() {
                             </Link>
                         </>
                     )}
+
+                    {isAuthenticated && (
+                        <>
+                            {/* Notification Bell */}
+                            <button
+                                className="relative hover:opacity-80 transition"
+                                onClick={() => navigate("/profile")} 
+                            >
+                                <FaBell className="text-xl" />
+                                
+                                {/* Optional unread dot */}
+                                <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+                            </button>
+
+                        </>
+                    )}
+
 
                     {isAuthenticated && (
                         <>
