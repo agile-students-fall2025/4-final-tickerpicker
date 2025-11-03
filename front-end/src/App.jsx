@@ -51,8 +51,8 @@ export default function App() {
       <TopNavbar />
       <div className="flex flex-1 min-h-[calc(100vh-4rem)]">
         <div className="flex flex-1 max-w-6xl mx-auto w-full">
-          <div className="flex w-40 shrink-0 border-r border-tp-border">
-            <div className="pt-8 pt-6 pb-12">
+          <div className="flex w-28 shrink-0 border-r border-tp-border">
+            <div className="pt-6 pt-6 pb-12">
               <LeftNavbar />
             </div>
           </div>
