@@ -111,7 +111,7 @@ npm run dev
 
 Backend will run on `http://localhost:3001`
 
-**2. Start the Frontend (in a new terminal):**
+**2. Start the Frontend (in a new terminal) in the root:**
 
 ```bash
 npm install
@@ -175,7 +175,8 @@ Features that explain financial concepts
 
 ## Project Status
 
-**Current Sprint:** Sprint 1 
+**Current Sprint:** Sprint 1
+
 **Status:** Frontend and UI Development Phase
 
 We're currently:
