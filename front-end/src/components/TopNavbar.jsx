@@ -11,6 +11,11 @@ export default function Navbar() {
     const [query, setQuery] = useState("")
     const navigate = useNavigate(); 
 
+    //notifications
+    const [notifItems] = useState([]); 
+      const unreadCount = notifItems.filter(n => n.unread).length;
+      
+
     const avatarUrl = `https://picsum.photos/seed/${
         user?.email || "guest"
     }/48/48`;
@@ -89,15 +94,30 @@ export default function Navbar() {
                     {isAuthenticated && (
                         <>
                             {/* Notification Bell */}
-                            <button
-                                className="relative hover:opacity-80 transition"
-                                onClick={() => navigate("/profile")} 
-                            >
-                                <FaBell className="text-xl" />
-                                
-                                {/* Optional unread dot */}
-                                <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
-                            </button>
+                    <div className="relative group">
+                    <button
+                        className="relative hover:opacity-80 transition"
+                        onClick={() => navigate("/profile")} 
+                    >
+                        <FaBell className="text-xl" />
+                        <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+                    </button>
+
+                    {/* Dropdown (appears on hover) */}
+                    <div className="absolute right-0 mt-2 hidden w-72 rounded-xl border border-tp-border bg-white text-black shadow-xl z-[60] group-hover:block">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-tp-border">
+                        <span className="text-sm font-semibold">Notifications</span>
+                        </div>
+
+                        <ul className="max-h-72 overflow-auto text-sm">
+                        </ul>
+
+                        <div className="px-4 py-3 border-t border-tp-border text-center text-sm text-blue-600 hover:underline">
+                        <Link to="/profile">View all notifications</Link>
+                        </div>
+                    </div>
+                    </div>
+
 
                         </>
                     )}

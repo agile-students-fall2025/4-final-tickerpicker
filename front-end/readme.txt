@@ -7,6 +7,7 @@ HOME
 # VITE Mock System — No More Hardcoded Data
 
 This front-end uses **Vite environment variables** to toggle between **mock data** and **real API data**, removing all hardcoded stock information.
+All data currently shown is up to date - nothing hardcoded.
 
 ---
 
