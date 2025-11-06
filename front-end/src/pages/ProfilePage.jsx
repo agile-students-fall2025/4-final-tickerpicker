@@ -14,6 +14,11 @@ export default function ProfilePage() {
     const [confirmPassword, setConfirmPassword] = useState("")
     const [passwordMessage, setPasswordMessage] = useState({ type: "", text: "" });
 
+    // notif preference 
+    const [emailPriceAlerts, setEmailPriceAlerts] = useState(false);
+    const [textPriceAlerts, setTextPriceAlerts] = useState(false);
+
+
     const avatarUrl = `https://picsum.photos/seed/${user?.email || "guest"}/140/140`;
 
     // if (!isAuthenticated) {
@@ -180,17 +185,50 @@ export default function ProfilePage() {
                     </ul>
                 </div>
             </div>
-            
+
+
             <div className="tp-card p-8">
-                <h3 className="text-lg font-semibold text-black pb-4">Notification preferences</h3>
-                <p className="text-sm text-tp-text-dim">
-                    Placeholder
-                </p>
-                <p className="text-sm text-tp-text-dim">
-                    Thinking about having like some toggles for preferences, but that will be decided later...
-                </p>
-            </div>
+  <h3 className="text-lg font-semibold text-black pb-4">Notification preferences</h3>
+
+  <div className="flex flex-col gap-4">
+
+
+
+
+    {/* Email Updates Toggle */}
+    <button
+      type="button"
+      onClick={() => setEmailPriceAlerts(!emailPriceAlerts)}
+      className={`px-4 py-2 rounded-xl border text-sm transition ${
+        emailPriceAlerts
+          ? "bg-green-50 border-green-600 text-green-700"
+        : "bg-red-50 border-red-400 text-red-700 hover:bg-red-100"
+      }`}
+    >
+      {emailPriceAlerts ? "Email Price Updates: ON" : "Enable Email Price Updates OFF"}
+    </button>
+
+    {/* Text Updates Toggle */}
+    <button
+      type="button"
+      onClick={() => setTextPriceAlerts(!textPriceAlerts)}
+      className={`px-4 py-2 rounded-xl border text-sm transition ${
+        textPriceAlerts
+          ? "bg-green-50 border-green-600 text-green-700"
+        : "bg-red-50 border-red-400 text-red-700 hover:bg-red-100"
+      }`}
+    >
+      {textPriceAlerts ? "Text Price Updates: ON" : "Enable Text Price Updates OFF"}
+    </button>
+    
+
+  </div>
+</div>
+
+
+            
+
         </div>
         </section>
     );
-}
+} // will update backend to actually send texts & emails
