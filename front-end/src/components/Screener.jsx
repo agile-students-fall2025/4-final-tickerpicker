@@ -30,9 +30,9 @@ export default function Screener({ stocks, onAddToWatchlist }) {
   return (
     <div className="tp-card p-6">
       <div className="max-h-[70vh] overflow-y-auto space-y-4">
-        {stocks.map((stock) => (
+        {stocks.map((stock, index) => (
           <div
-            key={stock.ticker}
+            key={stock.ticker || stock.date || `stock-${index}`}
             className="tp-card p-6 flex items-start gap-6 hover:bg-tp-card/80 transition-colors"
           >
             {/* Left side - Symbol and Company */}
@@ -91,7 +91,9 @@ export default function Screener({ stocks, onAddToWatchlist }) {
                       </span>
                     </div>
                     <div>
-                      <span className="text-xs text-tp-text-dim">52W High:</span>
+                      <span className="text-xs text-tp-text-dim">
+                        52W High:
+                      </span>
                       <span className="ml-2 text-sm font-medium text-red-600">
                         ${stock["52_week_range"].high?.toFixed(2) || "N/A"}
                       </span>
@@ -130,4 +132,3 @@ export default function Screener({ stocks, onAddToWatchlist }) {
     </div>
   );
 }
-
