@@ -292,7 +292,7 @@ export default function HomePage() {
                           </span>
                         </div>
                       </div>
-                      <Link to={`/stock/${stock.ticker}`}>
+                      <Link to={`/stock/${stock.symbol}`}>
                         <button className="tp-btn-primary text-xs px-3 py-1">
                           View
                         </button>
