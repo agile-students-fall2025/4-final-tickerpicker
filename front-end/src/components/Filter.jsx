@@ -1,5 +1,9 @@
 import React from "react";
-
+/**
+ * Our filter allows users to set ranges for various stock metrics.
+ * The filter comprises slider widgets for each metric.
+ * Each slider has an identifier based on the metric key.
+ */
 const metrics = [
   {
     key: "sharePrice",
@@ -74,6 +78,7 @@ export default function Filter({
 
           return (
             <li key={metric.key} className="tp-card p-4">
+              {/* UI identifier for metric filter slider */}
               <h4 className="text-sm font-semibold text-black mb-3">
                 {metric.label}
               </h4>
@@ -93,6 +98,7 @@ export default function Filter({
                   <label className="tp-label text-xs mb-1" htmlFor={`${metric.key}-min`}>
                     Min
                   </label>
+                  {/* Slide Input */}
                   <input
                     id={`${metric.key}-min`}
                     type="range"

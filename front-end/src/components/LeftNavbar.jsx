@@ -12,6 +12,7 @@ export default function LeftNav() {
     return (
         <aside className="flex flex-col w-24 shrink-0">
             <nav className="flex flex-col gap-2">
+                {/* Home Link */}
                 <NavLink
                     to="/home"
                     className={({ isActive }) =>
@@ -24,6 +25,7 @@ export default function LeftNav() {
                     Home
                 </NavLink>
 
+                {/* Watchlist Link */}
                 <NavLink
                     to="/watchlist"
                     className={({ isActive }) =>
@@ -36,6 +38,7 @@ export default function LeftNav() {
                     Watchlist
                 </NavLink>
 
+                {/* Dashboard Link */}
                 <NavLink
                     to="/dashboard"
                     className={({ isActive }) =>
@@ -48,6 +51,7 @@ export default function LeftNav() {
                     TickerPicker
                 </NavLink>
                 
+                {/* Profile Link */}
                 <NavLink
                     to="/profile"
                     className={({ isActive }) =>
