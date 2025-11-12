@@ -14,7 +14,7 @@ export default function Navbar() {
     //notifications
     const [notifItems] = useState([]); 
       const unreadCount = notifItems.filter(n => n.unread).length;
-      
+      const [isNotifOpen, setIsNotifOpen] = useState(false);
 
     const avatarUrl = `https://picsum.photos/seed/${
         user?.email || "guest"
@@ -41,41 +41,32 @@ export default function Navbar() {
     return (
         <header className="border-b border-tp-border bg-[#0f172a] text-white sticky top-0 z-50">
             <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-4">
-                {/* Ticker Picker logo and search bar */}
-                <div className=" flex items-center gap-10">
-                    <Link
-                        to="/home"
-                        className="text-lg font-semibold text-white hover:text-tp-text-dim transition-colors">
-                        TickerPicker
-                    </Link>
+                {/* Left: Logo */}
+                <Link
+                    to="/home"
+                    className="text-lg font-semibold text-white hover:text-tp-text-dim transition-colors">
+                    TickerPicker
+                </Link>
 
-                    {isAuthenticated && (
-                        <>
-                            <div className="flex items-center">
-                                <form onSubmit={handleSearchSubmit}>
-                                <input
-                                    type="text"
-                                    className="flex-1 ml-2 tp-search-bar placeholder-tp-text-dim"
-                                    placeholder="Search TickerPicker"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                />
+                {/* Center: Search bar */}
+                {isAuthenticated && (
+                    <div className="flex-1 flex justify-center">
+                        <form
+                            onSubmit={handleSearchSubmit}
+                            className="w-full max-w-xl"
+                        >
+                            <input
+                                type="text"
+                                className="w-full tp-search-bar placeholder-tp-text-dim"
+                                placeholder="Search TickerPicker"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+                        </form>
+                    </div>
+                )}
 
-                                {/* Search button, but feel that without it is more aethetically pleasing */}
-                                {/* <button
-                                    type="submit"
-                                    className="tp-btn-white text-xs text-white px-2.5 py-1 rounded-md ml-2 whitespace-nowrap"
-                                >
-                                    Search
-                                </button> */}
-
-                                </form>
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                {/* Authentication ctrls */}
+                {/* Right: Auth controls */}
                 <div className="flex items-center gap-4">
                     {!isAuthenticated && (
                         <>
@@ -95,17 +86,27 @@ export default function Navbar() {
                     {isAuthenticated && (
                         <>
                             {/* Notification Bell */}
-                    <div className="relative group">
-                    <button
-                        className="relative hover:opacity-80 transition"
-                        onClick={() => navigate("/profile")} 
+                    <div 
+                    className="relative pb-2"
+                    onMouseEnter={() => setIsNotifOpen(true)}
+                    onMouseLeave={() => setIsNotifOpen(false)}
                     >
-                        <FaBell className="text-xl" />
-                        <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+                    <button
+                        type="button"
+                        aria-label="Notifications"
+                        className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                        onClick={() => setIsNotifOpen((prev) => !prev)} 
+                    >
+                        <FaBell className="text-lg" />
+                        <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500"></span>
                     </button>
 
                     {/* Dropdown (appears on hover) */}
-                    <div className="absolute right-0 mt-2 hidden w-72 rounded-xl border border-tp-border bg-white text-black shadow-xl z-[60] group-hover:block">
+                    <div 
+                        className={`absolute left-1/2 -translate-x-1/2 mt-2 w-72 rounded-xl border border-tp-border bg-white text-black shadow-xl z-[60] ${isNotifOpen ? "block" : "hidden"}`}
+                        onMouseEnter={() => setIsNotifOpen(true)}
+                        onMouseLeave={() => setIsNotifOpen(false)}
+                    >
                         <div className="flex items-center justify-between px-4 py-3 border-b border-tp-border">
                         <span className="text-sm font-semibold">Notifications</span>
                         </div>
