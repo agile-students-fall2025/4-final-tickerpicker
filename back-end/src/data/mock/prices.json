@@ -1,0 +1,7 @@
+{
+  "AAPL": { "price": 172.15, "change": 2.45, "changePercent": 1.44 },
+  "MSFT": { "price": 378.85, "change": -1.25, "changePercent": -0.33 },
+  "GOOGL": { "price": 139.92, "change": 3.12, "changePercent": 2.28 },
+  "NVDA": { "price": 472.35, "change": 12.5, "changePercent": 2.71 },
+  "TSLA": { "price": 248.5, "change": -5.25, "changePercent": -2.07 }
+}
