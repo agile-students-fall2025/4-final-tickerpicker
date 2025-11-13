@@ -1,16 +1,14 @@
-const express = require("express");
-const cors = require("cors");
-const {
-  queryPriceData,
-  getFundamentals,
-} = require("./src/data/DataFetcher.js");
+import express, { json } from "express";
+import cors from "cors";
+import dashboardRouter from './src/routes/dashboard.js';
+import { queryPriceData, getFundamentals } from "./src/data/DataFetcher.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(json());
 
 // API Routes
 app.get("/api/price-data/:symbol", async (req, res) => {
@@ -48,6 +46,9 @@ app.get("/api/fundamentals/:symbol", async (req, res) => {
     });
   }
 });
+
+// Dashboard routes (TickerPicker)
+app.use('/api/dashboard', dashboardRouter);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
