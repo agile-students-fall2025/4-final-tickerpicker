@@ -84,5 +84,58 @@ async function testDataFetching() {
   }
 }
 
-// Uncomment to run test:
-testDataFetching();
+// testDataFetching();
+
+
+
+/**
+ * Fetches calendar events (earnings, dividends, splits) for a symbol
+ * @param {string} symbol - Stock symbol
+ * @returns {Object} Calendar events including earnings, dividends, and splits
+ */
+export async function getCalendarEvents(symbol) {
+  try {
+    const yahooFinance = new YahooFinance();
+    // api call to get calendar events from yahoo finance
+    const data = await yahooFinance.quoteSummary(symbol, {
+      modules: ["calendarEvents", "upgradeDowngradeHistory", "earningsHistory", "earnings"]
+    });
+
+    return {
+      earnings: data.earnings || null,
+      calendarEvents: data.calendarEvents || null,
+      earningsHistory: data.earningsHistory || null,
+    };
+  } catch (error) {
+    console.error(`Error fetching calendar events for ${symbol}:`, error.message);
+    throw error;
+  }
+}
+
+/**
+ * Alternative method: Get events from chart data (dividends and splits)
+ * @param {string} symbol - Stock symbol
+ * @param {string} startDate - Start date in YYYY-MM-DD format
+ * @param {string} endDate - End date in YYYY-MM-DD format
+ * @returns {Object} Events including dividends and splits
+ */
+export async function getEventsFromChart(symbol, startDate, endDate) {
+  try {
+    const yahooFinance = new YahooFinance();
+    
+    const data = await yahooFinance.chart(symbol, {
+      period1: startDate,
+      period2: endDate,
+      interval: "1d",
+    });
+
+    return {
+      dividends: data.events?.dividends || [],
+      splits: data.events?.splits || [],
+    };
+  } catch (error) {
+    console.error(`Error fetching events from chart for ${symbol}:`, error.message);
+    throw error;
+  }
+}
+
