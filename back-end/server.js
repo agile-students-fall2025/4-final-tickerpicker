@@ -5,6 +5,7 @@ const {
   getFundamentals,
   getCalendarEvents,
   getEventsFromChart,
+  fetchQuotes,
 } = require("./src/data/DataFetcher.js");
 
 const app = express();
@@ -17,9 +18,24 @@ const mockNotificationStocks = new Set(); // Set of stock symbols that have noti
 const mockTrackedEvents = new Map(); // Map<eventId, event> - tracks events we've already notified about
 const DEFAULT_DAYS_BEFORE = 7; // Default: notify 7 days before events
 
+// ---- Mock watchlist data (in-memory for now) ----
+//JUST A SAMPLE TO MAKE THE WATCHLIST PAGE NON-EMPTY
+const mockWatchlists = [
+  {
+    id: 1,
+    name: "Tech Giants",
+    stocks: ["AAPL", "MSFT", "GOOGL"],
+  },
+  {
+    id: 2,
+    name: "Energy",
+    stocks: ["XOM", "CVX"],
+  },
+];
+
 // Middleware
 app.use(cors());
-app.use(json());
+app.use(express.json());
 
 // API Routes
 app.get("/api/price-data/:symbol", async (req, res) => {
@@ -327,8 +343,97 @@ app.post("/api/calendar-events/check", async (req, res) => {
     });
   }
 });
-// Dashboard routes (TickerPicker)
-app.use('/api/dashboard', dashboardRouter);
+
+// ------------------------------------------------------------
+// Watchlist API (used by WatchlistPage when VITE_USE_MOCK=false)
+
+// GET /api/watchlists/initial
+// Returns:
+//   - watchlists: [{ id, name, stocks: [symbols...] }]
+//   - priceDataMap: { [symbol]: { price, change, changePercent } }
+app.get("/api/watchlists/initial", async (req, res) => {
+  try {
+    // 1. Use our mock watchlists for now (later, replace with DB)
+    const watchlists = mockWatchlists;
+
+    // 2. Collect all unique symbols across all watchlists
+    const allSymbols = Array.from(
+      new Set(watchlists.flatMap((wl) => wl.stocks))
+    );
+
+    if (allSymbols.length === 0) {
+      return res.json({ watchlists: [], priceDataMap: {} });
+    }
+
+    // 3. Fetch live quotes from Yahoo Finance
+    const quotes = await fetchQuotes(allSymbols);
+
+    // 4. Build priceDataMap in the shape the front end expects
+    const priceDataMap = {};
+
+    for (const symbol of allSymbols) {
+      const quote = quotes[symbol];
+
+      if (!quote) {
+        // If quote failed, still include the key with nulls
+        priceDataMap[symbol] = {
+          price: null,
+          change: null,
+          changePercent: null,
+        };
+        continue;
+      }
+
+      // yahoo-finance2 typical fields
+      const price =
+        quote.regularMarketPrice ??
+        quote.postMarketPrice ??
+        quote.preMarketPrice ??
+        quote.previousClose ??
+        null;
+
+      const change =
+        quote.regularMarketChange ??
+        (price != null && quote.previousClose != null
+          ? price - quote.previousClose
+          : null);
+
+      const changePercent =
+        quote.regularMarketChangePercent ??
+        (change != null && quote.previousClose
+          ? (change / quote.previousClose) * 100
+          : null);
+
+      priceDataMap[symbol] = {
+        price: typeof price === "number" ? price : null,
+        change: typeof change === "number" ? change : null,
+        changePercent:
+          typeof changePercent === "number" ? changePercent : null,
+      };
+    }
+
+    res.json({
+      watchlists,
+      priceDataMap,
+    });
+  } catch (error) {
+    console.error("Error fetching watchlists:", error);
+    res.status(500).json({
+      error: "Failed to fetch watchlists",
+      message: error.message,
+    });
+  }
+});
+
+
+/**?
+ * UNCOMMENT THE CODE BELOW AFTER dashboardRouter is created.
+ * 
+ * SERVER WASN'T RUNNING WITH IT 
+ */
+
+// Dashboard routes (TickerPicker) 
+//app.use('/api/dashboard', dashboardRouter);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
