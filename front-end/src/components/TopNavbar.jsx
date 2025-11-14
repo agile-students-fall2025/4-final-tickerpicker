@@ -33,6 +33,7 @@ export default function Navbar() {
     const handleSearchSubmit = (e) => {
     const trimmedQuery = query.trim();
     e.preventDefault();
+    const trimmed = query.trim();
     // ignore what user typed; always go to /stock (AAPL)
     navigate(`/stock/${trimmedQuery.toUpperCase()}`)
     setQuery(""); // optional: clear search bar

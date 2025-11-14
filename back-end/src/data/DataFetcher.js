@@ -41,6 +41,24 @@ export async function queryPriceData(
   }
 }
 
+// 批量获取quote数据 返回一个{[symbol]: quoteObject}的映射
+export async function fetchQuotes(symbols = []) {
+  const yahooFinance = new YahooFinance();
+  const result = {};
+
+  for (const symbol of symbols) {
+    try {
+      const quote = await yahooFinance.quote(symbol);
+      result[symbol] = quote;
+    } catch (err) {
+      console.error(`Error fetching quote for ${symbol}:`, err.message);
+    }
+  }
+
+  return result;
+}
+
+
 /**
  * Fetches fundamental data for an asset symbol (Needs to be further developed after deciding what fundamental data we want to display)
  *
@@ -60,6 +78,53 @@ export async function getFundamentals(symbol) {
     console.error(`Error fetching fundamentals for ${symbol}:`, error.message);
     throw error;
   }
+}
+
+/**
+ * Extract metrics below from yFinance using getFundamentals
+ * - share price
+ * - market cap
+ * - P/E
+ * - debt-to-equity
+ * - beta
+ *
+ * @param {string} symbol
+ * @returns {Promise<{
+ *   symbol: string;
+ *   price: number | null;
+ *   marketCap: number | null;
+ *   pe: number | null;
+ *   debtToEquity: number | null;
+ *   beta: number | null;
+ * }>}
+ */
+export async function getKeyMetrics(symbol) {
+  if (!symbol) throw new Error("symbol is required");
+
+  const fundamentals = await getFundamentals(symbol);
+  const { summaryDetail, financialData, defaultKeyStatistics } = fundamentals || {};
+
+  const unwrap = (v) => {
+    if (v == null) return null;
+    if (typeof v === "object" && "raw" in v) return v.raw;
+    return v;
+  };
+
+  return {
+    symbol,
+    price: unwrap(financialData?.currentPrice),
+    marketCap: unwrap(
+      summaryDetail?.marketCap ?? defaultKeyStatistics?.marketCap
+    ),
+    pe: unwrap(
+      summaryDetail?.trailingPE ??
+        summaryDetail?.forwardPE ??
+        defaultKeyStatistics?.trailingPE ??
+        defaultKeyStatistics?.forwardPE
+    ),
+    debtToEquity: unwrap(financialData?.debtToEquity),
+    beta: unwrap(summaryDetail?.beta ?? defaultKeyStatistics?.beta),
+  };
 }
 
 // Example usage and testing functions (uncomment to test)
