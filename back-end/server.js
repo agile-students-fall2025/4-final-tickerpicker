@@ -347,6 +347,91 @@ app.post("/api/calendar-events/check", async (req, res) => {
 // ------------------------------------------------------------
 // Watchlist API (used by WatchlistPage when VITE_USE_MOCK=false)
 
+
+// Create a new watchlist
+app.post("/api/watchlists", (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        error: "Watchlist name cannot be empty.",
+      });
+    }
+
+    const trimmedName = name.trim();
+
+    // Prevent duplicate names (case-insensitive)
+    const exists = mockWatchlists.some(
+      (wl) => wl.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (exists) {
+      return res.status(400).json({
+        error: "A watchlist with this name already exists.",
+      });
+    }
+
+    const newId =
+      mockWatchlists.length > 0
+        ? Math.max(...mockWatchlists.map((wl) => wl.id)) + 1
+        : 1;
+
+    const newWatchlist = {
+      id: newId,
+      name: trimmedName,
+      stocks: [],
+    };
+
+    mockWatchlists.push(newWatchlist);
+
+    return res.status(201).json(newWatchlist);
+  } catch (error) {
+    console.error("Error creating watchlist:", error);
+    res.status(500).json({
+      error: "Failed to create watchlist",
+      message: error.message,
+    });
+  }
+});
+
+// Remove a stock from a watchlist
+app.delete("/api/watchlists/:watchlistId/stocks/:symbol", (req, res) => {
+  try {
+    const watchlistId = parseInt(req.params.watchlistId, 10);
+    const symbolParam = req.params.symbol;
+
+    if (!symbolParam) {
+      return res.status(400).json({ error: "symbol is required" });
+    }
+
+    const symbolUpper = symbolParam.toUpperCase();
+
+    const watchlist = mockWatchlists.find((wl) => wl.id === watchlistId);
+    if (!watchlist) {
+      return res.status(404).json({ error: "Watchlist not found" });
+    }
+
+    // If the symbol is not in this watchlist, just return current watchlist
+    if (!watchlist.stocks.includes(symbolUpper)) {
+      return res.json({ watchlist });
+    }
+
+    // Remove symbol
+    watchlist.stocks = watchlist.stocks.filter(
+      (s) => s.toUpperCase() !== symbolUpper
+    );
+
+    return res.json({ watchlist });
+  } catch (error) {
+    console.error("Error removing stock from watchlist:", error);
+    res.status(500).json({
+      error: "Failed to remove stock from watchlist",
+      message: error.message,
+    });
+  }
+});
+
+
 // GET /api/watchlists/initial
 // Returns:
 //   - watchlists: [{ id, name, stocks: [symbols...] }]
@@ -424,6 +509,100 @@ app.get("/api/watchlists/initial", async (req, res) => {
     });
   }
 });
+
+// Helper to build price/change/changePercent from a yahoo-finance2 quote
+function buildPriceDataFromQuote(quote) {
+  if (!quote) {
+    return { price: null, change: null, changePercent: null };
+  }
+
+  const price =
+    quote.regularMarketPrice ??
+    quote.postMarketPrice ??
+    quote.preMarketPrice ??
+    quote.previousClose ??
+    null;
+
+  const change =
+    quote.regularMarketChange ??
+    (price != null && quote.previousClose != null
+      ? price - quote.previousClose
+      : null);
+
+  const changePercent =
+    quote.regularMarketChangePercent ??
+    (change != null && quote.previousClose
+      ? (change / quote.previousClose) * 100
+      : null);
+
+  return {
+    price: typeof price === "number" ? price : null,
+    change: typeof change === "number" ? change : null,
+    changePercent:
+      typeof changePercent === "number" ? changePercent : null,
+  };
+}
+
+// Add a stock to a watchlist and return updated watchlist + price data
+app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
+  try {
+    const watchlistId = parseInt(req.params.watchlistId, 10);
+    const { symbol } = req.body;
+
+    if (!symbol) {
+      return res.status(400).json({ error: "symbol is required" });
+    }
+
+    const symbolUpper = symbol.trim().toUpperCase();
+    if (!symbolUpper) {
+      return res.status(400).json({ error: "symbol cannot be empty" });
+    }
+
+    const watchlist = mockWatchlists.find((wl) => wl.id === watchlistId);
+    if (!watchlist) {
+      return res.status(404).json({ error: "Watchlist not found" });
+    }
+
+    // If it is already in the list, just return current data
+    if (!watchlist.stocks.includes(symbolUpper)) {
+      watchlist.stocks.push(symbolUpper);
+    }
+
+    // Fetch quote for this symbol
+        // Fetch quote for this symbol
+    const quotes = await fetchQuotes([symbolUpper]);
+    const quote = quotes[symbolUpper];
+
+    // If yahoo-finance2 could not return a quote, treat it as invalid
+    if (!quote) {
+      // Remove it again if we optimistically pushed it
+      watchlist.stocks = watchlist.stocks.filter(
+        (s) => s.toUpperCase() !== symbolUpper
+      );
+
+      return res.status(400).json({
+        error: `Symbol "${symbolUpper}" is invalid or data is not available.`,
+      });
+    }
+
+    const priceData = buildPriceDataFromQuote(quote);
+
+    return res.json({
+      watchlist,
+      priceDataMap: {
+        [symbolUpper]: priceData,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error adding stock to watchlist:", error);
+    res.status(500).json({
+      error: "Failed to add stock to watchlist",
+      message: error.message,
+    });
+  }
+});
+
 
 
 /**?
