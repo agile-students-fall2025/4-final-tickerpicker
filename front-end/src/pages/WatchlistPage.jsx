@@ -457,25 +457,38 @@ export default function WatchlistPage() {
                         <span className="font-semibold text-black text-lg">
                           {symbol}
                         </span>
-                        {priceData && (
+                        {priceData ? (
                           <div className="flex items-center gap-4 mt-1">
+                            {/* Price */}
                             <span className="text-black">
-                              ${priceData.price.toFixed(2)}
+                              {typeof priceData.price === "number"
+                                ? `$${priceData.price.toFixed(2)}`
+                                : "Price N/A"}
                             </span>
-                            <span
-                              className={
-                                priceData.change >= 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              }
-                            >
-                              {priceData.change >= 0 ? "+" : ""}
-                              {priceData.change.toFixed(2)} (
-                              {priceData.changePercent >= 0 ? "+" : ""}
-                              {priceData.changePercent.toFixed(2)}%)
-                            </span>
+
+                            {/* Change + % */}
+                            {typeof priceData.change === "number" &&
+                            typeof priceData.changePercent === "number" ? (
+                              <span
+                                className={
+                                  priceData.change >= 0 ? "text-green-600" : "text-red-600"
+                                }
+                              >
+                                {priceData.change >= 0 ? "+" : ""}
+                                {priceData.change.toFixed(2)} (
+                                {priceData.changePercent >= 0 ? "+" : ""}
+                                {priceData.changePercent.toFixed(2)}%)
+                              </span>
+                            ) : (
+                              <span className="text-tp-text-dim">Change N/A</span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-4 mt-1">
+                            <span className="text-tp-text-dim">Price data unavailable</span>
                           </div>
                         )}
+
                       </div>
                       <button
                         onClick={() => handleRemoveStock(symbol)}

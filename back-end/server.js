@@ -569,8 +569,23 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
     }
 
     // Fetch quote for this symbol
+        // Fetch quote for this symbol
     const quotes = await fetchQuotes([symbolUpper]);
-    const priceData = buildPriceDataFromQuote(quotes[symbolUpper]);
+    const quote = quotes[symbolUpper];
+
+    // If yahoo-finance2 could not return a quote, treat it as invalid
+    if (!quote) {
+      // Remove it again if we optimistically pushed it
+      watchlist.stocks = watchlist.stocks.filter(
+        (s) => s.toUpperCase() !== symbolUpper
+      );
+
+      return res.status(400).json({
+        error: `Symbol "${symbolUpper}" is invalid or data is not available.`,
+      });
+    }
+
+    const priceData = buildPriceDataFromQuote(quote);
 
     return res.json({
       watchlist,
@@ -578,6 +593,7 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
         [symbolUpper]: priceData,
       },
     });
+
   } catch (error) {
     console.error("Error adding stock to watchlist:", error);
     res.status(500).json({
