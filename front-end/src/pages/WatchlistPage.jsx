@@ -262,13 +262,20 @@ export default function WatchlistPage() {
 }
 
 
-  function handleRemoveStock(symbol) {
-    if (!selectedWatchlistId) return;
+  async function handleRemoveStock(symbol) {
+  if (!selectedWatchlistId) return;
 
+  const symbolUpper = symbol.toUpperCase();
+
+  // ---- MOCK MODE: only touch local state ----
+  if (USE_MOCK) {
     setWatchlists(
       watchlists.map((wl) => {
         if (wl.id === selectedWatchlistId) {
-          return { ...wl, stocks: wl.stocks.filter((s) => s !== symbol) };
+          return {
+            ...wl,
+            stocks: wl.stocks.filter((s) => s !== symbolUpper),
+          };
         }
         return wl;
       })
@@ -276,9 +283,47 @@ export default function WatchlistPage() {
 
     setStockMessage({
       type: "ok",
-      text: `Stock ${symbol} removed successfully.`,
+      text: `Stock ${symbolUpper} removed successfully.`,
+    });
+    return;
+  }
+
+  // ---- REAL BACKEND MODE ----
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/watchlists/${selectedWatchlistId}/stocks/${symbolUpper}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Update the watchlists array with the updated watchlist from backend
+    setWatchlists((prev) =>
+      prev.map((wl) =>
+        wl.id === selectedWatchlistId ? data.watchlist : wl
+      )
+    );
+
+    setStockMessage({
+      type: "ok",
+      text: `Stock ${symbolUpper} removed successfully.`,
+    });
+  } catch (err) {
+    console.error("Failed to remove stock:", err);
+    setStockMessage({
+      type: "err",
+      text: "Failed to remove stock. Please try again.",
     });
   }
+}
+
 
   return (
     <section className="w-full grid grid-cols-12 gap-16">

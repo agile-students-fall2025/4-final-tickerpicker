@@ -394,6 +394,43 @@ app.post("/api/watchlists", (req, res) => {
   }
 });
 
+// Remove a stock from a watchlist
+app.delete("/api/watchlists/:watchlistId/stocks/:symbol", (req, res) => {
+  try {
+    const watchlistId = parseInt(req.params.watchlistId, 10);
+    const symbolParam = req.params.symbol;
+
+    if (!symbolParam) {
+      return res.status(400).json({ error: "symbol is required" });
+    }
+
+    const symbolUpper = symbolParam.toUpperCase();
+
+    const watchlist = mockWatchlists.find((wl) => wl.id === watchlistId);
+    if (!watchlist) {
+      return res.status(404).json({ error: "Watchlist not found" });
+    }
+
+    // If the symbol is not in this watchlist, just return current watchlist
+    if (!watchlist.stocks.includes(symbolUpper)) {
+      return res.json({ watchlist });
+    }
+
+    // Remove symbol
+    watchlist.stocks = watchlist.stocks.filter(
+      (s) => s.toUpperCase() !== symbolUpper
+    );
+
+    return res.json({ watchlist });
+  } catch (error) {
+    console.error("Error removing stock from watchlist:", error);
+    res.status(500).json({
+      error: "Failed to remove stock from watchlist",
+      message: error.message,
+    });
+  }
+});
+
 
 // GET /api/watchlists/initial
 // Returns:
