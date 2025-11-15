@@ -10,9 +10,8 @@ export default function LeftNav() {
         "text-black font-medium";
 
     return (
-        <aside className="flex flex-col w-24 shrink-0">
-            <nav className="flex flex-col gap-2">
-                {/* Home Link */}
+        <aside className="flex flex-col w-40 shrink-0">
+            <nav className="flex flex-col gap-3">
                 <NavLink
                     to="/home"
                     className={({ isActive }) =>
