@@ -9,13 +9,28 @@ export default function LeftNav() {
     const linkActive =
         "text-black font-medium";
 
+    const links = ['Home', 'Watchlist', 'TickerPicker', 'Profile'].map(link => {
+        return (
+            <NavLink
+                key={link}
+                to="/home"
+                className={({ isActive }) =>
+                "block text-xl py-2 rounded-md transition-colors " +
+                (isActive
+                    ? "text-black font-medium"
+                    : "text-tp-text-dim hover:text-black")
+                }
+            >{link}</NavLink>
+        )
+    })
     return (
         <aside className="flex flex-col w-40 shrink-0">
-            <nav className="flex flex-col gap-3">
+            <nav className="flex flex-col gap-3">{links}
+                {/*
                 <NavLink
                     to="/home"
                     className={({ isActive }) =>
-                        "block text-md py-2 rounded-md transition-colors " +
+                        "block text-xl py-2 rounded-md transition-colors " +
                         (isActive
                             ? "text-black font-medium"
                             : "text-tp-text-dim hover:text-black")
@@ -24,7 +39,7 @@ export default function LeftNav() {
                     Home
                 </NavLink>
 
-                {/* Watchlist Link */}
+                {/*
                 <NavLink
                     to="/watchlist"
                     className={({ isActive }) =>
@@ -37,7 +52,6 @@ export default function LeftNav() {
                     Watchlist
                 </NavLink>
 
-                {/* Dashboard Link */}
                 <NavLink
                     to="/dashboard"
                     className={({ isActive }) =>
@@ -50,7 +64,6 @@ export default function LeftNav() {
                     TickerPicker
                 </NavLink>
                 
-                {/* Profile Link */}
                 <NavLink
                     to="/profile"
                     className={({ isActive }) =>
@@ -62,6 +75,7 @@ export default function LeftNav() {
                 >
                     Profile
                 </NavLink>
+                */}
             </nav>
         </aside>
     );

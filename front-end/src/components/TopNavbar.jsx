@@ -45,7 +45,7 @@ export default function Navbar() {
                 {/* Left: Logo */}
                 <Link
                     to="/home"
-                    className="text-lg font-semibold text-white hover:text-tp-text-dim transition-colors">
+                    className="text-[3em] font-semibold text-white hover:text-tp-text-dim transition-colors">
                     TickerPicker
                 </Link>
 

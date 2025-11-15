@@ -47,7 +47,7 @@ body {
 }
 
 .tp-search-bar {
-  @apply w-64 h-10 rounded-xl bg-tp-accent/50 border-none px-4 py-3
+  @apply w-64 h-10 rounded-xl border border-white bg-tp-accent/50  px-4 py-3
          text-white placeholder-tp-text-dim outline-none hover:brightness-125 active:brightness-125 
          transition duration-150;
 }
