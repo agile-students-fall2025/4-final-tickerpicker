@@ -11,8 +11,8 @@ import { filterSymbolsByMetrics } from '../utils/MetricsFilters.js';
  */
 router.post('/filter', async (req, res) => {
   try {
-    const { symbols = [], filters = {} } = req.body || {};
-    const items = await filterSymbolsByMetrics({ symbols, filters });
+    const { symbolsParam = [], filters = {} } = req.body || {};
+    const items = await filterSymbolsByMetrics({ symbolsParam, filters });
     res.json({ count: items.length, items });
   } catch (e) {
     res.status(500).json({ error: 'Failed to post filter(s)', message: e.message });

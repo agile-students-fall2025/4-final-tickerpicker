@@ -1,12 +1,7 @@
-const express = require("express");
-const cors = require("cors");
-const {
-  queryPriceData,
-  getFundamentals,
-  getCalendarEvents,
-  getEventsFromChart,
-  fetchQuotes,
-} = require("./src/data/DataFetcher.js");
+import express, { json } from "express";
+import cors from "cors";
+import dashboardRouter from "./src/routes/dashboard.js"; 
+import { queryPriceData, getFundamentals, getCalendarEvents, getEventsFromChart, fetchQuotes } from "./src/data/DataFetcher.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -35,7 +30,7 @@ const mockWatchlists = [
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(json());
 
 // API Routes
 app.get("/api/price-data/:symbol", async (req, res) => {
@@ -612,7 +607,7 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
  */
 
 // Dashboard routes (TickerPicker) 
-//app.use('/api/dashboard', dashboardRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
