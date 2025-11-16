@@ -63,12 +63,12 @@ body {
 
 /* Left Nav Bar */
 .tp-left-nav {
-  @apply flex flex-col w-40 shrink-0
+  @apply flex flex-col w-40 shrink-0 
 }
 
 /* Left Nav Bar Link */
 .tp-navlink {
-  @apply block py-2 transition-colors 
+  @apply block py-2 transition-colors text-[1.5em]
 }
 
 .tp-label {

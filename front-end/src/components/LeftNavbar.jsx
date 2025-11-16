@@ -11,7 +11,7 @@ export default function LeftNav() {
                 "tp-navlink " +
                 (isActive
                     ? "text-black font-medium"
-                    : "text-black text-[1.5em] hover:text-blue-800")
+                    : "text-black hover:text-blue-800")
                 }
             >{link}</NavLink>
         )

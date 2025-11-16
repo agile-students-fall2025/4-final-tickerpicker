@@ -143,9 +143,6 @@ export default function TickerPickerPage() {
     });
   }
 
-<<<<<<< HEAD
-  // when 'Apply Filter' is pressed
-=======
   async function handleApplyFilters() {
     if (USE_MOCK) {
       console.log("(this is just mocking) Apply Filter clicked client-side filtering");
@@ -154,7 +151,6 @@ export default function TickerPickerPage() {
     await fetchFilteredStocksFromApi(filters);
   }
 
->>>>>>> 1dbace25636b35f4ad3b590cbc7d6ae84c6416a8
   function handleResetFilters() {
     if (!filterLocked) { 
       console.log("Lock not set!"); } 
