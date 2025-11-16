@@ -3,6 +3,10 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Screener from "../components/Screener.jsx";
 
+const API_BASE_URL =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:3001"
+    : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 export default function StockPage() {
   const { ticker } = useParams();        // 从 /stock/:ticker 读参数
   const [stock, setStock] = useState(null);
@@ -16,11 +20,10 @@ export default function StockPage() {
         setError(null);
         const symbol = ticker.toUpperCase();
 
-        const res = await fetch(`/api/stocks/${symbol}`);
+        const res = await fetch(`${API_BASE_URL}/api/stocks/${symbol}`);
         if (!res.ok) {
           throw new Error(`Request failed with status ${res.status}`);
         }
-
         const data = await res.json();
         const s = Array.isArray(data) ? data[0] : data;
 

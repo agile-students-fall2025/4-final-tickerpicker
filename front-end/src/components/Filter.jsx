@@ -50,6 +50,7 @@ export default function Filter({
   onReset,
   locked,
   onToggleLock,
+  onApply,
 }) {
   return (
     <div className="tp-card p-6">
@@ -138,7 +139,7 @@ export default function Filter({
 
       <div className="mt-6 pt-6 border-t border-tp-border">
         <button
-          onClick={onReset}
+          onClick={onApply}
           className="tp-btn-primary w-full"
           disabled={locked}
         >

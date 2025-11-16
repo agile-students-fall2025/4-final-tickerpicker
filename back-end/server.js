@@ -1,7 +1,12 @@
 import express, { json } from "express";
 import cors from "cors";
 import dashboardRouter from "./src/routes/dashboard.js"; 
+import { toStock } from "./src/utils/MetricsFilters.js";
 import { queryPriceData, getFundamentals, getCalendarEvents, getEventsFromChart, fetchQuotes } from "./src/data/DataFetcher.js";
+
+// import env, if finally we are going to use like a yFinance key or something
+// import dotenv from "dotenv";
+// dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -68,10 +73,6 @@ app.get("/api/fundamentals/:symbol", async (req, res) => {
     });
   }
 });
-
-
-
-
 
 // ------------------------------------------------------------
 // Notifications & Alerts for Stock Events
@@ -340,7 +341,7 @@ app.post("/api/calendar-events/check", async (req, res) => {
 });
 
 // ------------------------------------------------------------
-// Watchlist API (used by WatchlistPage when VITE_USE_MOCK=false)
+// Watchlist API (used by WatchlistPage when USE_MOCK=false)
 
 
 // Create a new watchlist
@@ -537,6 +538,38 @@ function buildPriceDataFromQuote(quote) {
       typeof changePercent === "number" ? changePercent : null,
   };
 }
+
+app.get("/api/stocks/:symbol", async (req, res) => {
+  try {
+    const raw = req.params.symbol || "";
+    const symbol = raw.toUpperCase().trim();
+
+    if (!symbol) {
+      return res.status(400).json({ error: "Symbol is required" });
+    }
+
+    // 用 yahoo-finance2 拿 quote + fundamentals
+    const quotes = await fetchQuotes([symbol]);
+    const quote = quotes[symbol];
+
+    if (!quote) {
+      return res.status(404).json({
+        error: `No quote data found for ${symbol}`,
+      });
+    }
+
+    const fundamentals = await getFundamentals(symbol);
+    const stock = toStock(symbol, quote, fundamentals);
+
+    res.json(stock);
+  } catch (error) {
+    console.error("Error fetching single stock:", error);
+    res.status(500).json({
+      error: "Failed to fetch stock",
+      message: error.message,
+    });
+  }
+});
 
 // Add a stock to a watchlist and return updated watchlist + price data
 app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {

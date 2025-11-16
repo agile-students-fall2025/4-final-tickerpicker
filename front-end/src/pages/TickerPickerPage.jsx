@@ -3,7 +3,14 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Filter from "../components/Filter.jsx";
 import Screener from "../components/Screener.jsx";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+// import utils
+import { mapBackendStocksToClient } from "../utils/backendMappings.js"
+
+const USE_MOCK = false
+const API_BASE_URL =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:3001"
+    : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function TickerPickerPage() {
   const { isAuthenticated } = useAuth();
@@ -22,42 +29,59 @@ export default function TickerPickerPage() {
   const [watchlists, setWatchlists] = useState([]);
   const [allStocks, setAllStocks] = useState([]);
 
-  // Load initial data based on VITE_USE_MOCK setting
+  async function fetchFilteredStocksFromApi(currentFilters) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/filter`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbolsParam: ["AAPL","MSFT","GOOGL","AMZN","NVDA","META","TSLA","AMD","NFLX","AVGO"],
+          filters: currentFilters,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(
+          "Dashboard API error:",
+          response.status,
+          await response.text()
+        );
+        setAllStocks([]);
+        setFilteredStocks([]);
+        return;
+      }
+
+      const data = await response.json();
+      const normalized = mapBackendStocksToClient(data.items || []);
+      setAllStocks(normalized);
+      setFilteredStocks(normalized);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+      setAllStocks([]);
+      setFilteredStocks([]);
+    }
+  }
+
   useEffect(() => {
     const loadData = async () => {
-      console.log(
-        "TickerPickerPage: VITE_USE_MOCK =",
-        import.meta.env.VITE_USE_MOCK
-      );
       console.log("TickerPickerPage: USE_MOCK =", USE_MOCK);
-
       if (USE_MOCK) {
-        // Load mock data
         const { mockScreenerStocks, mockWatchlists } = await import(
           "../../mock/data.js"
         );
-        console.log("TickerPickerPage: Loaded mock data:", {
-          stocks: mockScreenerStocks.length,
-          watchlists: mockWatchlists,
-        });
         setAllStocks(mockScreenerStocks);
         setFilteredStocks(mockScreenerStocks);
         setWatchlists(mockWatchlists);
       } else {
-        // In production, fetch from API
-        // TODO: Implement API calls when backend is ready
-        console.log("TickerPickerPage: USE_MOCK is false, no data loaded");
-        setAllStocks([]);
-        setFilteredStocks([]);
+        await fetchFilteredStocksFromApi(filters);
         setWatchlists([]);
       }
     };
-
     loadData();
   }, []);
 
-  // Filter stocks based on active filters
   useEffect(() => {
+    if (!USE_MOCK) return;
     if (allStocks.length === 0) return;
 
     const filtered = allStocks.filter((stock) => {
@@ -83,6 +107,16 @@ export default function TickerPickerPage() {
 
     setFilteredStocks(filtered);
   }, [filters, allStocks]);
+
+  //When changing filters, the results gets updated automatically
+  //but this is buggy right now... Ig we can just click on Apply filter button for now
+  // useEffect(() => {
+  //   if (USE_MOCK) return;
+  //   const h = setTimeout(() => {
+  //     fetchFilteredStocksFromApi(filters);
+  //   }, 300);
+  //   return () => clearTimeout(h);
+  // }, [filters]);
 
   function handleFilterChange(metric, type, value) {
     if (filterLocked) return;
@@ -112,6 +146,14 @@ export default function TickerPickerPage() {
         [metric]: updatedFilter,
       };
     });
+  }
+
+  async function handleApplyFilters() {
+    if (USE_MOCK) {
+      console.log("(this is just mocking) Apply Filter clicked client-side filtering");
+      return;
+    }
+    await fetchFilteredStocksFromApi(filters);
   }
 
   function handleResetFilters() {
@@ -181,6 +223,7 @@ export default function TickerPickerPage() {
           onReset={handleResetFilters}
           locked={filterLocked}
           onToggleLock={() => setFilterLocked(!filterLocked)}
+          onApply={handleApplyFilters}
         />
       </div>
 
