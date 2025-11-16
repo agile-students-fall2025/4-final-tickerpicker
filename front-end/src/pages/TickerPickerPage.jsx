@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import Filter from "../components/Filter.jsx";
 import Screener from "../components/Screener.jsx";
-import SortMenu from "../components/SortMenu.jsx";
+import SortMenu, {sortStocks} from "../components/SortMenu.jsx";
 
 // import utils
 import { mapBackendStocksToClient } from "../utils/backendMappings.js"
@@ -75,6 +75,7 @@ export default function TickerPickerPage() {
         setFilteredStocks(mockScreenerStocks);
         setWatchlists(mockWatchlists);
       } else {
+        // fetch stocks from API with filters set
         await fetchFilteredStocksFromApi(filters);
         setWatchlists([]);
       }
@@ -104,6 +105,15 @@ export default function TickerPickerPage() {
 
     setFilteredStocks(filtered);
   }, [filters, allStocks]);
+
+  // Sort 'filtered' stocks evertime SortMenu is changed
+  const [selectedMetric, setSelectedMetric] = useState("price");
+  useEffect(() => {    
+    // for now we will only sort by price
+    setFilteredStocks(
+      sortStocks(filteredStocks, "price")
+    )
+  }, [selectedMetric])
 
   // Handle changes to filter only when not locked
   // When changing filters, the results gets updated automatically
@@ -240,8 +250,11 @@ export default function TickerPickerPage() {
               {filteredStocks.length} stocks found
             </p>
           </div>
-          {/* Sort Menu */}
-          <SortMenu />
+          {/* Sort Menu, only sorts stocks by 'price' for now */}
+          <SortMenu 
+            value={selectedMetric} 
+            onChange={(newValue) => setSelectedMetric(newValue)}
+          />
         </div>
 
         <div>
