@@ -6,6 +6,7 @@
 :root {
   color-scheme: light;
   background-color: #ffffff; /* tp-bg fallback */
+  --brand-color1: #0f172a;
 }
 
 body {
@@ -46,12 +47,27 @@ body {
          transition duration-150;
 }
 
+/* Top Nav Bar */ 
+.tp-top-nav {
+  @apply border-b border-tp-border bg-[var(--brand-color1)] text-white sticky top-0 z-50 
+}
+
+/* Ticker Search Bar */
 .tp-search-bar {
   @apply w-64 h-10 rounded-xl border border-white bg-tp-accent/50  px-4 py-3
          text-white placeholder-tp-text-dim outline-none hover:brightness-125 active:brightness-125 
          transition duration-150;
 }
 
+/* Left Nav Bar */
+.tp-left-nav {
+  @apply flex flex-col w-40 shrink-0
+}
+
+/* Left Nav Bar Link */
+.tp-navlink {
+  @apply block py-2 transition-colors 
+}
 
 .tp-label {
   @apply text-sm font-medium text-black flex items-center gap-2 mb-1;

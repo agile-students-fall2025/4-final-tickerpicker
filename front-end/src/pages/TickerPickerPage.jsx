@@ -10,10 +10,10 @@ export default function TickerPickerPage() {
 
   // Filter state
   const [filters, setFilters] = useState({
-    sharePrice: { min: 0, max: 500 },
-    marketCap: { min: 0, max: 5000000000000 },
+    price: { min: 0, max: 500 },
+    marketCap: { min: 0, max: 5 * Math.pow(10,12) },
     peRatio: { min: 0, max: 100 },
-    debtToEquity: { min: 0, max: 3 },
+    debtToEequity: { min: 0, max: 3 },
     beta: { min: 0, max: 3 },
   });
 
@@ -61,24 +61,42 @@ export default function TickerPickerPage() {
     if (allStocks.length === 0) return;
 
     const filtered = allStocks.filter((stock) => {
+      /*constStockMetrics = {
+        'price': stock.price || 0,
+        'marketCap' : stock.marketCap || 0;
+      }
+      // if the metric is null, consider it 0
       const price = stock.price || 0;
-      const marketCap = stock.market_cap || 0;
-      const peRatio = stock.pe_ratio || 0;
-      const debtToEquity = stock.debt_to_equity || 0;
-      const beta = stock.beta || 0;
+      const marketCap = stock.marketCap || 0;
+      const peRatio = stock.peRatio || 0;
+      const debtToEquity = stock.debtToEquity || 0;
+      const beta = stock.beta || 0;*/
+      
+      // compare the stock against every metric value the filter is set to
+      let passes = true;
+      
+      for (metric of ['sharePrice', 'marketCap', 'peRatio', 'debtToEquity', 'beta']){
+        // if null 0, otherwise keep original stock metric value
+        const stockMetric = stock[metric] ?? 0;
 
-      return (
-        price >= filters.sharePrice.min &&
-        price <= filters.sharePrice.max &&
-        marketCap >= filters.marketCap.min &&
-        marketCap <= filters.marketCap.max &&
-        peRatio >= filters.peRatio.min &&
-        peRatio <= filters.peRatio.max &&
-        debtToEquity >= filters.debtToEquity.min &&
-        debtToEquity <= filters.debtToEquity.max &&
-        beta >= filters.beta.min &&
-        beta <= filters.beta.max
-      );
+        if (!(stockMetric >= filters[metric].min && stockMetric <= filters[metric].max)) {
+            passes = false; break;
+        } 
+      }
+
+      return passes; 
+
+      /*return (
+        price >= filters.sharePrice.min && price <= filters.sharePrice.max 
+        &&
+        marketCap >= filters.marketCap.min && marketCap <= filters.marketCap.max 
+        &&
+        peRatio >= filters.peRatio.min && peRatio <= filters.peRatio.max 
+        &&
+        debtToEquity >= filters.debtToEquity.min && debtToEquity <= filters.debtToEquity.max 
+        &&
+        beta >= filters.beta.min && beta <= filters.beta.max
+      );*/
     });
 
     setFilteredStocks(filtered);

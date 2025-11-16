@@ -40,7 +40,7 @@ export default function Navbar() {
   };
 
     return (
-        <header className="border-b border-tp-border bg-[#0f172a] text-white sticky top-0 z-50">
+        <header className="tp-top-nav">
             <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-4">
                 {/* Left: Logo */}
                 <Link
@@ -59,7 +59,7 @@ export default function Navbar() {
                             <input
                                 type="text"
                                 className="w-full tp-search-bar placeholder-tp-text-dim"
-                                placeholder="Search TickerPicker"
+                                placeholder="Search tickers"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
