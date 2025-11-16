@@ -6,7 +6,7 @@ import React from "react";
  */
 const metrics = [
   {
-    key: "sharePrice", //<-- WARNING: may cause naming conflict
+    key: "price", //<-- WARNING: may cause naming conflict
     label: "Share Price",
     description: "See stocks at the price you want",
     min: 0,
@@ -75,6 +75,8 @@ export default function Filter({
       <ul className="space-y-4">
         {metrics.map((metric) => {
           const filterValues = filters[metric.key];
+          if (!filterValues) console.log("ERROR! metric:",metric.key, "FILTERS: ",filters[metric.key])//TEST
+          else console.log(`${metric.key} worked!`)
           const formatValue = metric.formatValue || ((val) => val.toFixed(1));
 
           return (

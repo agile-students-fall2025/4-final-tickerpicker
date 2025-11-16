@@ -13,7 +13,7 @@ export default function TickerPickerPage() {
     price: { min: 0, max: 500 },
     marketCap: { min: 0, max: 5 * Math.pow(10,12) },
     peRatio: { min: 0, max: 100 },
-    debtToEequity: { min: 0, max: 3 },
+    debtToEquity: { min: 0, max: 3 },
     beta: { min: 0, max: 3 },
   });
 
@@ -40,6 +40,7 @@ export default function TickerPickerPage() {
           stocks: mockScreenerStocks.length,
           watchlists: mockWatchlists,
         });
+        // allStocks, filteredStocks  = mockSCreenerStocks
         setAllStocks(mockScreenerStocks);
         setFilteredStocks(mockScreenerStocks);
         setWatchlists(mockWatchlists);
@@ -75,7 +76,7 @@ export default function TickerPickerPage() {
       // compare the stock against every metric value the filter is set to
       let passes = true;
       
-      for (metric of ['sharePrice', 'marketCap', 'peRatio', 'debtToEquity', 'beta']){
+      for (metric of ['price', 'marketCap', 'peRatio', 'debtToEquity', 'beta']){
         // if null 0, otherwise keep original stock metric value
         const stockMetric = stock[metric] ?? 0;
 
@@ -99,6 +100,7 @@ export default function TickerPickerPage() {
 
     setFilteredStocks(filtered);
   }, [filters, allStocks]);
+  // run this function everytime filters change
 
   function handleFilterChange(metric, type, value) {
     if (filterLocked) return;
@@ -132,8 +134,8 @@ export default function TickerPickerPage() {
 
   function handleResetFilters() {
     setFilters({
-      sharePrice: { min: 0, max: 500 },
-      marketCap: { min: 0, max: 5000000000000 },
+      price: { min: 0, max: 500 },
+      marketCap: { min: 0, max: 5 * Math.pow(10,12) }, //in Bil
       peRatio: { min: 0, max: 100 },
       debtToEquity: { min: 0, max: 3 },
       beta: { min: 0, max: 3 },
