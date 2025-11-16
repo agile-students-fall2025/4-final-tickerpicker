@@ -1,5 +1,3 @@
-
-// src/routes/dashboard.js
 import { Router } from 'express';
 const router = Router();
 import { filterSymbolsByMetrics } from '../utils/MetricsFilters.js';
@@ -15,7 +13,8 @@ router.post('/filter', async (req, res) => {
     const items = await filterSymbolsByMetrics({ symbolsParam, filters });
     res.json({ count: items.length, items });
   } catch (e) {
-    res.status(500).json({ error: 'Failed to post filter(s)', message: e.message });
+    res.status(500)
+        .json({ error: 'Failed to post filter(s)', message: e.message });
   }
 });
 

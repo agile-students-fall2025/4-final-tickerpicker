@@ -1,6 +1,6 @@
 // mock/data.js
 // Centralized mock data for the entire application
-// This file is only loaded when VITE_USE_MOCK=true
+// This file is only loaded when USE_MOCK=true
 
 // ============================================
 // WATCHLIST DATA
