@@ -4,7 +4,7 @@ import assert from "assert";
 import app from "../server.js";
 
 describe("Health & Watchlist API (assert version)", function () {
-  this.timeout(10000)
+  this.timeout(10000) // for slow network
 
   let createdWatchlistId;
 
