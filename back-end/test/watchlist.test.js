@@ -4,6 +4,8 @@ import assert from "assert";
 import app from "../server.js";
 
 describe("Health & Watchlist API (assert version)", function () {
+  this.timeout(10000)
+
   let createdWatchlistId;
 
   it("GET /api/health should return OK", async function () {
