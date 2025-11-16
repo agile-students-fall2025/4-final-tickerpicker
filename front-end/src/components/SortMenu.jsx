@@ -10,7 +10,7 @@ const options = metrics.map( (metric,i) => {
 })
 
 /**
- * 
+ * Recursive implementation of merge sort that sorts stock objects.
  * @param {*} stocks Array of stock objects
  * @param {*} metric Metric to sort by
  * @return List of stocks sorted by metric
