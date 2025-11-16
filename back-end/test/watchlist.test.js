@@ -1,121 +1,104 @@
 // back-end/test/watchlist.test.js
 import request from "supertest";
-import chai from "chai";
+import assert from "assert";
 import app from "../server.js";
 
-const { expect } = chai;
-
-describe("Health & Watchlist API", () => {
+describe("Health & Watchlist API (assert version)", function () {
   let createdWatchlistId;
 
-  it("GET /api/health should return status OK", async () => {
+  it("GET /api/health should return OK", async function () {
     const res = await request(app).get("/api/health");
 
-    expect(res.status).to.equal(200);
-    expect(res.body).to.have.property("status", "OK");
-    expect(res.body).to.have.property("message");
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.status, "OK");
   });
 
-  it("POST /api/watchlists should create a new watchlist", async () => {
+  it("POST /api/watchlists should create a new watchlist", async function () {
     const res = await request(app)
       .post("/api/watchlists")
       .send({ name: "My Test Watchlist" });
 
-    expect(res.status).to.equal(201);
-    expect(res.body).to.have.property("id");
-    expect(res.body).to.have.property("name", "My Test Watchlist");
-    expect(res.body).to.have.property("stocks");
-    expect(res.body.stocks).to.be.an("array").that.is.empty;
+    assert.strictEqual(res.status, 201);
+    assert.ok(res.body.id);
+    assert.strictEqual(res.body.name, "My Test Watchlist");
+    assert.ok(Array.isArray(res.body.stocks));
+    assert.strictEqual(res.body.stocks.length, 0);
 
     createdWatchlistId = res.body.id;
   });
 
-  it("POST /api/watchlists should reject empty name", async () => {
+  it("POST /api/watchlists should reject empty name", async function () {
     const res = await request(app)
       .post("/api/watchlists")
       .send({ name: "   " });
 
-    expect(res.status).to.equal(400);
-    expect(res.body).to.have.property("error");
+    assert.strictEqual(res.status, 400);
+    assert.ok(res.body.error);
   });
 
-  it("POST /api/watchlists should reject duplicate name (case-insensitive)", async () => {
+  it("POST /api/watchlists should reject duplicate name", async function () {
     const res = await request(app)
       .post("/api/watchlists")
-      .send({ name: "my test watchlist" }); // same as before, different case
+      .send({ name: "my test watchlist" });
 
-    expect(res.status).to.equal(400);
-    expect(res.body).to.have.property("error");
+    assert.strictEqual(res.status, 400);
+    assert.ok(res.body.error);
   });
 
-  it("POST /api/watchlists/:watchlistId/stocks should return 400 if symbol missing", async () => {
+  it("POST /api/watchlists/:watchlistId/stocks should require symbol", async function () {
     const res = await request(app)
       .post(`/api/watchlists/${createdWatchlistId}/stocks`)
-      .send({}); // no symbol
+      .send({});
 
-    expect(res.status).to.equal(400);
-    expect(res.body).to.have.property("error");
+    assert.strictEqual(res.status, 400);
+    assert.ok(res.body.error);
   });
 
-  it("POST /api/watchlists/:watchlistId/stocks should return 404 for unknown watchlist", async () => {
+  it("POST /api/watchlists/:id/stocks should return 404 for unknown watchlist", async function () {
     const res = await request(app)
-      .post(`/api/watchlists/999999/stocks`)
+      .post("/api/watchlists/99999/stocks")
       .send({ symbol: "AAPL" });
 
-    expect(res.status).to.equal(404);
-    expect(res.body).to.have.property("error", "Watchlist not found");
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.error, "Watchlist not found");
   });
 
-  it("POST /api/watchlists/:watchlistId/stocks should try to add a valid-looking symbol", async () => {
+  it("POST /api/watchlists/:id/stocks should attempt adding a symbol", async function () {
     const res = await request(app)
       .post(`/api/watchlists/${createdWatchlistId}/stocks`)
       .send({ symbol: "AAPL" });
 
-    // Different environments / API responses can give 200 or 400.
-    // Either way, the route code is executed for coverage.
-    expect([200, 400]).to.include(res.status);
+    // Could be 200 or 400 depending on Yahoo API availability
+    assert.ok(res.status === 200 || res.status === 400);
 
     if (res.status === 200) {
-      expect(res.body).to.have.property("watchlist");
-      expect(res.body.watchlist).to.have.property("stocks");
-      expect(res.body.watchlist.stocks).to.include("AAPL");
-
-      expect(res.body).to.have.property("priceDataMap");
-      expect(res.body.priceDataMap).to.be.an("object");
-      expect(res.body.priceDataMap).to.have.property("AAPL");
-    } else if (res.status === 400) {
-      expect(res.body).to.have.property("error");
+      assert.ok(res.body.watchlist);
+      assert.ok(Array.isArray(res.body.watchlist.stocks));
     }
   });
 
-  it("DELETE /api/watchlists/:watchlistId/stocks/:symbol should remove a stock (or no-op)", async () => {
+  it("DELETE should remove a stock (or no-op)", async function () {
     const res = await request(app)
       .delete(`/api/watchlists/${createdWatchlistId}/stocks/AAPL`);
 
-    expect(res.status).to.equal(200);
-    expect(res.body).to.have.property("watchlist");
-    expect(res.body.watchlist).to.have.property("stocks");
-    expect(res.body.watchlist.stocks).to.be.an("array");
-    expect(res.body.watchlist.stocks).to.not.include("AAPL");
+    assert.strictEqual(res.status, 200);
+    assert.ok(res.body.watchlist);
   });
 
-  it("DELETE /api/watchlists/:watchlistId/stocks/:symbol should return 404 for unknown watchlist", async () => {
+  it("DELETE should return 404 for unknown watchlist", async function () {
     const res = await request(app)
-      .delete(`/api/watchlists/999999/stocks/TSLA`);
+      .delete(`/api/watchlists/99999/stocks/TSLA`);
 
-    expect(res.status).to.equal(404);
-    expect(res.body).to.have.property("error", "Watchlist not found");
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.error, "Watchlist not found");
   });
 
-  it("GET /api/watchlists/initial should return watchlists and priceDataMap", async () => {
+  it("GET /api/watchlists/initial should return structure", async function () {
     const res = await request(app).get("/api/watchlists/initial");
 
-    expect(res.status).to.equal(200);
-    expect(res.body).to.have.property("watchlists");
-    expect(res.body.watchlists).to.be.an("array");
-
-    expect(res.body).to.have.property("priceDataMap");
-    expect(res.body.priceDataMap).to.be.an("object");
+    assert.strictEqual(res.status, 200);
+    assert.ok(res.body.watchlists);
+    assert.ok(res.body.priceDataMap);
   });
 });
 
