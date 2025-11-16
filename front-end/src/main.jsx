@@ -5,9 +5,10 @@ import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import "./styles/globals.css";
 
+const USE_MOCK = false;
 const rootEl = document.getElementById("root");
 
-if (import.meta.env.VITE_USE_MOCK === "true") {
+if (USE_MOCK) {
   const { setupMocks } = await import("../mock/index.js"); // path from src/
   setupMocks();
 }

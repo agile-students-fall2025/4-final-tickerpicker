@@ -6,7 +6,7 @@ export default function LeftNav() {
         return (
             <NavLink
                 key={link}
-                to={`/home${link}`}
+                to={`/${link}`}
                 className={({ isActive }) =>
                 "tp-navlink " +
                 (isActive

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import ChartManager from "../charts/ChartManager.js";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+const USE_MOCK = false
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -44,10 +44,9 @@ export default function HomePage() {
     };
   };
 
-  // Load data based on VITE_USE_MOCK setting
+  // Load data based on USE_MOCK setting
   useEffect(() => {
     const loadData = async () => {
-      console.log("HomePage: VITE_USE_MOCK =", import.meta.env.VITE_USE_MOCK);
       console.log("HomePage: USE_MOCK =", USE_MOCK);
 
       if (USE_MOCK) {

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+const USE_MOCK = false;
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:3001"
+    : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function WatchlistPage() {
   const { isAuthenticated } = useAuth();
@@ -21,10 +22,9 @@ export default function WatchlistPage() {
   });
   const [priceDataMap, setPriceDataMap] = useState({});
 
-  // Load initial data based on VITE_USE_MOCK setting
+  // Load initial data based on USE_MOCK setting
   useEffect(() => {
     const loadInitialData = async () => {
-      console.log("WatchlistPage: VITE_USE_MOCK =", import.meta.env.VITE_USE_MOCK);
       console.log("WatchlistPage: USE_MOCK =", USE_MOCK);
 
       if (USE_MOCK) {

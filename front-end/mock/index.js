@@ -39,5 +39,5 @@ export function setupMocks() {
     return originalFetch(url, options);
   };
 
-  console.log("Mock API enabled via VITE_USE_MOCK (multi-ticker)");
+  console.log("Mock API enabled via USE_MOCK (multi-ticker)");
 }
