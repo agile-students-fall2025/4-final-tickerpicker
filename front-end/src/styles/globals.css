@@ -19,6 +19,8 @@ body {
   @apply bg-tp-card rounded-2xl border border-tp-border shadow-tp-card;
 }
 
+
+
 /* Buttons */
 .tp-btn-primary {
   @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium
@@ -71,6 +73,25 @@ body {
 
 .tp-label {
   @apply text-sm font-medium text-black flex items-center gap-2 mb-1;
+}
+
+/* Filter */
+.tp-filter {
+  @apply w-full grid grid-cols-12 gap-16
+}
+
+/* min/max containers, labels, and values */
+.tp-minMax-container {
+  @apply flex items-center justify-between text-xs mb-2
+}
+.tp-minMax-label {
+  @apply text-tp-text-dim
+}
+.tp-minMax-val {
+  @apply text-black font-medium
+}
+.tp-minMax-slider {
+  @apply w-full h-2 bg-tp-border rounded-lg appearance-none cursor-pointer accent-tp-accent
 }
 
 .tp-error {

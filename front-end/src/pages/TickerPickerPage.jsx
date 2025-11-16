@@ -57,22 +57,11 @@ export default function TickerPickerPage() {
     loadData();
   }, []);
 
-  // Filter stocks based on active filters
+  // Filter stocks based on active filters, runs everytime 'filters' changes
   useEffect(() => {
     if (allStocks.length === 0) return;
 
     const filtered = allStocks.filter((stock) => {
-      /*constStockMetrics = {
-        'price': stock.price || 0,
-        'marketCap' : stock.marketCap || 0;
-      }
-      // if the metric is null, consider it 0
-      const price = stock.price || 0;
-      const marketCap = stock.marketCap || 0;
-      const peRatio = stock.peRatio || 0;
-      const debtToEquity = stock.debtToEquity || 0;
-      const beta = stock.beta || 0;*/
-      
       // compare the stock against every metric value the filter is set to
       let passes = true;
       
@@ -84,24 +73,13 @@ export default function TickerPickerPage() {
             passes = false; break;
         } 
       }
-      return passes; 
-      /*return (
-        price >= filters.sharePrice.min && price <= filters.sharePrice.max 
-        &&
-        marketCap >= filters.marketCap.min && marketCap <= filters.marketCap.max 
-        &&
-        peRatio >= filters.peRatio.min && peRatio <= filters.peRatio.max 
-        &&
-        debtToEquity >= filters.debtToEquity.min && debtToEquity <= filters.debtToEquity.max 
-        &&
-        beta >= filters.beta.min && beta <= filters.beta.max
-      );*/
+      return passes;
     });
 
     setFilteredStocks(filtered);
   }, [filters, allStocks]);
-  // run this function everytime filters change
 
+  // Handle changes to filter only when not locked
   function handleFilterChange(metric, type, value) {
     if (filterLocked) return;
 
@@ -132,14 +110,20 @@ export default function TickerPickerPage() {
     });
   }
 
+  // when 'Apply Filter' is pressed
   function handleResetFilters() {
-    setFilters({
+    if (!filterLocked) { 
+      console.log("Lock not set!"); } 
+    else {
+      console.log("Lock set")
+      setFilters({
       price: { min: 0, max: 500 },
       marketCap: { min: 0, max: 5 * Math.pow(10,12) }, //in Bil
       peRatio: { min: 0, max: 100 },
       debtToEquity: { min: 0, max: 3 },
       beta: { min: 0, max: 3 },
-    });
+      });
+    }
   }
 
   function handleAddToWatchlist(ticker) {
@@ -183,20 +167,21 @@ export default function TickerPickerPage() {
   }
 
   return (
-    <section className="w-full grid grid-cols-12 gap-16">
+    <section className="tp-filter">
       {/* Left Column - Filter */}
       <div className="col-span-4 flex flex-col gap-8">
+        {/* Filter Header */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
-            <h2 className="text-lg font-semibold text-black">Ticker Filter</h2>
-            <p className="text-sm text-tp-text-dim">Filter stocks by metrics</p>
+            <h2 className="text-[1.5em] font-semibold text-black">Ticker Filter</h2>
+            <p className="text-mm text-tp-text-dim">Filter stocks by metrics</p>
           </div>
         </div>
 
         <Filter
           filters={filters}
           onFilterChange={handleFilterChange}
-          onReset={handleResetFilters}
+          onReset={handleResetFilters} /* Function run when 'Apply Filter' button is pressed */
           locked={filterLocked}
           onToggleLock={() => setFilterLocked(!filterLocked)}
         />
