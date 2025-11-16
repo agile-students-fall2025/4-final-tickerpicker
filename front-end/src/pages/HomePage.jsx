@@ -3,7 +3,11 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import ChartManager from "../charts/ChartManager.js";
 
-const USE_MOCK = false
+const USE_MOCK = false;
+const API_BASE_URL =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:3001"
+    : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -62,11 +66,27 @@ export default function HomePage() {
         setRecommendedPicks(mockRecommendedPicks);
         setTopPerformers(mockTopPerformers);
       } else {
-        // In production, fetch from API
-        // TODO: Implement API calls when backend is ready
-        console.log("HomePage: USE_MOCK is false, no data loaded");
+        // Fetch watchlists (if you have that endpoint)
+        // For now, keep watchlists empty or fetch from /api/watchlists/initial
         setWatchlists([]);
-        setRecommendedPicks([]);
+        
+        // Fetch recommended picks from backend
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/home/recommended-picks`);
+          if (response.ok) {
+            const data = await response.json();
+            setRecommendedPicks(data.picks || []);
+            console.log("HomePage: Loaded recommended picks from API:", data.picks?.length || 0);
+          } else {
+            console.error('Failed to fetch recommended picks:', response.status);
+            setRecommendedPicks([]);
+          }
+        } catch (err) {
+          console.error('Error fetching recommended picks:', err);
+          setRecommendedPicks([]);
+        }
+        
+        // TODO: Fetch top performers when that endpoint is ready
         setTopPerformers([]);
       }
     };

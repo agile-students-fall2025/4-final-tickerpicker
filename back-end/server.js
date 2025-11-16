@@ -1,8 +1,15 @@
 import express, { json } from "express";
 import cors from "cors";
-import dashboardRouter from "./src/routes/dashboard.js"; 
+import dashboardRouter from "./src/routes/dashboard.js";
+import homeRouter from "./src/routes/home.js";
 import { toStock } from "./src/utils/MetricsFilters.js";
-import { queryPriceData, getFundamentals, getCalendarEvents, getEventsFromChart, fetchQuotes } from "./src/data/DataFetcher.js";
+import {
+  queryPriceData,
+  getFundamentals,
+  getCalendarEvents,
+  getEventsFromChart,
+  fetchQuotes,
+} from "./src/data/DataFetcher.js";
 
 // import env, if finally we are going to use like a yFinance key or something
 // import dotenv from "dotenv";
@@ -107,20 +114,20 @@ app.post("/api/notification-stocks", async (req, res) => {
     if (enabled === true || enabled === undefined) {
       // Enable notifications for this stock
       mockNotificationStocks.add(symbolUpper);
-      res.json({ 
-        success: true, 
-        symbol: symbolUpper, 
+      res.json({
+        success: true,
+        symbol: symbolUpper,
         enabled: true,
-        message: `Notifications enabled for ${symbolUpper} (all event types)` 
+        message: `Notifications enabled for ${symbolUpper} (all event types)`,
       });
     } else if (enabled === false) {
       // Disable notifications for this stock
       mockNotificationStocks.delete(symbolUpper);
-      res.json({ 
-        success: true, 
-        symbol: symbolUpper, 
+      res.json({
+        success: true,
+        symbol: symbolUpper,
         enabled: false,
-        message: `Notifications disabled for ${symbolUpper}` 
+        message: `Notifications disabled for ${symbolUpper}`,
       });
     } else {
       return res.status(400).json({
@@ -136,17 +143,16 @@ app.post("/api/notification-stocks", async (req, res) => {
   }
 });
 
-
 //check is a stock is in notifications stock list
 app.get("/api/notification-stocks/:symbol", async (req, res) => {
   try {
     const { symbol } = req.params;
     const symbolUpper = symbol.toUpperCase();
     const isEnabled = mockNotificationStocks.has(symbolUpper);
-    
-    res.json({ 
-      symbol: symbolUpper, 
-      enabled: isEnabled 
+
+    res.json({
+      symbol: symbolUpper,
+      enabled: isEnabled,
     });
   } catch (error) {
     console.error("Error checking notification stock:", error);
@@ -167,7 +173,7 @@ app.get("/api/notifications", async (req, res) => {
 
     // Filter by unread if requested
     if (unreadOnly === "true") {
-      notifications = notifications.filter(n => !n.isRead);
+      notifications = notifications.filter((n) => !n.isRead);
     }
 
     // Sort by createdAt descending (newest first)
@@ -192,7 +198,7 @@ app.get("/api/notifications", async (req, res) => {
 app.get("/api/notifications/unread-count", async (req, res) => {
   try {
     const allNotifications = Array.from(mockNotifications.values());
-    const count = allNotifications.filter(n => !n.isRead).length;
+    const count = allNotifications.filter((n) => !n.isRead).length;
 
     res.json({ count });
   } catch (error) {
@@ -203,7 +209,6 @@ app.get("/api/notifications/unread-count", async (req, res) => {
     });
   }
 });
-
 
 //mark a notif as read
 app.put("/api/notifications/:notificationId/read", async (req, res) => {
@@ -230,7 +235,7 @@ app.put("/api/notifications/:notificationId/read", async (req, res) => {
 async function checkCalendarEventsForSymbol(symbol) {
   try {
     const symbolUpper = symbol.toUpperCase();
-    
+
     // Check if notifications are enabled for this stock
     if (!mockNotificationStocks.has(symbolUpper)) {
       return; // Notifications not enabled for this stock
@@ -238,49 +243,62 @@ async function checkCalendarEventsForSymbol(symbol) {
 
     // Fetch calendar events
     const calendarData = await getCalendarEvents(symbol);
-    
+
     // Also get events from chart (dividends and splits)
     const today = new Date();
     const futureDate = new Date(today);
     futureDate.setDate(futureDate.getDate() + 90); // Check next 90 days
-    
-    const startDate = today.toISOString().split('T')[0];
-    const endDate = futureDate.toISOString().split('T')[0];
-    
+
+    const startDate = today.toISOString().split("T")[0];
+    const endDate = futureDate.toISOString().split("T")[0];
+
     const chartEvents = await getEventsFromChart(symbol, startDate, endDate);
 
     // Check earnings
     if (calendarData.calendarEvents?.earnings?.earningsDate) {
-      const earningsDates = Array.isArray(calendarData.calendarEvents.earnings.earningsDate)
+      const earningsDates = Array.isArray(
+        calendarData.calendarEvents.earnings.earningsDate
+      )
         ? calendarData.calendarEvents.earnings.earningsDate
         : [calendarData.calendarEvents.earnings.earningsDate];
 
-      earningsDates.forEach(earningsDate => {
+      earningsDates.forEach((earningsDate) => {
         if (!earningsDate) return;
 
         const eventDate = new Date(earningsDate * 1000); // Convert from timestamp
-        const daysUntil = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
+        const daysUntil = Math.ceil(
+          (eventDate - today) / (1000 * 60 * 60 * 24)
+        );
 
         if (daysUntil >= 0 && daysUntil <= DEFAULT_DAYS_BEFORE) {
           const eventId = `earnings-${symbol}-${earningsDate}`;
-          
+
           // Check if we've already notified about this event
           if (!mockTrackedEvents.has(eventId)) {
             const notificationId = Date.now().toString();
             const notification = {
               id: notificationId,
               symbol: symbol.toUpperCase(),
-              eventType: 'earnings',
+              eventType: "earnings",
               eventDate: eventDate.toISOString(),
               daysUntil: daysUntil,
-              message: `${symbol} earnings on ${eventDate.toLocaleDateString()} (${daysUntil === 0 ? 'today' : `${daysUntil} day${daysUntil > 1 ? 's' : ''} away`})`,
+              message: `${symbol} earnings on ${eventDate.toLocaleDateString()} (${
+                daysUntil === 0
+                  ? "today"
+                  : `${daysUntil} day${daysUntil > 1 ? "s" : ""} away`
+              })`,
               isRead: false,
               createdAt: new Date().toISOString(),
             };
 
             mockNotifications.set(notificationId, notification);
-            mockTrackedEvents.set(eventId, { eventId, notifiedAt: new Date().toISOString() });
-            console.log(`Calendar event notification created: ${notification.message}`);
+            mockTrackedEvents.set(eventId, {
+              eventId,
+              notifiedAt: new Date().toISOString(),
+            });
+            console.log(
+              `Calendar event notification created: ${notification.message}`
+            );
           }
         }
       });
@@ -288,30 +306,43 @@ async function checkCalendarEventsForSymbol(symbol) {
 
     // Check dividends
     if (chartEvents.dividends && chartEvents.dividends.length > 0) {
-      chartEvents.dividends.forEach(dividend => {
+      chartEvents.dividends.forEach((dividend) => {
         const eventDate = new Date(dividend.date * 1000);
-        const daysUntil = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
+        const daysUntil = Math.ceil(
+          (eventDate - today) / (1000 * 60 * 60 * 24)
+        );
 
         if (daysUntil >= 0 && daysUntil <= DEFAULT_DAYS_BEFORE) {
           const eventId = `dividend-${symbol}-${dividend.date}`;
-          
+
           if (!mockTrackedEvents.has(eventId)) {
             const notificationId = Date.now().toString();
             const notification = {
               id: notificationId,
               symbol: symbol.toUpperCase(),
-              eventType: 'dividends',
+              eventType: "dividends",
               eventDate: eventDate.toISOString(),
               daysUntil: daysUntil,
               amount: dividend.amount,
-              message: `${symbol} dividend of $${dividend.amount?.toFixed(2) || 'N/A'} on ${eventDate.toLocaleDateString()} (${daysUntil === 0 ? 'today' : `${daysUntil} day${daysUntil > 1 ? 's' : ''} away`})`,
+              message: `${symbol} dividend of $${
+                dividend.amount?.toFixed(2) || "N/A"
+              } on ${eventDate.toLocaleDateString()} (${
+                daysUntil === 0
+                  ? "today"
+                  : `${daysUntil} day${daysUntil > 1 ? "s" : ""} away`
+              })`,
               isRead: false,
               createdAt: new Date().toISOString(),
             };
 
             mockNotifications.set(notificationId, notification);
-            mockTrackedEvents.set(eventId, { eventId, notifiedAt: new Date().toISOString() });
-            console.log(`Calendar event notification created: ${notification.message}`);
+            mockTrackedEvents.set(eventId, {
+              eventId,
+              notifiedAt: new Date().toISOString(),
+            });
+            console.log(
+              `Calendar event notification created: ${notification.message}`
+            );
           }
         }
       });
@@ -330,7 +361,10 @@ app.post("/api/calendar-events/check", async (req, res) => {
     }
 
     await checkCalendarEventsForSymbol(symbol);
-    res.json({ success: true, message: `Calendar events checked for ${symbol}` });
+    res.json({
+      success: true,
+      message: `Calendar events checked for ${symbol}`,
+    });
   } catch (error) {
     console.error("Error checking calendar events:", error);
     res.status(500).json({
@@ -342,7 +376,6 @@ app.post("/api/calendar-events/check", async (req, res) => {
 
 // ------------------------------------------------------------
 // Watchlist API (used by WatchlistPage when USE_MOCK=false)
-
 
 // Create a new watchlist
 app.post("/api/watchlists", (req, res) => {
@@ -427,7 +460,6 @@ app.delete("/api/watchlists/:watchlistId/stocks/:symbol", (req, res) => {
   }
 });
 
-
 // GET /api/watchlists/initial
 // Returns:
 //   - watchlists: [{ id, name, stocks: [symbols...] }]
@@ -488,8 +520,7 @@ app.get("/api/watchlists/initial", async (req, res) => {
       priceDataMap[symbol] = {
         price: typeof price === "number" ? price : null,
         change: typeof change === "number" ? change : null,
-        changePercent:
-          typeof changePercent === "number" ? changePercent : null,
+        changePercent: typeof changePercent === "number" ? changePercent : null,
       };
     }
 
@@ -534,8 +565,7 @@ function buildPriceDataFromQuote(quote) {
   return {
     price: typeof price === "number" ? price : null,
     change: typeof change === "number" ? change : null,
-    changePercent:
-      typeof changePercent === "number" ? changePercent : null,
+    changePercent: typeof changePercent === "number" ? changePercent : null,
   };
 }
 
@@ -597,7 +627,7 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
     }
 
     // Fetch quote for this symbol
-        // Fetch quote for this symbol
+    // Fetch quote for this symbol
     const quotes = await fetchQuotes([symbolUpper]);
     const quote = quotes[symbolUpper];
 
@@ -621,7 +651,6 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
         [symbolUpper]: priceData,
       },
     });
-
   } catch (error) {
     console.error("Error adding stock to watchlist:", error);
     res.status(500).json({
@@ -631,16 +660,17 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
   }
 });
 
-
-
 /**?
  * UNCOMMENT THE CODE BELOW AFTER dashboardRouter is created.
- * 
- * SERVER WASN'T RUNNING WITH IT 
+ *
+ * SERVER WASN'T RUNNING WITH IT
  */
 
-// Dashboard routes (TickerPicker) 
-app.use('/api/dashboard', dashboardRouter);
+// Dashboard routes (TickerPicker)
+app.use("/api/dashboard", dashboardRouter);
+
+// Home routes (HomePage)
+app.use("/api/home", homeRouter);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -654,4 +684,3 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export default app;
-
