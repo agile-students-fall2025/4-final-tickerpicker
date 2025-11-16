@@ -1,6 +1,7 @@
 import express, { json } from "express";
 import cors from "cors";
-import dashboardRouter from "./src/routes/dashboard.js"; 
+import dashboardRouter from "./src/routes/dashboard.js";
+import homeRouter from "./src/routes/home.js";
 import { toStock } from "./src/utils/MetricsFilters.js";
 import { queryPriceData, getFundamentals, getCalendarEvents, getEventsFromChart, fetchQuotes } from "./src/data/DataFetcher.js";
 
@@ -641,6 +642,9 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
 
 // Dashboard routes (TickerPicker) 
 app.use('/api/dashboard', dashboardRouter);
+
+// Home routes (HomePage)
+app.use('/api/home', homeRouter);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
