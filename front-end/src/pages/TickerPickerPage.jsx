@@ -83,9 +83,7 @@ export default function TickerPickerPage() {
             passes = false; break;
         } 
       }
-
       return passes; 
-
       /*return (
         price >= filters.sharePrice.min && price <= filters.sharePrice.max 
         &&

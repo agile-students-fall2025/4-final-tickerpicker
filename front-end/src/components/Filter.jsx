@@ -6,7 +6,7 @@ import React from "react";
  */
 const metrics = [
   {
-    key: "sharePrice",
+    key: "sharePrice", //<-- WARNING: may cause naming conflict
     label: "Share Price",
     description: "See stocks at the price you want",
     min: 0,
@@ -18,9 +18,9 @@ const metrics = [
     label: "Market Cap",
     description: "Choose businesses by their size",
     min: 0,
-    max: 5000000000000,
-    step: 1000000000,
-    formatValue: (val) => `$${(val / 1000000000).toFixed(1)}B`,
+    max: 5 * Math.pow(10,12), //1 Tril
+    step: Math.pow(10,9), // 1 Bil
+    formatValue: (val) => `$${(val / Math.pow(10,9)).toFixed(1)}B`,
   },
   {
     key: "peRatio",
@@ -70,7 +70,8 @@ export default function Filter({
           {locked ? "Unlock" : "Lock"}
         </button>
       </div>
-
+        
+      {/* UI piece for each metric */}
       <ul className="space-y-4">
         {metrics.map((metric) => {
           const filterValues = filters[metric.key];
@@ -79,9 +80,7 @@ export default function Filter({
           return (
             <li key={metric.key} className="tp-card p-4">
               {/* UI identifier for metric filter slider */}
-              <h4 className="text-sm font-semibold text-black mb-3">
-                {metric.label}
-              </h4>
+              <h4 className="text-sm font-semibold text-black mb-3">{metric.label}</h4>
               <div className="flex flex-col gap-3">
                 {/* Min/Max Range Labels */}
                 <div className="flex items-center justify-between text-xs mb-2">
