@@ -1,3 +1,7 @@
+/*
+takes an array of stocks
+returns an JSON object describing each stock
+*/
 export function mapBackendStocksToClient(items) {
     if (!Array.isArray(items)) return [];
     return items.map((s) => ({

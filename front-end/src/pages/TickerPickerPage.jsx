@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import Filter from "../components/Filter.jsx";
 import Screener from "../components/Screener.jsx";
+import SortMenu from "../components/SortMenu.jsx";
 
 // import utils
 import { mapBackendStocksToClient } from "../utils/backendMappings.js"
@@ -39,7 +40,7 @@ export default function TickerPickerPage() {
           filters: currentFilters,
         }),
       });
-
+        
       if (!response.ok) {
         console.error(
           "Dashboard API error:",
@@ -50,9 +51,10 @@ export default function TickerPickerPage() {
         setFilteredStocks([]);
         return;
       }
-
+      // response should be {count, items}
       const data = await response.json();
       const normalized = mapBackendStocksToClient(data.items || []);
+      // normalized should be collection of JSON stock objects
       setAllStocks(normalized);
       setFilteredStocks(normalized);
     } catch (error) {
@@ -104,8 +106,8 @@ export default function TickerPickerPage() {
   }, [filters, allStocks]);
 
   // Handle changes to filter only when not locked
-  //When changing filters, the results gets updated automatically
-  //but this is buggy right now... Ig we can just click on Apply filter button for now
+  // When changing filters, the results gets updated automatically
+  // but this is buggy right now... Ig we can just click on Apply filter button for now
   // useEffect(() => {
   //   if (USE_MOCK) return;
   //   const h = setTimeout(() => {
@@ -230,6 +232,7 @@ export default function TickerPickerPage() {
 
       {/* Right Column - Screener */}
       <div className="col-span-8 flex flex-col gap-8">
+        {/* Screener Header */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold text-black">Ticker Picker</h2>
@@ -237,12 +240,17 @@ export default function TickerPickerPage() {
               {filteredStocks.length} stocks found
             </p>
           </div>
+          {/* Sort Menu */}
+          <SortMenu />
         </div>
 
-        <Screener
-          stocks={filteredStocks}
-          onAddToWatchlist={handleAddToWatchlist}
-        />
+        <div>
+          <Screener
+            stocks={filteredStocks}
+            onAddToWatchlist={handleAddToWatchlist}
+          />  
+        </div>
+        
       </div>
     </section>
   );
