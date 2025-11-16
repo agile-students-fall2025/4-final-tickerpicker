@@ -11,6 +11,7 @@ router.post('/filter', async (req, res) => {
   try {
     const { symbolsParam = [], filters = {} } = req.body || {};
     const items = await filterSymbolsByMetrics({ symbolsParam, filters });
+    // 'items' is in camelCase
     res.json({ count: items.length, items });
   } catch (e) {
     res.status(500)

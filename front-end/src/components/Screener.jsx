@@ -1,13 +1,20 @@
 import React from "react";
-
+/**
+ * @param {*} Props List of stocks to display, and function that adds a stock to the watchlist. 
+ * Formats stock data and renders all the stocks that match the filter parameters. 
+ */
 export default function Screener({ stocks, onAddToWatchlist }) {
+  const tril = Math.pow(10, 12);
+  const bil = Math.pow(10, 9);
+  const mil = Math.pow(10, 6);  
+  // Format market cap into human-readable string
   const formatMarketCap = (cap) => {
-    if (cap >= 1000000000000) {
-      return `$${(cap / 1000000000000).toFixed(2)}T`;
-    } else if (cap >= 1000000000) {
-      return `$${(cap / 1000000000).toFixed(2)}B`;
-    } else if (cap >= 1000000) {
-      return `$${(cap / 1000000).toFixed(2)}M`;
+    if (cap >= tril) {
+      return `$${(cap / tril).toFixed(2)}T`;
+    } else if (cap >= bil) {
+      return `$${(cap / bil).toFixed(2)}B`;
+    } else if (cap >= mil) {
+      return `$${(cap / mil).toFixed(2)}M`;
     }
     return `$${cap.toFixed(2)}`;
   };
@@ -26,7 +33,7 @@ export default function Screener({ stocks, onAddToWatchlist }) {
       </div>
     );
   }
-
+  // Render stock cards
   return (
     <div className="tp-card p-6">
       <div className="max-h-[70vh] overflow-y-auto space-y-4">
@@ -48,20 +55,21 @@ export default function Screener({ stocks, onAddToWatchlist }) {
 
               {/* Metrics Grid */}
               <div className="grid grid-cols-2 gap-3 mt-4">
+                {/* Price */}
                 <div>
                   <span className="text-xs text-tp-text-dim">Price:</span>
                   <span className="ml-2 text-sm font-medium text-black">
                     ${stock.price?.toFixed(2) || "N/A"}
                   </span>
                 </div>
-
+                {/* Market Cap */}
                 <div>
                   <span className="text-xs text-tp-text-dim">Market Cap:</span>
                   <span className="ml-2 text-sm font-medium text-black">
                     {formatMarketCap(stock.market_cap || 0)}
                   </span>
                 </div>
-
+                {/* P/E Ratio */}
                 <div>
                   <span className="text-xs text-tp-text-dim">P/E Ratio:</span>
                   <span className="ml-2 text-sm font-medium text-black">
@@ -98,7 +106,7 @@ export default function Screener({ stocks, onAddToWatchlist }) {
                     </div>
                   </>
                 )}
-
+                {/* Debt-to-Equity */}
                 {stock.debt_to_equity !== undefined && (
                   <div>
                     <span className="text-xs text-tp-text-dim">

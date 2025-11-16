@@ -1,8 +1,12 @@
 import React from "react";
-
+/**
+ * Our filter allows users to set ranges for various stock metrics.
+ * The filter comprises slider widgets for each metric.
+ * Each slider has an identifier based on the metric key.
+ */
 const metrics = [
   {
-    key: "sharePrice",
+    key: "price", //<-- WARNING: may cause naming conflict
     label: "Share Price",
     description: "See stocks at the price you want",
     min: 0,
@@ -14,9 +18,9 @@ const metrics = [
     label: "Market Cap",
     description: "Choose businesses by their size",
     min: 0,
-    max: 5000000000000,
-    step: 1000000000,
-    formatValue: (val) => `$${(val / 1000000000).toFixed(1)}B`,
+    max: 5 * Math.pow(10,12), //1 Tril
+    step: Math.pow(10,9), // 1 Bil
+    formatValue: (val) => `$${(val / Math.pow(10,9)).toFixed(1)}B`,
   },
   {
     key: "peRatio",
@@ -57,7 +61,7 @@ export default function Filter({
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-black">Ticker Filter</h3>
         <button
-          onClick={onToggleLock}
+          onClick={onToggleLock} // this function negates the value of 'locked'
           className={
           locked
             ? "tp-btn-lock-locked text-xs px-3 py-1"
@@ -67,33 +71,34 @@ export default function Filter({
           {locked ? "Unlock" : "Lock"}
         </button>
       </div>
-
+        
+      {/* UI piece for each metric */}
       <ul className="space-y-4">
         {metrics.map((metric) => {
           const filterValues = filters[metric.key];
+          //if (!filterValues) console.log("ERROR! metric:", metric.key, "FILTERS: ",filters[metric.key])//TEST
+          //else console.log(`${metric.key} worked!`)//TEST
           const formatValue = metric.formatValue || ((val) => val.toFixed(1));
 
           return (
             <li key={metric.key} className="tp-card p-4">
-              <h4 className="text-sm font-semibold text-black mb-3">
-                {metric.label}
-              </h4>
+              {/* UI identifier for metric filter slider */}
+              <h4 className="tp-label">{metric.label}</h4>
               <div className="flex flex-col gap-3">
                 {/* Min/Max Range Labels */}
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span className="text-tp-text-dim">
-                    Min: <span className="text-black font-medium">{formatValue(filterValues.min)}</span>
+                <div className="tp-minMax-container">
+                  <span className="tp-minMax-label">
+                    Min: <span className="tp-minMax-val">{formatValue(filterValues.min)}</span>
                   </span>
-                  <span className="text-tp-text-dim">
-                    Max: <span className="text-black font-medium">{formatValue(filterValues.max)}</span>
+                  <span className="tp-minMax-label">
+                    Max: <span className="tp-minMax-val">{formatValue(filterValues.max)}</span>
                   </span>
                 </div>
 
                 {/* Min Slider */}
                 <div className="mb-3">
-                  <label className="tp-label text-xs mb-1" htmlFor={`${metric.key}-min`}>
-                    Min
-                  </label>
+                  <label className="tp-label text-xs mb-1" htmlFor={`${metric.key}-min`}>Min</label>
+                  {/* Min slider */}
                   <input
                     id={`${metric.key}-min`}
                     type="range"
@@ -105,7 +110,7 @@ export default function Filter({
                       onFilterChange(metric.key, "min", e.target.value)
                     }
                     disabled={locked}
-                    className="w-full h-2 bg-tp-border rounded-lg appearance-none cursor-pointer accent-tp-accent"
+                    className="tp-minMax-slider"
                   />
                 </div>
 
@@ -125,7 +130,7 @@ export default function Filter({
                       onFilterChange(metric.key, "max", e.target.value)
                     }
                     disabled={locked}
-                    className="w-full h-2 bg-tp-border rounded-lg appearance-none cursor-pointer accent-tp-accent"
+                    className="tp-minMax-slider"
                   />
                 </div>
 

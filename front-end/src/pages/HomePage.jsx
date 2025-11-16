@@ -21,6 +21,7 @@ export default function HomePage() {
 
   // Data states
   const [watchlists, setWatchlists] = useState([]);
+  // **Recommend picks once database is ready
   const [recommendedPicks, setRecommendedPicks] = useState([]);
   const [topPerformers, setTopPerformers] = useState([]);
 
