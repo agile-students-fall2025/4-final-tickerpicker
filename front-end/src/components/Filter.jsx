@@ -18,9 +18,9 @@ const metrics = [
     label: "Market Cap",
     description: "Choose businesses by their size",
     min: 0,
-    max: 5 * Math.pow(10,12), //1 Tril
-    step: Math.pow(10,9), // 1 Bil
-    formatValue: (val) => `$${(val / Math.pow(10,9)).toFixed(1)}B`,
+    max: 5 * Math.pow(10, 12), //1 Tril
+    step: Math.pow(10, 9), // 1 Bil
+    formatValue: (val) => `$${(val / Math.pow(10, 9)).toFixed(1)}B`,
   },
   {
     key: "peRatio",
@@ -63,15 +63,15 @@ export default function Filter({
         <button
           onClick={onToggleLock} // this function negates the value of 'locked'
           className={
-          locked
-            ? "tp-btn-lock-locked text-xs px-3 py-1"
-            : "tp-btn-white-outlined text-xs px-3 py-1"
+            locked
+              ? "tp-btn-lock-locked text-xs px-3 py-1"
+              : "tp-btn-white-outlined text-xs px-3 py-1"
           }
         >
           {locked ? "Unlock" : "Lock"}
         </button>
       </div>
-        
+
       {/* UI piece for each metric */}
       <ul className="space-y-3 md:space-y-4">
         {metrics.map((metric) => {
@@ -88,24 +88,42 @@ export default function Filter({
                 {/* Min/Max Range Labels */}
                 <div className="tp-minMax-container">
                   <span className="tp-minMax-label">
-                    Min: <span className="tp-minMax-val">{formatValue(filterValues.min)}</span>
+                    Min:{" "}
+                    <span className="tp-minMax-val">
+                      {formatValue(filterValues.min)}
+                    </span>
                   </span>
                   <span className="tp-minMax-label">
-                    Max: <span className="tp-minMax-val">{formatValue(filterValues.max)}</span>
+                    Max:{" "}
+                    <span className="tp-minMax-val">
+                      {formatValue(filterValues.max)}
+                    </span>
                   </span>
+                </div>
+                {/* Full Range Display */}
+                <div className="text-xs text-tp-text-dim text-center">
+                  Range: {formatValue(metric.min)} - {formatValue(metric.max)}
                 </div>
 
                 {/* Min Slider */}
                 <div className="mb-3">
-                  <label className="tp-label text-xs mb-1" htmlFor={`${metric.key}-min`}>Min</label>
+                  <label
+                    className="tp-label text-xs mb-1"
+                    htmlFor={`${metric.key}-min`}
+                  >
+                    Min
+                  </label>
                   {/* Min slider */}
                   <input
                     id={`${metric.key}-min`}
                     type="range"
                     min={metric.min}
-                    max={filterValues.max}
+                    max={metric.max}
                     step={metric.step}
-                    value={Math.min(filterValues.min, filterValues.max)}
+                    value={Math.min(
+                      Math.max(filterValues.min, metric.min),
+                      filterValues.max
+                    )}
                     onChange={(e) =>
                       onFilterChange(metric.key, "min", e.target.value)
                     }
@@ -116,16 +134,22 @@ export default function Filter({
 
                 {/* Max Slider */}
                 <div>
-                  <label className="tp-label text-xs mb-1" htmlFor={`${metric.key}-max`}>
+                  <label
+                    className="tp-label text-xs mb-1"
+                    htmlFor={`${metric.key}-max`}
+                  >
                     Max
                   </label>
                   <input
                     id={`${metric.key}-max`}
                     type="range"
-                    min={filterValues.min}
+                    min={metric.min}
                     max={metric.max}
                     step={metric.step}
-                    value={Math.max(filterValues.max, filterValues.min)}
+                    value={Math.max(
+                      Math.min(filterValues.max, metric.max),
+                      filterValues.min
+                    )}
                     onChange={(e) =>
                       onFilterChange(metric.key, "max", e.target.value)
                     }
@@ -154,4 +178,3 @@ export default function Filter({
     </div>
   );
 }
-
