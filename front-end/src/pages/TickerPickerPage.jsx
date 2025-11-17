@@ -111,7 +111,7 @@ export default function TickerPickerPage() {
   useEffect(() => {    
     // for now we will only sort by price
     setFilteredStocks(
-      sortStocks(filteredStocks, "price")
+      sortStocks(filteredStocks, selectedMetric)
     )
   }, [selectedMetric])
 
