@@ -19,16 +19,25 @@ describe('Dashboard routes (TickerPicker)', function () {
       expect(res.body).to.be.an('object');
       expect(res.body).to.have.property('count');
       expect(res.body).to.have.property('items');
+      // checks that 'items' is an array
       expect(res.body.items).to.be.an('array');
+      // all elements in 'items' should be objects
+      (res.body.items).forEach(item => {
+        expect(item).to.be.an("object");
+        expect(item).to.not.equal(null);
+      });
       expect(res.body.count).to.equal(res.body.items.length);
 
-      //do field checking if there are actual returned stock data
+      //do field checking if there is actual returned stock data
       if (res.body.items.length > 0) {
-        const stock = res.body.items[0];
-        expect(stock).to.have.property('ticker');
-        expect(stock).to.have.property('company');
-        expect(stock).to.have.property('price');
+        // check that all stock objects have the same properties
+        (res.body.items).forEach( item => {
+          expect(item).to.have.property('ticker');
+          expect(item).to.have.property('company');
+          expect(item).to.have.property('price');
+        });
       }
+
     });
   });
 });
