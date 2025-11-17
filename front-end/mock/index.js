@@ -25,7 +25,22 @@ export function setupMocks() {
           status: 200,
           headers: { "Content-Type": "application/json" },
         });
-      } else {
+      } 
+      //forward notifications to backend
+      if (
+        href.startsWith("/api/notification-stocks") ||
+        href.startsWith("/api/notifications") ||
+        href.startsWith("/api/calendar-events")
+      ) {
+        console.log("[MOCK FORWARD] → http://localhost:3001" + href);
+        return originalFetch("http://localhost:3001" + href, options);
+      }
+      
+      
+      
+      
+      else {
+        //如果mock里没有这个ticker 返回404 避免404让json()崩掉
         return new Response(
           JSON.stringify({ error: `Unknown ticker: ${ticker}` }),
           {
@@ -49,5 +64,5 @@ export function setupMocks() {
     return originalFetch(url, options);
   };
 
-  console.log("Mock API enabled via VITE_USE_MOCK (multi-ticker)");
+  console.log("Mock API enabled via USE_MOCK (multi-ticker)");
 }

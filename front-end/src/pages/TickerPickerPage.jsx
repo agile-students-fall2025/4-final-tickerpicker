@@ -2,16 +2,24 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import Filter from "../components/Filter.jsx";
 import Screener from "../components/Screener.jsx";
+import SortMenu, {sortStocks} from "../components/SortMenu.jsx";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+// import utils
+import { mapBackendStocksToClient } from "../utils/backendMappings.js"
+
+const USE_MOCK = false
+const API_BASE_URL =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:3001"
+    : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function TickerPickerPage() {
   const { isAuthenticated } = useAuth();
 
   // Filter state
   const [filters, setFilters] = useState({
-    sharePrice: { min: 0, max: 500 },
-    marketCap: { min: 0, max: 5000000000000 },
+    price: { min: 0, max: 500 },
+    marketCap: { min: 0, max: 5 * Math.pow(10,12) },
     peRatio: { min: 0, max: 100 },
     debtToEquity: { min: 0, max: 3 },
     beta: { min: 0, max: 3 },
@@ -22,68 +30,101 @@ export default function TickerPickerPage() {
   const [watchlists, setWatchlists] = useState([]);
   const [allStocks, setAllStocks] = useState([]);
 
-  // Load initial data based on VITE_USE_MOCK setting
+  async function fetchFilteredStocksFromApi(currentFilters) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/filter`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbolsParam: ["AAPL","MSFT","GOOGL","AMZN","NVDA","META","TSLA","AMD","NFLX","AVGO"],
+          filters: currentFilters,
+        }),
+      });
+        
+      if (!response.ok) {
+        console.error(
+          "Dashboard API error:",
+          response.status,
+          await response.text()
+        );
+        setAllStocks([]);
+        setFilteredStocks([]);
+        return;
+      }
+      // response should be {count, items}
+      const data = await response.json();
+      const normalized = mapBackendStocksToClient(data.items || []);
+      // normalized should be collection of JSON stock objects
+      setAllStocks(normalized);
+      setFilteredStocks(normalized);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+      setAllStocks([]);
+      setFilteredStocks([]);
+    }
+  }
+
   useEffect(() => {
     const loadData = async () => {
-      console.log(
-        "TickerPickerPage: VITE_USE_MOCK =",
-        import.meta.env.VITE_USE_MOCK
-      );
       console.log("TickerPickerPage: USE_MOCK =", USE_MOCK);
-
       if (USE_MOCK) {
-        // Load mock data
         const { mockScreenerStocks, mockWatchlists } = await import(
           "../../mock/data.js"
         );
-        console.log("TickerPickerPage: Loaded mock data:", {
-          stocks: mockScreenerStocks.length,
-          watchlists: mockWatchlists,
-        });
         setAllStocks(mockScreenerStocks);
         setFilteredStocks(mockScreenerStocks);
         setWatchlists(mockWatchlists);
       } else {
-        // In production, fetch from API
-        // TODO: Implement API calls when backend is ready
-        console.log("TickerPickerPage: USE_MOCK is false, no data loaded");
-        setAllStocks([]);
-        setFilteredStocks([]);
+        // fetch stocks from API with filters set
+        await fetchFilteredStocksFromApi(filters);
         setWatchlists([]);
       }
     };
-
     loadData();
   }, []);
 
-  // Filter stocks based on active filters
+  // Filter stocks based on active filters, runs everytime 'filters' changes
   useEffect(() => {
+    if (!USE_MOCK) return;
     if (allStocks.length === 0) return;
 
     const filtered = allStocks.filter((stock) => {
-      const price = stock.price || 0;
-      const marketCap = stock.market_cap || 0;
-      const peRatio = stock.pe_ratio || 0;
-      const debtToEquity = stock.debt_to_equity || 0;
-      const beta = stock.beta || 0;
+      // compare the stock against every metric value the filter is set to
+      let passes = true;
+      
+      for (metric of ['price', 'marketCap', 'peRatio', 'debtToEquity', 'beta']){
+        // if null 0, otherwise keep original stock metric value
+        const stockMetric = stock[metric] ?? 0;
 
-      return (
-        price >= filters.sharePrice.min &&
-        price <= filters.sharePrice.max &&
-        marketCap >= filters.marketCap.min &&
-        marketCap <= filters.marketCap.max &&
-        peRatio >= filters.peRatio.min &&
-        peRatio <= filters.peRatio.max &&
-        debtToEquity >= filters.debtToEquity.min &&
-        debtToEquity <= filters.debtToEquity.max &&
-        beta >= filters.beta.min &&
-        beta <= filters.beta.max
-      );
+        if (!(stockMetric >= filters[metric].min && stockMetric <= filters[metric].max)) {
+            passes = false; break;
+        } 
+      }
+      return passes;
     });
 
     setFilteredStocks(filtered);
   }, [filters, allStocks]);
 
+  // Sort 'filtered' stocks evertime SortMenu is changed
+  const [selectedMetric, setSelectedMetric] = useState("price");
+  useEffect(() => {    
+    // for now we will only sort by price
+    setFilteredStocks(
+      sortStocks(filteredStocks, "price")
+    )
+  }, [selectedMetric])
+
+  // Handle changes to filter only when not locked
+  // When changing filters, the results gets updated automatically
+  // but this is buggy right now... Ig we can just click on Apply filter button for now
+  // useEffect(() => {
+  //   if (USE_MOCK) return;
+  //   const h = setTimeout(() => {
+  //     fetchFilteredStocksFromApi(filters);
+  //   }, 300);
+  //   return () => clearTimeout(h);
+  // }, [filters]);
   function handleFilterChange(metric, type, value) {
     if (filterLocked) return;
 
@@ -114,14 +155,27 @@ export default function TickerPickerPage() {
     });
   }
 
+  async function handleApplyFilters() {
+    if (USE_MOCK) {
+      console.log("(this is just mocking) Apply Filter clicked client-side filtering");
+      return;
+    }
+    await fetchFilteredStocksFromApi(filters);
+  }
+
   function handleResetFilters() {
-    setFilters({
-      sharePrice: { min: 0, max: 500 },
-      marketCap: { min: 0, max: 5000000000000 },
+    if (!filterLocked) { 
+      console.log("Lock not set!"); } 
+    else {
+      console.log("Lock set")
+      setFilters({
+      price: { min: 0, max: 500 },
+      marketCap: { min: 0, max: 5 * Math.pow(10,12) }, //in Bil
       peRatio: { min: 0, max: 100 },
       debtToEquity: { min: 0, max: 3 },
       beta: { min: 0, max: 3 },
-    });
+      });
+    }
   }
 
   function handleAddToWatchlist(ticker) {
@@ -165,27 +219,30 @@ export default function TickerPickerPage() {
   }
 
   return (
-    <section className="w-full grid grid-cols-12 gap-16">
+    <section className="tp-filter">
       {/* Left Column - Filter */}
       <div className="col-span-4 flex flex-col gap-8">
+        {/* Filter Header */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
-            <h2 className="text-lg font-semibold text-black">Ticker Filter</h2>
-            <p className="text-sm text-tp-text-dim">Filter stocks by metrics</p>
+            <h2 className="text-[1.5em] font-semibold text-black">Ticker Filter</h2>
+            <p className="text-mm text-tp-text-dim">Filter stocks by metrics</p>
           </div>
         </div>
 
         <Filter
           filters={filters}
           onFilterChange={handleFilterChange}
-          onReset={handleResetFilters}
+          onReset={handleResetFilters} /* Function run when 'Apply Filter' button is pressed */
           locked={filterLocked}
           onToggleLock={() => setFilterLocked(!filterLocked)}
+          onApply={handleApplyFilters}
         />
       </div>
 
       {/* Right Column - Screener */}
       <div className="col-span-8 flex flex-col gap-8">
+        {/* Screener Header */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold text-black">Ticker Picker</h2>
@@ -193,12 +250,20 @@ export default function TickerPickerPage() {
               {filteredStocks.length} stocks found
             </p>
           </div>
+          {/* Sort Menu, only sorts stocks by 'price' for now */}
+          <SortMenu 
+            value={selectedMetric} 
+            onChange={(newValue) => setSelectedMetric(newValue)}
+          />
         </div>
 
-        <Screener
-          stocks={filteredStocks}
-          onAddToWatchlist={handleAddToWatchlist}
-        />
+        <div>
+          <Screener
+            stocks={filteredStocks}
+            onAddToWatchlist={handleAddToWatchlist}
+          />  
+        </div>
+        
       </div>
     </section>
   );

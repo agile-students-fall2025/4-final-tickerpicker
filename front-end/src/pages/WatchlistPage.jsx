@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+const USE_MOCK = false;
+const API_BASE_URL =
+  typeof window !== "undefined" && window.location.hostname === "localhost"
+    ? "http://localhost:3001"
+    : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function WatchlistPage() {
   const { isAuthenticated } = useAuth();
@@ -18,17 +22,12 @@ export default function WatchlistPage() {
   });
   const [priceDataMap, setPriceDataMap] = useState({});
 
-  // Load initial data based on VITE_USE_MOCK setting
+  // Load initial data based on USE_MOCK setting
   useEffect(() => {
     const loadInitialData = async () => {
-      console.log(
-        "WatchlistPage: VITE_USE_MOCK =",
-        import.meta.env.VITE_USE_MOCK
-      );
       console.log("WatchlistPage: USE_MOCK =", USE_MOCK);
 
       if (USE_MOCK) {
-        // Load mock data
         const { mockWatchlists, mockPriceData } = await import(
           "../../mock/data.js"
         );
@@ -37,21 +36,37 @@ export default function WatchlistPage() {
         setSelectedWatchlistId(mockWatchlists[0]?.id || null);
         setPriceDataMap(mockPriceData);
       } else {
-        // In production, fetch from API
-        // TODO: Implement API calls when backend is ready
-        // Example:
-        // const response = await fetch('/api/watchlists');
-        // const data = await response.json();
-        // setWatchlists(data);
-        console.log("WatchlistPage: USE_MOCK is false, no data loaded");
-        setWatchlists([]);
-        setSelectedWatchlistId(null);
-        setPriceDataMap({});
+        try {
+          console.log(
+            "WatchlistPage: USE_MOCK is false, fetching from backend..."
+          );
+
+          const response = await fetch(
+            `${API_BASE_URL}/api/watchlists/initial`
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log("WatchlistPage: Loaded API watchlists:", data);
+
+          setWatchlists(data.watchlists || []);
+          setSelectedWatchlistId(data.watchlists?.[0]?.id || null);
+          setPriceDataMap(data.priceDataMap || {});
+        } catch (err) {
+          console.error("WatchlistPage: Failed to load from backend:", err);
+          setWatchlists([]);
+          setSelectedWatchlistId(null);
+          setPriceDataMap({});
+        }
       }
     };
 
     loadInitialData();
   }, []);
+
 
   if (!isAuthenticated) {
     console.log(
@@ -64,33 +79,34 @@ export default function WatchlistPage() {
     (wl) => wl.id === selectedWatchlistId
   );
 
-  function handleCreateWatchlist(e) {
-    e.preventDefault();
-    setWatchlistMessage({ type: "", text: "" });
-    const trimmedName = newWatchlistName.trim();
+  async function handleCreateWatchlist(e) {
+  e.preventDefault();
+  setWatchlistMessage({ type: "", text: "" });
+  const trimmedName = newWatchlistName.trim();
 
-    if (!trimmedName) {
-      setWatchlistMessage({
-        type: "err",
-        text: "Watchlist name cannot be empty.",
-      });
-      return;
-    }
+  if (!trimmedName) {
+    setWatchlistMessage({
+      type: "err",
+      text: "Watchlist name cannot be empty.",
+    });
+    return;
+  }
 
-    // Check for duplicate names
-    if (
-      watchlists.some(
-        (wl) => wl.name.toLowerCase() === trimmedName.toLowerCase()
-      )
-    ) {
-      setWatchlistMessage({
-        type: "err",
-        text: "A watchlist with this name already exists.",
-      });
-      return;
-    }
+  // Check for duplicate names (front-end guard)
+  if (
+    watchlists.some(
+      (wl) => wl.name.toLowerCase() === trimmedName.toLowerCase()
+    )
+  ) {
+    setWatchlistMessage({
+      type: "err",
+      text: "A watchlist with this name already exists.",
+    });
+    return;
+  }
 
-    // Create new watchlist
+  // ---- MOCK MODE: keep old behavior ----
+  if (USE_MOCK) {
     const newId = Math.max(...watchlists.map((wl) => wl.id), 0) + 1;
     const newWatchlist = {
       id: newId,
@@ -105,45 +121,81 @@ export default function WatchlistPage() {
       type: "ok",
       text: "Watchlist created successfully.",
     });
+    return;
   }
+
+  // ---- REAL BACKEND MODE ----
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/watchlists`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: trimmedName }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    const newWatchlist = await response.json();
+
+    setWatchlists((prev) => [...prev, newWatchlist]);
+    setSelectedWatchlistId(newWatchlist.id);
+    setNewWatchlistName("");
+    setWatchlistMessage({
+      type: "ok",
+      text: "Watchlist created successfully.",
+    });
+  } catch (err) {
+    console.error("Failed to create watchlist:", err);
+    setWatchlistMessage({
+      type: "err",
+      text: err.message || "Failed to create watchlist. Please try again.",
+    });
+  }
+}
+
 
   function handleSelectWatchlist(e) {
     const watchlistId = parseInt(e.target.value);
     setSelectedWatchlistId(watchlistId);
   }
 
-  function handleAddStock(e) {
-    e.preventDefault();
-    setStockMessage({ type: "", text: "" });
+  async function handleAddStock(e) {
+  e.preventDefault();
+  setStockMessage({ type: "", text: "" });
 
-    if (!selectedWatchlistId) {
-      setStockMessage({
-        type: "err",
-        text: "Please select a watchlist first.",
-      });
-      return;
-    }
+  if (!selectedWatchlistId) {
+    setStockMessage({
+      type: "err",
+      text: "Please select a watchlist first.",
+    });
+    return;
+  }
 
-    const trimmedSymbol = newStockSymbol.trim().toUpperCase();
+  const trimmedSymbol = newStockSymbol.trim().toUpperCase();
 
-    if (!trimmedSymbol) {
-      setStockMessage({ type: "err", text: "Stock symbol cannot be empty." });
-      return;
-    }
+  if (!trimmedSymbol) {
+    setStockMessage({ type: "err", text: "Stock symbol cannot be empty." });
+    return;
+  }
 
-    // Check if stock already exists in selected watchlist
-    const selectedWatchlist = watchlists.find(
-      (wl) => wl.id === selectedWatchlistId
-    );
-    if (selectedWatchlist.stocks.includes(trimmedSymbol)) {
-      setStockMessage({
-        type: "err",
-        text: "Stock already exists in this watchlist.",
-      });
-      return;
-    }
+  // Check if stock already exists in selected watchlist
+  const selectedWatchlist = watchlists.find(
+    (wl) => wl.id === selectedWatchlistId
+  );
+  if (selectedWatchlist.stocks.includes(trimmedSymbol)) {
+    setStockMessage({
+      type: "err",
+      text: "Stock already exists in this watchlist.",
+    });
+    return;
+  }
 
-    // Add stock to selected watchlist
+  // --- MOCK MODE: keep old local behavior ---
+  if (USE_MOCK) {
     setWatchlists(
       watchlists.map((wl) => {
         if (wl.id === selectedWatchlistId) {
@@ -158,15 +210,72 @@ export default function WatchlistPage() {
       type: "ok",
       text: `Stock ${trimmedSymbol} added successfully.`,
     });
+    return;
   }
 
-  function handleRemoveStock(symbol) {
-    if (!selectedWatchlistId) return;
+  // --- REAL BACKEND MODE ---
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/watchlists/${selectedWatchlistId}/stocks`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ symbol: trimmedSymbol }),
+      }
+    );
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Update the watchlists array with the updated watchlist from backend
+    setWatchlists((prev) =>
+      prev.map((wl) =>
+        wl.id === selectedWatchlistId ? data.watchlist : wl
+      )
+    );
+
+    // Merge new priceDataMap entry
+    if (data.priceDataMap) {
+      setPriceDataMap((prev) => ({
+        ...prev,
+        ...data.priceDataMap,
+      }));
+    }
+
+    setNewStockSymbol("");
+    setStockMessage({
+      type: "ok",
+      text: `Stock ${trimmedSymbol} added successfully.`,
+    });
+  } catch (err) {
+    console.error("Failed to add stock:", err);
+    setStockMessage({
+      type: "err",
+      text: "Failed to add stock. Please try again.",
+    });
+  }
+}
+
+
+  async function handleRemoveStock(symbol) {
+  if (!selectedWatchlistId) return;
+
+  const symbolUpper = symbol.toUpperCase();
+
+  // ---- MOCK MODE: only touch local state ----
+  if (USE_MOCK) {
     setWatchlists(
       watchlists.map((wl) => {
         if (wl.id === selectedWatchlistId) {
-          return { ...wl, stocks: wl.stocks.filter((s) => s !== symbol) };
+          return {
+            ...wl,
+            stocks: wl.stocks.filter((s) => s !== symbolUpper),
+          };
         }
         return wl;
       })
@@ -174,9 +283,47 @@ export default function WatchlistPage() {
 
     setStockMessage({
       type: "ok",
-      text: `Stock ${symbol} removed successfully.`,
+      text: `Stock ${symbolUpper} removed successfully.`,
+    });
+    return;
+  }
+
+  // ---- REAL BACKEND MODE ----
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/watchlists/${selectedWatchlistId}/stocks/${symbolUpper}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Update the watchlists array with the updated watchlist from backend
+    setWatchlists((prev) =>
+      prev.map((wl) =>
+        wl.id === selectedWatchlistId ? data.watchlist : wl
+      )
+    );
+
+    setStockMessage({
+      type: "ok",
+      text: `Stock ${symbolUpper} removed successfully.`,
+    });
+  } catch (err) {
+    console.error("Failed to remove stock:", err);
+    setStockMessage({
+      type: "err",
+      text: "Failed to remove stock. Please try again.",
     });
   }
+}
+
 
   return (
     <section className="w-full grid grid-cols-12 gap-16">
@@ -310,25 +457,38 @@ export default function WatchlistPage() {
                         <span className="font-semibold text-black text-lg">
                           {symbol}
                         </span>
-                        {priceData && (
+                        {priceData ? (
                           <div className="flex items-center gap-4 mt-1">
+                            {/* Price */}
                             <span className="text-black">
-                              ${priceData.price.toFixed(2)}
+                              {typeof priceData.price === "number"
+                                ? `$${priceData.price.toFixed(2)}`
+                                : "Price N/A"}
                             </span>
-                            <span
-                              className={
-                                priceData.change >= 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              }
-                            >
-                              {priceData.change >= 0 ? "+" : ""}
-                              {priceData.change.toFixed(2)} (
-                              {priceData.changePercent >= 0 ? "+" : ""}
-                              {priceData.changePercent.toFixed(2)}%)
-                            </span>
+
+                            {/* Change + % */}
+                            {typeof priceData.change === "number" &&
+                            typeof priceData.changePercent === "number" ? (
+                              <span
+                                className={
+                                  priceData.change >= 0 ? "text-green-600" : "text-red-600"
+                                }
+                              >
+                                {priceData.change >= 0 ? "+" : ""}
+                                {priceData.change.toFixed(2)} (
+                                {priceData.changePercent >= 0 ? "+" : ""}
+                                {priceData.changePercent.toFixed(2)}%)
+                              </span>
+                            ) : (
+                              <span className="text-tp-text-dim">Change N/A</span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-4 mt-1">
+                            <span className="text-tp-text-dim">Price data unavailable</span>
                           </div>
                         )}
+
                       </div>
                       <button
                         onClick={() => handleRemoveStock(symbol)}

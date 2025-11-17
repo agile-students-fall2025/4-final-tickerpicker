@@ -87,7 +87,7 @@ export default function App() {
                 />
 
                 <Route
-                  path="/dashboard"
+                  path="/TickerPicker"
                   element={
                     <ProtectedRoute>
                       <TickerPickerPage />
