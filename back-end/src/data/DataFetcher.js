@@ -110,7 +110,12 @@ export async function getFundamentals(symbol) {
     const yahooFinance = new YahooFinance();
 
     const data = await yahooFinance.quoteSummary(symbol, {
-      modules: ["summaryDetail", "financialData", "defaultKeyStatistics"],
+      modules: [
+        "summaryDetail",
+        "financialData",
+        "defaultKeyStatistics",
+        "price",
+      ],
     });
 
     return data;

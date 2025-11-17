@@ -1,12 +1,12 @@
 import React from "react";
 /**
- * @param {*} Props List of stocks to display, and function that adds a stock to the watchlist. 
- * Formats stock data and renders all the stocks that match the filter parameters. 
+ * @param {*} Props List of stocks to display, and function that adds a stock to the watchlist.
+ * Formats stock data and renders all the stocks that match the filter parameters.
  */
 export default function Screener({ stocks, onAddToWatchlist }) {
   const tril = Math.pow(10, 12);
   const bil = Math.pow(10, 9);
-  const mil = Math.pow(10, 6);  
+  const mil = Math.pow(10, 6);
   // Format market cap into human-readable string
   const formatMarketCap = (cap) => {
     if (cap >= tril) {
@@ -44,11 +44,11 @@ export default function Screener({ stocks, onAddToWatchlist }) {
           >
             {/* Left side - Symbol and Company */}
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <h3 className="text-xl font-semibold text-black">
                   {stock.ticker}
                 </h3>
-                <span className="text-sm text-tp-text-dim">
+                <span className="text-sm text-tp-text-dim break-words">
                   {stock.company}
                 </span>
               </div>
@@ -66,54 +66,60 @@ export default function Screener({ stocks, onAddToWatchlist }) {
                 <div>
                   <span className="text-xs text-tp-text-dim">Market Cap:</span>
                   <span className="ml-2 text-sm font-medium text-black">
-                    {formatMarketCap(stock.market_cap || 0)}
+                    {stock.marketCap ? formatMarketCap(stock.marketCap) : "N/A"}
                   </span>
                 </div>
                 {/* P/E Ratio */}
                 <div>
                   <span className="text-xs text-tp-text-dim">P/E Ratio:</span>
                   <span className="ml-2 text-sm font-medium text-black">
-                    {stock.pe_ratio?.toFixed(2) || "N/A"}
+                    {stock.peRatio != null ? stock.peRatio.toFixed(2) : "N/A"}
                   </span>
                 </div>
-
+                {/* Dividend Yield */}
                 <div>
-                  <span className="text-xs text-tp-text-dim">Beta:</span>
-                  <span
-                    className={`ml-2 text-sm font-medium ${
-                      stock.beta && stock.beta > 1
-                        ? "text-red-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    {stock.beta?.toFixed(2) || "N/A"}
+                  <span className="text-xs text-tp-text-dim">
+                    Dividend Yield:
+                  </span>
+                  <span className="ml-2 text-sm font-medium text-black">
+                    {stock.dividendYield != null
+                      ? `${(stock.dividendYield * 100).toFixed(2)}%`
+                      : "N/A"}
                   </span>
                 </div>
 
-                {stock["52_week_range"] && (
+                {stock.fiftyTwoWeekRange && (
                   <>
                     <div>
                       <span className="text-xs text-tp-text-dim">52W Low:</span>
                       <span className="ml-2 text-sm font-medium text-green-600">
-                        ${stock["52_week_range"].low?.toFixed(2) || "N/A"}
+                        $
+                        {stock.fiftyTwoWeekRange.low != null
+                          ? stock.fiftyTwoWeekRange.low.toFixed(2)
+                          : "N/A"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-xs text-tp-text-dim">52W High:</span>
+                      <span className="text-xs text-tp-text-dim">
+                        52W High:
+                      </span>
                       <span className="ml-2 text-sm font-medium text-red-600">
-                        ${stock["52_week_range"].high?.toFixed(2) || "N/A"}
+                        $
+                        {stock.fiftyTwoWeekRange.high != null
+                          ? stock.fiftyTwoWeekRange.high.toFixed(2)
+                          : "N/A"}
                       </span>
                     </div>
                   </>
                 )}
                 {/* Debt-to-Equity */}
-                {stock.debt_to_equity !== undefined && (
+                {stock.debtToEquity != null && (
                   <div>
                     <span className="text-xs text-tp-text-dim">
                       Debt-to-Equity:
                     </span>
                     <span className="ml-2 text-sm font-medium text-black">
-                      {stock.debt_to_equity.toFixed(2)}
+                      {stock.debtToEquity.toFixed(2)}
                     </span>
                   </div>
                 )}
@@ -135,4 +141,3 @@ export default function Screener({ stocks, onAddToWatchlist }) {
     </div>
   );
 }
-
