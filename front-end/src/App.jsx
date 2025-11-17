@@ -49,7 +49,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-tp-bg">
       <TopNavbar />
-      <div className="flex flex-1 pt-[60px] md:pt-[80px]">
+      <div className="flex flex-1 pt-[120px] md:pt-[80px]">
         <div className="flex flex-1 max-w-6xl mx-auto w-full">
           <div className="hidden md:flex w-40 shrink-0 border-r border-tp-border">
             <div className="pt-8 pt-6 pb-12">
