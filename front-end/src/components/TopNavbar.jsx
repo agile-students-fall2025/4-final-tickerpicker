@@ -3,12 +3,11 @@ import { Link, useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { FaBell, FaBars, FaTimes } from "react-icons/fa";
 
-
 export default function Navbar() {
     const { isAuthenticated, user } = useAuth();
 
     // for searching bar, searching query
-    const [query, setQuery] = useState("")
+    const [query, setQuery] = useState("");
     const navigate = useNavigate(); 
 
     //notifications
@@ -69,16 +68,33 @@ export default function Navbar() {
         // we can use this trimmedQuery to search in our database about anything
     };
 
+    // load notifications from backend when logged in
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        (async () => {
+            try {
+                const res = await fetch("http://localhost:3001/api/notifications");
+                if (!res.ok) {
+                    console.error("Navbar failed to load notifications:", res.status);
+                    return;
+                }
+                const data = await res.json();
+                setNotifItems(data);
+            } catch (err) {
+                console.error("Navbar error:", err);
+            }
+        })();
+    }, [isAuthenticated]);
 
     //temporary to route to stock page on search
     const handleSearchSubmit = (e) => {
-    const trimmedQuery = query.trim();
-    e.preventDefault();
-    const trimmed = query.trim();
-    // ignore what user typed; always go to /stock (AAPL)
-    navigate(`/stock/${trimmedQuery.toUpperCase()}`)
-    setQuery(""); // optional: clear search bar
-  };
+        const trimmedQuery = query.trim();
+        e.preventDefault();
+        if (!trimmedQuery) return;
+        navigate(`/stock/${trimmedQuery.toUpperCase()}`);
+        setQuery(""); // optional: clear search bar
+    };
 
     return (
         <header className="tp-top-nav w-full block">
@@ -269,11 +285,13 @@ export default function Navbar() {
                                     className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
                                     onClick={() => setIsNotifOpen((prev) => !prev)} 
                                 >
-                                    <FaBell className="text-lg text-white" />
-                                    <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500"></span>
+                                    <FaBell className="text-lg" />
+                                    {notifItems.length > 0 && (
+                                        <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500"></span>
+                                    )}
                                 </button>
 
-                                {/* Dropdown (appears on hover/click) */}
+                                {/* Dropdown (appears on hover) */}
                                 <div 
                                     className={`absolute left-1/2 -translate-x-1/2 mt-2 w-72 rounded-xl border border-tp-border bg-white text-black shadow-xl z-[60] ${isNotifOpen ? "block" : "hidden"}`}
                                     onMouseEnter={() => setIsNotifOpen(true)}
@@ -284,6 +302,25 @@ export default function Navbar() {
                                     </div>
 
                                     <ul className="max-h-72 overflow-auto text-sm">
+                                        {notifItems.length === 0 ? (
+                                            <li className="px-4 py-3 text-tp-text-dim">
+                                                No notifications yet.
+                                            </li>
+                                        ) : (
+                                            notifItems.map((n) => (
+                                                <li key={n.id} className="px-4 py-3 border-b border-tp-border">
+                                                    <div className="font-semibold text-black">
+                                                        {n.symbol}
+                                                    </div>
+                                                    <div className="text-black">
+                                                        {n.message}
+                                                    </div>
+                                                    <div className="text-xs text-tp-text-dim">
+                                                        {new Date(n.createdAt).toLocaleString()}
+                                                    </div>
+                                                </li>
+                                            ))
+                                        )}
                                     </ul>
 
                                     <div className="px-4 py-3 border-t border-tp-border text-center text-sm text-blue-600 hover:underline">
@@ -293,7 +330,6 @@ export default function Navbar() {
                             </div>
                         </>
                     )}
-
 
                     {isAuthenticated && (
                         <>
