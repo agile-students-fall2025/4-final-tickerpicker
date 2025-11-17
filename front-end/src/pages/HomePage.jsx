@@ -123,33 +123,44 @@ export default function HomePage() {
   // Initialize charts
   useEffect(() => {
     const { startDate, endDate } = getDateRange();
+    // Calculate responsive chart width
+    const getChartWidth = () => {
+      if (typeof window !== "undefined") {
+        const width = window.innerWidth;
+        if (width < 640) return Math.min(width - 64, 400); // Mobile: full width minus padding
+        if (width < 1024) return 500; // Tablet
+        return 600; // Desktop
+      }
+      return 600; // Default
+    };
+
     const chartConfigs = [
       {
         symbol: "^IXIC",
         ref: nasdaqRef,
         name: "NASDAQ",
-        width: 600,
+        width: getChartWidth(),
         height: 250,
       },
       {
         symbol: "^GSPC",
         ref: sp500Ref,
         name: "S&P 500",
-        width: 600,
+        width: getChartWidth(),
         height: 250,
       },
       {
         symbol: "^N225",
         ref: nikkeiRef,
         name: "Nikkei 225",
-        width: 600,
+        width: getChartWidth(),
         height: 250,
       },
       {
         symbol: "^STOXX50E",
         ref: europeanRef,
         name: "Euro STOXX 50",
-        width: 600,
+        width: getChartWidth(),
         height: 250,
       },
     ];
@@ -242,12 +253,12 @@ export default function HomePage() {
   const watchlistStocks = defaultWatchlist?.stocks || [];
 
   return (
-    <section className="w-full flex flex-col gap-16">
+    <section className="w-full flex flex-col gap-8 md:gap-16">
       {/* Top Section - Two Columns */}
-      <div className="grid grid-cols-12 gap-16">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
         {/* Left Column - Watchlist */}
-        <div className="col-span-6 flex flex-col gap-8">
-          <div className="tp-card p-8 min-h-[420px]">
+        <div className="md:col-span-6 flex flex-col gap-8">
+          <div className="tp-card p-4 md:p-8 min-h-[420px]">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-black">WatchList</h2>
               <Link
@@ -299,8 +310,8 @@ export default function HomePage() {
         </div>
 
         {/* Right Column - Recommended Picks */}
-        <div className="col-span-6 flex flex-col gap-8">
-          <div className="tp-card p-8 min-h-[420px]">
+        <div className="md:col-span-6 flex flex-col gap-8">
+          <div className="tp-card p-4 md:p-8 min-h-[420px]">
             <h3 className="text-lg font-semibold text-black mb-4">
               Recommended Ticker Picks
             </h3>
@@ -361,7 +372,7 @@ export default function HomePage() {
       {/* Bottom Section - Charts */}
       <div className="flex flex-col gap-8">
         {/* Top 10 Performers List */}
-        <div className="tp-card p-6">
+        <div className="tp-card p-4 md:p-6">
           <h3 className="text-lg font-semibold text-black mb-4">
             Top 10 Performers
           </h3>
@@ -372,14 +383,14 @@ export default function HomePage() {
                 {topPerformers.map((stock, index) => (
                   <li
                     key={stock.symbol}
-                    className="tp-card p-4 flex items-center justify-between"
+                    className="tp-card p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0"
                   >
                     <div className="flex items-center gap-4">
                       <span className="text-tp-text-dim text-sm font-medium w-8">
                         #{index + 1}
                       </span>
                       <div className="flex flex-col">
-                        <span className="font-semibold text-black text-lg">
+                        <span className="font-semibold text-black text-base md:text-lg">
                           {stock.symbol}
                         </span>
                         <span className="text-xs text-tp-text-dim">
@@ -387,7 +398,7 @@ export default function HomePage() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-6 w-full sm:w-auto">
                       <span className="text-black text-sm font-medium">
                         ${stock.price.toFixed(2)}
                       </span>
@@ -403,8 +414,11 @@ export default function HomePage() {
                         {stock.changePercent >= 0 ? "+" : ""}
                         {stock.changePercent.toFixed(2)}%)
                       </span>
-                      <Link to={`/stock/${stock.symbol}`}>
-                        <button className="tp-btn-primary text-xs px-3 py-1">
+                      <Link
+                        to={`/stock/${stock.symbol}`}
+                        className="w-full sm:w-auto"
+                      >
+                        <button className="tp-btn-primary text-xs px-3 py-1 w-full sm:w-auto">
                           View
                         </button>
                       </Link>
@@ -425,7 +439,7 @@ export default function HomePage() {
         {/* Index Charts - One per row */}
         <div className="flex flex-col gap-4">
           {/* NASDAQ */}
-          <div className="tp-card p-6 overflow-hidden">
+          <div className="tp-card p-4 md:p-6 overflow-hidden">
             <h4 className="text-sm font-semibold text-black mb-4">NASDAQ</h4>
             {loading && (
               <div className="flex items-center justify-center h-[250px]">
@@ -441,7 +455,7 @@ export default function HomePage() {
           </div>
 
           {/* S&P 500 */}
-          <div className="tp-card p-6 overflow-hidden">
+          <div className="tp-card p-4 md:p-6 overflow-hidden">
             <h4 className="text-sm font-semibold text-black mb-4">S&P 500</h4>
             {loading && (
               <div className="flex items-center justify-center h-[250px]">
@@ -457,7 +471,7 @@ export default function HomePage() {
           </div>
 
           {/* Nikkei 225 */}
-          <div className="tp-card p-6 overflow-hidden">
+          <div className="tp-card p-4 md:p-6 overflow-hidden">
             <h4 className="text-sm font-semibold text-black mb-4">
               Nikkei 225
             </h4>
@@ -475,7 +489,7 @@ export default function HomePage() {
           </div>
 
           {/* European Index */}
-          <div className="tp-card p-6 overflow-hidden">
+          <div className="tp-card p-4 md:p-6 overflow-hidden">
             <h4 className="text-sm font-semibold text-black mb-4">
               Euro STOXX 50
             </h4>

@@ -219,9 +219,9 @@ export default function TickerPickerPage() {
   }
 
   return (
-    <section className="tp-filter">
+    <section className="flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-16">
       {/* Left Column - Filter */}
-      <div className="col-span-4 flex flex-col gap-8">
+      <div className="md:col-span-4 flex flex-col gap-8">
         {/* Filter Header */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
@@ -241,7 +241,7 @@ export default function TickerPickerPage() {
       </div>
 
       {/* Right Column - Screener */}
-      <div className="col-span-8 flex flex-col gap-8">
+      <div className="md:col-span-8 flex flex-col gap-8">
         {/* Screener Header */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
