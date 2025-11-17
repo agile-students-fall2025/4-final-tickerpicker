@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import Filter from "../components/Filter.jsx";
 import Screener from "../components/Screener.jsx";
-import SortMenu, {sortStocks} from "../components/SortMenu.jsx";
+import SortMenu, { sortStocks } from "../components/SortMenu.jsx";
 
 // import utils
-import { mapBackendStocksToClient } from "../utils/backendMappings.js"
+import { mapBackendStocksToClient } from "../utils/backendMappings.js";
 
-const USE_MOCK = false
+const USE_MOCK = false;
 const API_BASE_URL =
   typeof window !== "undefined" && window.location.hostname === "localhost"
     ? "http://localhost:3001"
@@ -19,7 +19,7 @@ export default function TickerPickerPage() {
   // Filter state
   const [filters, setFilters] = useState({
     price: { min: 0, max: 500 },
-    marketCap: { min: 0, max: 5 * Math.pow(10,12) },
+    marketCap: { min: 0, max: 5 * Math.pow(10, 12) },
     peRatio: { min: 0, max: 100 },
     debtToEquity: { min: 0, max: 3 },
     beta: { min: 0, max: 3 },
@@ -29,18 +29,40 @@ export default function TickerPickerPage() {
   const [filteredStocks, setFilteredStocks] = useState([]);
   const [watchlists, setWatchlists] = useState([]);
   const [allStocks, setAllStocks] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function fetchFilteredStocksFromApi(currentFilters) {
+    setIsLoading(true);
     try {
+      // Transform filters to match backend expectations
+      // Backend expects 'sharePrice' instead of 'price'
+      const backendFilters = {
+        ...currentFilters,
+        sharePrice: currentFilters.price,
+      };
+      // Remove 'price' key if it exists (to avoid confusion)
+      delete backendFilters.price;
+
       const response = await fetch(`${API_BASE_URL}/api/dashboard/filter`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          symbolsParam: ["AAPL","MSFT","GOOGL","AMZN","NVDA","META","TSLA","AMD","NFLX","AVGO"],
-          filters: currentFilters,
+          symbolsParam: [
+            "AAPL",
+            "MSFT",
+            "GOOGL",
+            "AMZN",
+            "NVDA",
+            "META",
+            "TSLA",
+            "AMD",
+            "NFLX",
+            "AVGO",
+          ],
+          filters: backendFilters,
         }),
       });
-        
+
       if (!response.ok) {
         console.error(
           "Dashboard API error:",
@@ -61,6 +83,8 @@ export default function TickerPickerPage() {
       console.error("Failed to fetch dashboard data:", error);
       setAllStocks([]);
       setFilteredStocks([]);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -91,14 +115,26 @@ export default function TickerPickerPage() {
     const filtered = allStocks.filter((stock) => {
       // compare the stock against every metric value the filter is set to
       let passes = true;
-      
-      for (metric of ['price', 'marketCap', 'peRatio', 'debtToEquity', 'beta']){
+
+      for (metric of [
+        "price",
+        "marketCap",
+        "peRatio",
+        "debtToEquity",
+        "beta",
+      ]) {
         // if null 0, otherwise keep original stock metric value
         const stockMetric = stock[metric] ?? 0;
 
-        if (!(stockMetric >= filters[metric].min && stockMetric <= filters[metric].max)) {
-            passes = false; break;
-        } 
+        if (
+          !(
+            stockMetric >= filters[metric].min &&
+            stockMetric <= filters[metric].max
+          )
+        ) {
+          passes = false;
+          break;
+        }
       }
       return passes;
     });
@@ -108,10 +144,11 @@ export default function TickerPickerPage() {
 
   // Sort 'filtered' stocks evertime SortMenu is changed
   const [selectedMetric, setSelectedMetric] = useState("price");
-  useEffect(() => {    
+  useEffect(() => {
     // for now we will only sort by price
+    
     setFilteredStocks(
-      sortStocks(filteredStocks, "price")
+      sortStocks(filteredStocks, selectedMetric) 
     )
   }, [selectedMetric])
 
@@ -157,23 +194,25 @@ export default function TickerPickerPage() {
 
   async function handleApplyFilters() {
     if (USE_MOCK) {
-      console.log("(this is just mocking) Apply Filter clicked client-side filtering");
+      console.log(
+        "(this is just mocking) Apply Filter clicked client-side filtering"
+      );
       return;
     }
     await fetchFilteredStocksFromApi(filters);
   }
 
   function handleResetFilters() {
-    if (!filterLocked) { 
-      console.log("Lock not set!"); } 
-    else {
-      console.log("Lock set")
+    if (!filterLocked) {
+      console.log("Lock not set!");
+    } else {
+      console.log("Lock set");
       setFilters({
-      price: { min: 0, max: 500 },
-      marketCap: { min: 0, max: 5 * Math.pow(10,12) }, //in Bil
-      peRatio: { min: 0, max: 100 },
-      debtToEquity: { min: 0, max: 3 },
-      beta: { min: 0, max: 3 },
+        price: { min: 0, max: 500 },
+        marketCap: { min: 0, max: 5 * Math.pow(10, 12) }, //in Bil
+        peRatio: { min: 0, max: 100 },
+        debtToEquity: { min: 0, max: 3 },
+        beta: { min: 0, max: 3 },
       });
     }
   }
@@ -219,13 +258,15 @@ export default function TickerPickerPage() {
   }
 
   return (
-    <section className="tp-filter">
+    <section className="flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-16">
       {/* Left Column - Filter */}
-      <div className="col-span-4 flex flex-col gap-8">
+      <div className="md:col-span-4 flex flex-col gap-8">
         {/* Filter Header */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
-            <h2 className="text-[1.5em] font-semibold text-black">Ticker Filter</h2>
+            <h2 className="text-[1.5em] font-semibold text-black">
+              Ticker Filter
+            </h2>
             <p className="text-mm text-tp-text-dim">Filter stocks by metrics</p>
           </div>
         </div>
@@ -233,7 +274,9 @@ export default function TickerPickerPage() {
         <Filter
           filters={filters}
           onFilterChange={handleFilterChange}
-          onReset={handleResetFilters} /* Function run when 'Apply Filter' button is pressed */
+          onReset={
+            handleResetFilters
+          } /* Function run when 'Apply Filter' button is pressed */
           locked={filterLocked}
           onToggleLock={() => setFilterLocked(!filterLocked)}
           onApply={handleApplyFilters}
@@ -241,7 +284,7 @@ export default function TickerPickerPage() {
       </div>
 
       {/* Right Column - Screener */}
-      <div className="col-span-8 flex flex-col gap-8">
+      <div className="md:col-span-8 flex flex-col gap-8">
         {/* Screener Header */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
@@ -251,19 +294,31 @@ export default function TickerPickerPage() {
             </p>
           </div>
           {/* Sort Menu, only sorts stocks by 'price' for now */}
-          <SortMenu 
-            value={selectedMetric} 
+          <SortMenu
+            value={selectedMetric}
             onChange={(newValue) => setSelectedMetric(newValue)}
           />
         </div>
 
         <div>
-          <Screener
-            stocks={filteredStocks}
-            onAddToWatchlist={handleAddToWatchlist}
-          />  
+          {isLoading ? (
+            <div className="tp-card p-8 min-h-[600px] flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-lg font-semibold text-black mb-2">
+                  Loading stocks...
+                </p>
+                <p className="text-sm text-tp-text-dim">
+                  Applying filters and fetching data
+                </p>
+              </div>
+            </div>
+          ) : (
+            <Screener
+              stocks={filteredStocks}
+              onAddToWatchlist={handleAddToWatchlist}
+            />
+          )}
         </div>
-        
       </div>
     </section>
   );

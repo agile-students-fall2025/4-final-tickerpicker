@@ -124,6 +124,17 @@ export default function StockPage() {
           return containerDiv;
         };
 
+        // Calculate responsive chart width
+        const getChartWidth = () => {
+          if (typeof window !== "undefined") {
+            const width = window.innerWidth;
+            if (width < 640) return Math.min(width - 64, 400); // Mobile: full width minus padding
+            if (width < 1024) return 600; // Tablet
+            return 800; // Desktop
+          }
+          return 800; // Default
+        };
+
         // Initialize chart
         await ChartManager.initializeChart(
           symbol,
@@ -131,7 +142,7 @@ export default function StockPage() {
           endDate,
           "1d",
           containerCreator,
-          800, // width
+          getChartWidth(), // responsive width
           400 // height
         );
 
@@ -208,7 +219,7 @@ export default function StockPage() {
   }
 
   return (
-    <div className="px-6 py-6 flex flex-col gap-8">
+    <div className="px-4 py-4 md:px-6 md:py-6 flex flex-col gap-6 md:gap-8">
       {stock ? (
         <>
           {/* Stock Details + Notification toggle */}
@@ -237,7 +248,7 @@ export default function StockPage() {
           </>
 
           {/* Price Chart */}
-          <div className="tp-card p-6">
+          <div className="tp-card p-4 md:p-6">
             <h3 className="text-lg font-semibold text-black mb-4">
               {stock.ticker} Price Chart
             </h3>

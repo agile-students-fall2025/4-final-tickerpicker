@@ -34,8 +34,8 @@ export default function LoginPage() {
     }
 
     return (
-        <section className="max-w-md mx-auto">
-            <div className="tp-card p-8 flex flex-col gap-6">
+        <section className="max-w-md mx-auto w-full px-4">
+            <div className="tp-card p-4 md:p-8 flex flex-col gap-4 md:gap-6">
                 <div className="flex flex-col gap-2 text-center">
                     <h1 className="text-2xl font-semibold text-black">
                         SIGN IN

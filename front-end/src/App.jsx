@@ -25,9 +25,9 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex flex-col bg-tp-bg">
-        <TopNavbar />{" "}
+        <TopNavbar />
         {/* if want to have a pure login page, just comment this top navbar out */}
-        <div className="flex flex-1 min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-1 pt-[120px] md:pt-[80px]">
           <div className="flex flex-1 max-w-6xl mx-auto w-full">
             <main className="flex-1 min-w-0 flex items-center justify-center">
               <div className="w-full max-w-md">
@@ -49,15 +49,15 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-tp-bg">
       <TopNavbar />
-      <div className="flex flex-1 min-h-[calc(100vh-4rem)]">
+      <div className="flex flex-1 pt-[60px] md:pt-[80px]">
         <div className="flex flex-1 max-w-6xl mx-auto w-full">
-          <div className="flex w-40 shrink-0 border-r border-tp-border">
+          <div className="hidden md:flex w-40 shrink-0 border-r border-tp-border">
             <div className="pt-8 pt-6 pb-12">
               <LeftNavbar />
             </div>
           </div>
           <main className="flex-1 min-w-0 flex items-start justify-center">
-            <div className="w-full px-20 py-20 justify-center items-center">
+            <div className="w-full px-4 py-4 md:px-8 md:py-8 lg:px-12 lg:py-12 xl:px-20 xl:py-20 justify-center items-center">
               <Routes>
                 <Route
                   path="/home"

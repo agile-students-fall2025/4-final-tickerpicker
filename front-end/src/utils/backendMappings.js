@@ -7,11 +7,12 @@ export function mapBackendStocksToClient(items) {
     return items.map((s) => ({
       ticker: s.ticker,
       company: s.company,
-      price: s.price ?? 0,
-      market_cap: s.marketCap ?? 0, // CamelCase change to XX_XX format
-      pe_ratio: s.peRatio ?? 0,
-      debt_to_equity: s.debtToEquity ?? 0,
+      price: s.price ?? null,
+      marketCap: s.marketCap ?? null,
+      peRatio: s.peRatio ?? null,
+      debtToEquity: s.debtToEquity ?? null,
+      dividendYield: s.dividendYield ?? null,
       beta: s.beta ?? null,
-      "52_week_range": null,
+      fiftyTwoWeekRange: s.fiftyTwoWeekRange ?? null,
     }));
   }

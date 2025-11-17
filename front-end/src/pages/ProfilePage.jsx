@@ -104,27 +104,27 @@ export default function ProfilePage() {
     }
 
     return (
-        <section className="w-full grid grid-cols-12 gap-16">
-        <div className="col-span-6 flex flex-col gap-10">
+        <section className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
+        <div className="md:col-span-6 flex flex-col gap-6 md:gap-10">
             <div className="flex items-start justify-between">
                 
-                <div className="flex items-center gap-6">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
                     <img
                         src={avatarUrl}
                         alt="Profile"
-                        className="w-28 h-28 rounded-full border border-tp-border object-cover"
+                        className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border border-tp-border object-cover flex-shrink-0"
                     />
                     
-                    <div className="flex flex-col">
+                    <div className="flex flex-col text-center sm:text-left">
                         <h2 className="text-lg font-semibold text-black">
                             {user?.name || "User"}
                         </h2>
-                        <p className="text-sm text-tp-text-dim">{user?.email}</p>
+                        <p className="text-sm text-tp-text-dim break-words">{user?.email}</p>
                     </div>
                 </div>
             </div>
 
-            <div className="tp-card flex flex-col gap-6 p-8">
+            <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
                 <h3 className="text-lg font-semibold text-black">Change Email</h3>
                 <form className="flex flex-col gap-6" onSubmit={onSubmitEmail}>
                     <div>
@@ -146,11 +146,11 @@ export default function ProfilePage() {
                             {newEmailMessage.text}
                         </p>
                     )}
-                    <button type="submit" className="tp-btn-primary w-32">Submit</button>
+                    <button type="submit" className="tp-btn-primary w-full sm:w-32">Submit</button>
                 </form>
             </div>
 
-            <div className="tp-card flex flex-col gap-6 p-8">
+            <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
                 <h3 className="text-lg font-semibold text-black">Change Password</h3>
                 <form className="flex flex-col gap-6" onSubmit={onSubmitPassword}>
                     <div>
@@ -196,12 +196,12 @@ export default function ProfilePage() {
                             {passwordMessage.text}
                         </p>
                     )}
-                    <button type="submit" className="tp-btn-primary w-32">Submit</button>
+                    <button type="submit" className="tp-btn-primary w-full sm:w-32">Submit</button>
                 </form>
             </div>
         </div>
 
-        <div className="col-span-6 flex flex-col gap-8">
+        <div className="md:col-span-6 flex flex-col gap-6 md:gap-8">
 
         <ul className="space-y-3">
           {notifications.length === 0 ? (
@@ -221,7 +221,7 @@ export default function ProfilePage() {
 
 
 
-            <div className="tp-card p-8">
+            <div className="tp-card p-4 md:p-8">
   <h3 className="text-lg font-semibold text-black pb-4">Notification preferences</h3>
 
   <div className="flex flex-col gap-4">

@@ -326,8 +326,8 @@ export default function WatchlistPage() {
 
 
   return (
-    <section className="w-full grid grid-cols-12 gap-16">
-      <div className="col-span-6 flex flex-col gap-10">
+    <section className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
+      <div className="md:col-span-6 flex flex-col gap-6 md:gap-10">
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
             <h2 className="text-lg font-semibold text-black">My Watchlists</h2>
@@ -338,7 +338,7 @@ export default function WatchlistPage() {
         </div>
 
         {/* Watchlist Selector */}
-        <div className="tp-card flex flex-col gap-6 p-8">
+        <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
           <h3 className="text-lg font-semibold text-black">Select Watchlist</h3>
           <div>
             <label className="tp-label pb-2" htmlFor="watchlistSelect">
@@ -360,7 +360,7 @@ export default function WatchlistPage() {
         </div>
 
         {/* Create New Watchlist Card */}
-        <div className="tp-card flex flex-col gap-6 p-8">
+        <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
           <h3 className="text-lg font-semibold text-black">
             Create New Watchlist
           </h3>
@@ -393,14 +393,14 @@ export default function WatchlistPage() {
                 {watchlistMessage.text}
               </p>
             )}
-            <button type="submit" className="tp-btn-primary w-32">
+            <button type="submit" className="tp-btn-primary w-full sm:w-32">
               Create
             </button>
           </form>
         </div>
 
         {/* Add Stock Card */}
-        <div className="tp-card flex flex-col gap-6 p-8">
+        <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
           <h3 className="text-lg font-semibold text-black">Add Stock</h3>
           <form className="flex flex-col gap-6" onSubmit={handleAddStock}>
             <div>
@@ -428,7 +428,7 @@ export default function WatchlistPage() {
                 {stockMessage.text}
               </p>
             )}
-            <button type="submit" className="tp-btn-primary w-32">
+            <button type="submit" className="tp-btn-primary w-full sm:w-32">
               Add
             </button>
           </form>
@@ -436,8 +436,8 @@ export default function WatchlistPage() {
       </div>
 
       {/* Right Column - Stock List Display */}
-      <div className="col-span-6 flex flex-col gap-8">
-        <div className="tp-card p-6 min-h-[420px]">
+      <div className="md:col-span-6 flex flex-col gap-6 md:gap-8">
+        <div className="tp-card p-4 md:p-6 min-h-[420px]">
           <h3 className="text-lg font-semibold text-black pb-4">
             {selectedWatchlist
               ? selectedWatchlist.name
@@ -451,14 +451,14 @@ export default function WatchlistPage() {
                   return (
                     <li
                       key={symbol}
-                      className="tp-card p-4 flex items-center justify-between"
+                      className="tp-card p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0"
                     >
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-black text-lg">
+                      <div className="flex flex-col flex-1">
+                        <span className="font-semibold text-black text-base md:text-lg">
                           {symbol}
                         </span>
                         {priceData ? (
-                          <div className="flex items-center gap-4 mt-1">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-1">
                             {/* Price */}
                             <span className="text-black">
                               {typeof priceData.price === "number"
@@ -492,7 +492,7 @@ export default function WatchlistPage() {
                       </div>
                       <button
                         onClick={() => handleRemoveStock(symbol)}
-                        className="tp-btn-primary text-xs px-3 py-1"
+                        className="tp-btn-primary text-xs px-3 py-1 w-full sm:w-auto"
                       >
                         Remove
                       </button>
