@@ -53,7 +53,7 @@ export function sortStocks(stocks, metric){
     sorted.push(...low.slice(i))
     sorted.push(...high.slice(j))
     
-    console.log(sorted)//test
+    //console.log(sorted);
     return sorted
 }
 
