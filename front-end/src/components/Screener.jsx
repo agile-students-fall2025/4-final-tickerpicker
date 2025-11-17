@@ -120,11 +120,8 @@ export default function Screener({ stocks, onAddToWatchlist }) {
               </div>
             </div>
 
-            {/* Right side - Chart placeholder and Add button */}
+            {/* Right side - Add button */}
             <div className="flex flex-col items-end gap-4">
-              <div className="w-48 h-32 tp-card bg-gray-100 flex items-center justify-center rounded-lg">
-                <p className="text-xs text-tp-text-dim">Stock Chart</p>
-              </div>
               <button
                 onClick={() => onAddToWatchlist(stock.ticker)}
                 className="tp-btn-primary text-xs px-4 py-2"

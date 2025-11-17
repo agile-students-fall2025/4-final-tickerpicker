@@ -1,16 +1,43 @@
 // src/pages/StockPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Screener from "../components/Screener.jsx";
+import ChartManager from "../charts/ChartManager.js";
 
 const API_BASE_URL =
   typeof window !== "undefined" && window.location.hostname === "localhost"
     ? "http://localhost:3001"
     : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
+
 export default function StockPage() {
-  const { ticker } = useParams();        // 从 /stock/:ticker 读参数
+  const { ticker } = useParams();
   const [stock, setStock] = useState(null);
   const [error, setError] = useState(null);
+  const [chartLoading, setChartLoading] = useState(true);
+  const [chartError, setChartError] = useState(null);
+
+  // Chart ref
+  const chartRef = useRef(null);
+  const chartIdRef = useRef(null);
+
+  // Calculate date range (last 6 months)
+  const getDateRange = () => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 180); // 6 months ago
+
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    return {
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
+    };
+  };
 
   useEffect(() => {
     if (!ticker) return;
@@ -36,22 +63,133 @@ export default function StockPage() {
     })();
   }, [ticker]);
 
+  // Initialize chart when ticker and stock are available
+  useEffect(() => {
+    if (!ticker || !stock) return;
+
+    const initializeChart = async () => {
+      if (!chartRef.current) {
+        console.warn("Chart ref not available yet");
+        return;
+      }
+
+      try {
+        setChartLoading(true);
+        setChartError(null);
+
+        const symbol = ticker.toUpperCase();
+        const { startDate, endDate } = getDateRange();
+
+        // Clear existing content
+        chartRef.current.innerHTML = "";
+
+        // Create container creator function for this chart
+        const containerCreator = (chartId, chartTitle, width, height) => {
+          const containerDiv = document.createElement("div");
+          containerDiv.id = chartId;
+
+          // Set explicit width/height
+          containerDiv.style.width = `${width}px`;
+          containerDiv.style.height = `${height}px`;
+          containerDiv.style.margin = "0 auto";
+          containerDiv.style.position = "relative";
+
+          // Append to the ref's current element
+          if (chartRef.current) {
+            chartRef.current.appendChild(containerDiv);
+          }
+
+          return containerDiv;
+        };
+
+        // Initialize chart
+        await ChartManager.initializeChart(
+          symbol,
+          startDate,
+          endDate,
+          "1d",
+          containerCreator,
+          800, // width
+          400 // height
+        );
+
+        // Store chart ID for cleanup
+        const chartId = ChartManager.generateChartId(
+          symbol,
+          startDate,
+          endDate,
+          "1d"
+        );
+        chartIdRef.current = chartId;
+
+        setChartLoading(false);
+      } catch (error) {
+        console.error("Error initializing chart:", error);
+        setChartError(error.message);
+        setChartLoading(false);
+      }
+    };
+
+    // Use setTimeout to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      initializeChart();
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (chartIdRef.current) {
+        try {
+          if (ChartManager.hasChart(chartIdRef.current)) {
+            ChartManager.removeChart(chartIdRef.current);
+          }
+        } catch (error) {
+          // Ignore cleanup errors
+        }
+      }
+      chartIdRef.current = null;
+    };
+  }, [ticker, stock]); // Depend on both ticker and stock
+
   const handleAddToWatchlist = (t) => {
     console.log("Add to watchlist:", t);
   };
 
   if (error) {
-    return (
-      <div className="px-6 py-6 text-sm text-red-400">
-        {error}
-      </div>
-    );
+    return <div className="px-6 py-6 text-sm text-red-400">{error}</div>;
   }
 
   return (
-    <div className="px-6 py-6">
+    <div className="px-6 py-6 flex flex-col gap-8">
       {stock ? (
-        <Screener stocks={[stock]} onAddToWatchlist={handleAddToWatchlist} />
+        <>
+          {/* Stock Details */}
+          <Screener stocks={[stock]} onAddToWatchlist={handleAddToWatchlist} />
+
+          {/* Price Chart */}
+          <div className="tp-card p-6">
+            <h3 className="text-lg font-semibold text-black mb-4">
+              {stock.ticker} Price Chart
+            </h3>
+            <div className="relative">
+              {chartLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+                  <p className="text-xs text-tp-text-dim">Loading chart...</p>
+                </div>
+              )}
+              {chartError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+                  <p className="text-xs text-red-400">
+                    Error loading chart: {chartError}
+                  </p>
+                </div>
+              )}
+              <div
+                ref={chartRef}
+                className="w-full flex justify-center min-h-[400px]"
+              ></div>
+            </div>
+          </div>
+        </>
       ) : (
         <div className="text-sm text-tp-text-dim">Loading…</div>
       )}
