@@ -40,21 +40,21 @@ export default function Screener({ stocks, onAddToWatchlist }) {
         {stocks.map((stock) => (
           <div
             key={stock.ticker}
-            className="tp-card p-6 flex items-start gap-6 hover:bg-tp-card/80 transition-colors"
+            className="tp-card p-4 md:p-6 flex flex-col sm:flex-row items-start gap-4 md:gap-6 hover:bg-tp-card/80 transition-colors"
           >
             {/* Left side - Symbol and Company */}
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <h3 className="text-xl font-semibold text-black">
+                <h3 className="text-lg md:text-xl font-semibold text-black">
                   {stock.ticker}
                 </h3>
-                <span className="text-sm text-tp-text-dim break-words">
+                <span className="text-xs md:text-sm text-tp-text-dim break-words">
                   {stock.company}
                 </span>
               </div>
 
               {/* Metrics Grid */}
-              <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                 {/* Price */}
                 <div>
                   <span className="text-xs text-tp-text-dim">Price:</span>
@@ -127,10 +127,10 @@ export default function Screener({ stocks, onAddToWatchlist }) {
             </div>
 
             {/* Right side - Add button */}
-            <div className="flex flex-col items-end gap-4">
+            <div className="flex flex-col items-start sm:items-end gap-4 w-full sm:w-auto">
               <button
                 onClick={() => onAddToWatchlist(stock.ticker)}
-                className="tp-btn-primary text-xs px-4 py-2"
+                className="tp-btn-primary text-xs px-4 py-2 w-full sm:w-auto"
               >
                 Add to Watchlist
               </button>

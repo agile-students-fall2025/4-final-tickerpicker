@@ -51,12 +51,12 @@ body {
 
 /* Top Nav Bar */ 
 .tp-top-nav {
-  @apply border-b border-tp-border bg-[var(--brand-color1)] text-white sticky top-0 z-50 
+  @apply border-b border-tp-border bg-[var(--brand-color1)] text-white fixed top-0 left-0 right-0 z-50 w-full;
 }
 
 /* Ticker Search Bar */
 .tp-search-bar {
-  @apply w-64 h-10 rounded-xl border border-white bg-tp-accent/50  px-4 py-3
+  @apply w-full sm:w-64 h-10 rounded-xl border border-white bg-tp-accent/50  px-4 py-3
          text-white placeholder-tp-text-dim outline-none hover:brightness-125 active:brightness-125 
          transition duration-150;
 }

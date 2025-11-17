@@ -57,8 +57,8 @@ export default function Filter({
   onApply,
 }) {
   return (
-    <div className="tp-card p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="tp-card p-4 md:p-6">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
         <h3 className="text-lg font-semibold text-black">Ticker Filter</h3>
         <button
           onClick={onToggleLock} // this function negates the value of 'locked'
@@ -73,7 +73,7 @@ export default function Filter({
       </div>
         
       {/* UI piece for each metric */}
-      <ul className="space-y-4">
+      <ul className="space-y-3 md:space-y-4">
         {metrics.map((metric) => {
           const filterValues = filters[metric.key];
           //if (!filterValues) console.log("ERROR! metric:", metric.key, "FILTERS: ",filters[metric.key])//TEST
@@ -81,7 +81,7 @@ export default function Filter({
           const formatValue = metric.formatValue || ((val) => val.toFixed(1));
 
           return (
-            <li key={metric.key} className="tp-card p-4">
+            <li key={metric.key} className="tp-card p-3 md:p-4">
               {/* UI identifier for metric filter slider */}
               <h4 className="tp-label">{metric.label}</h4>
               <div className="flex flex-col gap-3">
@@ -142,7 +142,7 @@ export default function Filter({
         })}
       </ul>
 
-      <div className="mt-6 pt-6 border-t border-tp-border">
+      <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-tp-border">
         <button
           onClick={onApply}
           className="tp-btn-primary w-full"
