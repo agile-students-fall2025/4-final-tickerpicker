@@ -16,9 +16,9 @@
   },
   "devDependencies": {
     "c8": "^9.1.0",
-    "chai": "^4.4.1",
+    "chai": "^4.5.0",
     "cross-env": "^10.1.0",
-    "mocha": "^10.4.0",
+    "mocha": "^10.8.2",
     "nodemon": "^3.0.1",
     "supertest": "^6.3.4"
   },
