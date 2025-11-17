@@ -16,6 +16,11 @@ const options = metrics.map( (metric,i) => {
  * @return List of stocks sorted by metric
  */
 export function sortStocks(stocks, metric){
+    // safe python_case conversion
+    if (metric.includes("Ratio")) metric = "pe_ratio";
+    if (metric.includes("Market")) metric = "market_cap";
+    if (metric.includes("Debt")) metric = "debt_to_equity";
+
     if (stocks.length == 0) {console.log("Cannot sort!"); return stocks;}
 
     // sort by stock[metric]
@@ -48,7 +53,7 @@ export function sortStocks(stocks, metric){
     sorted.push(...low.slice(i))
     sorted.push(...high.slice(j))
     
-    console.log(sorted)//test
+    //console.log(sorted);
     return sorted
 }
 

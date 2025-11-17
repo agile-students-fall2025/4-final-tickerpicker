@@ -146,8 +146,11 @@ export default function TickerPickerPage() {
   const [selectedMetric, setSelectedMetric] = useState("price");
   useEffect(() => {
     // for now we will only sort by price
-    setFilteredStocks(sortStocks(filteredStocks, "price"));
-  }, [selectedMetric]);
+    
+    setFilteredStocks(
+      sortStocks(filteredStocks, selectedMetric) 
+    )
+  }, [selectedMetric])
 
   // Handle changes to filter only when not locked
   // When changing filters, the results gets updated automatically
