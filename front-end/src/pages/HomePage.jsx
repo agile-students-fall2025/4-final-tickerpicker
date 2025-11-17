@@ -69,25 +69,51 @@ export default function HomePage() {
         // Fetch watchlists (if you have that endpoint)
         // For now, keep watchlists empty or fetch from /api/watchlists/initial
         setWatchlists([]);
-        
+
         // Fetch recommended picks from backend
         try {
-          const response = await fetch(`${API_BASE_URL}/api/home/recommended-picks`);
+          const response = await fetch(
+            `${API_BASE_URL}/api/home/recommended-picks`
+          );
           if (response.ok) {
             const data = await response.json();
             setRecommendedPicks(data.picks || []);
-            console.log("HomePage: Loaded recommended picks from API:", data.picks?.length || 0);
+            console.log(
+              "HomePage: Loaded recommended picks from API:",
+              data.picks?.length || 0
+            );
           } else {
-            console.error('Failed to fetch recommended picks:', response.status);
+            console.error(
+              "Failed to fetch recommended picks:",
+              response.status
+            );
             setRecommendedPicks([]);
           }
         } catch (err) {
-          console.error('Error fetching recommended picks:', err);
+          console.error("Error fetching recommended picks:", err);
           setRecommendedPicks([]);
         }
-        
-        // TODO: Fetch top performers when that endpoint is ready
-        setTopPerformers([]);
+
+        // Fetch top performers from backend
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/api/home/top-performers`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            setTopPerformers(data.performers || []);
+            console.log(
+              "HomePage: Loaded top performers from API:",
+              data.performers?.length || 0
+            );
+          } else {
+            console.error("Failed to fetch top performers:", response.status);
+            setTopPerformers([]);
+          }
+        } catch (err) {
+          console.error("Error fetching top performers:", err);
+          setTopPerformers([]);
+        }
       }
     };
 
@@ -334,61 +360,57 @@ export default function HomePage() {
 
       {/* Bottom Section - Charts */}
       <div className="flex flex-col gap-8">
-        {/* Top 20 Performers List */}
+        {/* Top 10 Performers List */}
         <div className="tp-card p-6">
           <h3 className="text-lg font-semibold text-black mb-4">
-            Top 20 Performers
+            Top 10 Performers
           </h3>
 
           <div className="flex flex-col gap-2">
             {topPerformers.length > 0 ? (
               <ul className="space-y-2">
-                {topPerformers
-                  .sort((a, b) => b.changePercent - a.changePercent)
-                  .map((stock, index) => (
-                    <li
-                      key={stock.symbol}
-                      className="tp-card p-4 flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-4">
-                        <span className="text-tp-text-dim text-sm font-medium w-8">
-                          #{index + 1}
+                {topPerformers.map((stock, index) => (
+                  <li
+                    key={stock.symbol}
+                    className="tp-card p-4 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="text-tp-text-dim text-sm font-medium w-8">
+                        #{index + 1}
+                      </span>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-black text-lg">
+                          {stock.symbol}
                         </span>
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-black text-lg">
-                            {stock.symbol}
-                          </span>
-                          <span className="text-xs text-tp-text-dim">
-                            {stock.company}
-                          </span>
-                        </div>
+                        <span className="text-xs text-tp-text-dim">
+                          {stock.company}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-6">
-                        <span className="text-black text-sm font-medium">
-                          ${stock.price.toFixed(2)}
-                        </span>
-                        <span
-                          className={
-                            stock.change >= 0
-                              ? "text-green-600 text-sm font-medium"
-                              : "text-red-600 text-sm font-medium"
-                          }
-                        >
-                          {stock.change >= 0 ? "+" : ""}
-                          {stock.change.toFixed(2)} (
-                          {stock.changePercent >= 0 ? "+" : ""}
-                          {stock.changePercent.toFixed(2)}%)
-                        </span>
-                        <Link
-                          to={`/stock/${stock.symbol}`}>
-                          <button className="tp-btn-primary text-xs px-3 py-1">
-                            View
+                    </div>
+                    <div className="flex items-center gap-6">
+                      <span className="text-black text-sm font-medium">
+                        ${stock.price.toFixed(2)}
+                      </span>
+                      <span
+                        className={
+                          stock.change >= 0
+                            ? "text-green-600 text-sm font-medium"
+                            : "text-red-600 text-sm font-medium"
+                        }
+                      >
+                        {stock.change >= 0 ? "+" : ""}
+                        {stock.change.toFixed(2)} (
+                        {stock.changePercent >= 0 ? "+" : ""}
+                        {stock.changePercent.toFixed(2)}%)
+                      </span>
+                      <Link to={`/stock/${stock.symbol}`}>
+                        <button className="tp-btn-primary text-xs px-3 py-1">
+                          View
                         </button>
-                        </Link>
-                        
-                      </div>
-                    </li>
-                  ))}
+                      </Link>
+                    </div>
+                  </li>
+                ))}
               </ul>
             ) : (
               <div className="flex flex-col items-center justify-center py-12">

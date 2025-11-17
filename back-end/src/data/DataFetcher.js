@@ -58,6 +58,46 @@ export async function fetchQuotes(symbols = []) {
   return result;
 }
 
+/**
+ * Fetches quotes in parallel batches for better performance
+ * Processes symbols in batches of specified size to avoid overwhelming the API
+ *
+ * @param {Array<string>} symbols - Array of stock symbols
+ * @param {number} batchSize - Number of symbols to fetch in parallel (default: 20)
+ * @returns {Promise<Object>} Map of {symbol: quoteObject}
+ */
+export async function fetchQuotesParallel(symbols = [], batchSize = 20) {
+  const yahooFinance = new YahooFinance();
+  const result = {};
+
+  // Process symbols in batches
+  for (let i = 0; i < symbols.length; i += batchSize) {
+    const batch = symbols.slice(i, i + batchSize);
+
+    // Fetch all quotes in this batch in parallel
+    const batchPromises = batch.map(async (symbol) => {
+      try {
+        const quote = await yahooFinance.quote(symbol);
+        return { symbol, quote, error: null };
+      } catch (err) {
+        console.error(`Error fetching quote for ${symbol}:`, err.message);
+        return { symbol, quote: null, error: err.message };
+      }
+    });
+
+    // Wait for all in batch to complete
+    const batchResults = await Promise.all(batchPromises);
+
+    // Store successful results
+    batchResults.forEach(({ symbol, quote, error }) => {
+      if (quote) {
+        result[symbol] = quote;
+      }
+    });
+  }
+
+  return result;
+}
 
 /**
  * Fetches fundamental data for an asset symbol (Needs to be further developed after deciding what fundamental data we want to display)
@@ -102,7 +142,8 @@ export async function getKeyMetrics(symbol) {
   if (!symbol) throw new Error("symbol is required");
 
   const fundamentals = await getFundamentals(symbol);
-  const { summaryDetail, financialData, defaultKeyStatistics } = fundamentals || {};
+  const { summaryDetail, financialData, defaultKeyStatistics } =
+    fundamentals || {};
 
   const unwrap = (v) => {
     if (v == null) return null;
@@ -151,8 +192,6 @@ async function testDataFetching() {
 
 // testDataFetching();
 
-
-
 /**
  * Fetches calendar events (earnings, dividends, splits) for a symbol
  * @param {string} symbol - Stock symbol
@@ -163,7 +202,12 @@ export async function getCalendarEvents(symbol) {
     const yahooFinance = new YahooFinance();
     // api call to get calendar events from yahoo finance
     const data = await yahooFinance.quoteSummary(symbol, {
-      modules: ["calendarEvents", "upgradeDowngradeHistory", "earningsHistory", "earnings"]
+      modules: [
+        "calendarEvents",
+        "upgradeDowngradeHistory",
+        "earningsHistory",
+        "earnings",
+      ],
     });
 
     return {
@@ -172,7 +216,10 @@ export async function getCalendarEvents(symbol) {
       earningsHistory: data.earningsHistory || null,
     };
   } catch (error) {
-    console.error(`Error fetching calendar events for ${symbol}:`, error.message);
+    console.error(
+      `Error fetching calendar events for ${symbol}:`,
+      error.message
+    );
     throw error;
   }
 }
@@ -187,7 +234,7 @@ export async function getCalendarEvents(symbol) {
 export async function getEventsFromChart(symbol, startDate, endDate) {
   try {
     const yahooFinance = new YahooFinance();
-    
+
     const data = await yahooFinance.chart(symbol, {
       period1: startDate,
       period2: endDate,
@@ -199,8 +246,10 @@ export async function getEventsFromChart(symbol, startDate, endDate) {
       splits: data.events?.splits || [],
     };
   } catch (error) {
-    console.error(`Error fetching events from chart for ${symbol}:`, error.message);
+    console.error(
+      `Error fetching events from chart for ${symbol}:`,
+      error.message
+    );
     throw error;
   }
 }
-
