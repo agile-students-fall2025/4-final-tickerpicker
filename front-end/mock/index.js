@@ -10,7 +10,9 @@ export function setupMocks() {
   window.fetch = async (url, options) => {
     const href = typeof url === "string" ? url : url?.url ?? "";
 
-    // 匹配 /api/stocks/XXX 这种路径
+    // ---------------------------------------------------
+    // 1) MOCKED STOCKS — KEEP EXACTLY AS BEFORE
+    // ---------------------------------------------------
     const match = href.match(/\/api\/stocks\/([^/?#]+)/);
 
     if (match) {
@@ -24,7 +26,6 @@ export function setupMocks() {
           headers: { "Content-Type": "application/json" },
         });
       } else {
-        //如果mock里没有这个ticker 返回404 避免404让json()崩掉
         return new Response(
           JSON.stringify({ error: `Unknown ticker: ${ticker}` }),
           {
@@ -34,8 +35,17 @@ export function setupMocks() {
         );
       }
     }
+    //forward notifications to backend
+    if (
+      href.startsWith("/api/notification-stocks") ||
+      href.startsWith("/api/notifications") ||
+      href.startsWith("/api/calendar-events")
+    ) {
+      console.log("[MOCK FORWARD] → http://localhost:3001" + href);
+      return originalFetch("http://localhost:3001" + href, options);
+    }
 
-    // 不是 /api/stocks/* 的请求，照常走原始 fetch
+    //everything else - normal fetch
     return originalFetch(url, options);
   };
 

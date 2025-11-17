@@ -19,7 +19,7 @@ const DEFAULT_DAYS_BEFORE = 7; // Default: notify 7 days before events
 
 // Middleware
 app.use(cors());
-app.use(json());
+app.use(express.json());
 
 // API Routes
 app.get("/api/price-data/:symbol", async (req, res) => {
@@ -327,8 +327,6 @@ app.post("/api/calendar-events/check", async (req, res) => {
     });
   }
 });
-// Dashboard routes (TickerPicker)
-app.use('/api/dashboard', dashboardRouter);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

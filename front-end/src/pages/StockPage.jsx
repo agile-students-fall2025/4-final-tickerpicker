@@ -7,6 +7,8 @@ export default function StockPage() {
   const { ticker } = useParams();        // 从 /stock/:ticker 读参数
   const [stock, setStock] = useState(null);
   const [error, setError] = useState(null);
+  const [notifEnabled, setNotifEnabled] = useState(false);
+
 
   useEffect(() => {
     if (!ticker) return;
@@ -30,8 +32,44 @@ export default function StockPage() {
         setError("Failed to load stock data for this ticker.");
         setStock(null);
       }
+    })
+    
+    ();
+  }, [ticker]);
+
+  //after fetching data - check if notifications are enabled
+  useEffect(() => {
+    if (!ticker) return;
+
+    (async () => {
+      const res = await fetch("http://localhost:3001/api/notification-stocks")
+      if (res.ok) {
+        const data = await res.json();
+        setNotifEnabled(data.enabled);
+      }
     })();
   }, [ticker]);
+
+  //toggles notifications for this stock
+const handleToggleNotifications = async () => {
+  const symbol = ticker.toUpperCase();
+
+  const res = await fetch("/api/notification-stocks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      symbol,
+      enabled: !notifEnabled,
+    }),
+  });
+
+  if (res.ok) {
+    const data = await res.json();
+    setNotifEnabled(data.enabled);
+  }
+};
+
+
 
   const handleAddToWatchlist = (t) => {
     console.log("Add to watchlist:", t);
@@ -48,10 +86,23 @@ export default function StockPage() {
   return (
     <div className="px-6 py-6">
       {stock ? (
-        <Screener stocks={[stock]} onAddToWatchlist={handleAddToWatchlist} />
+        <>
+          {/* --- NOTIFICATION TOGGLE BUTTON --- */}
+          <button
+            onClick={handleToggleNotifications}
+            className="px-3 py-1 mb-4 rounded-md border border-tp-border text-xs hover:bg-tp-surface-subtle"
+          >
+            {notifEnabled
+              ? `Disable notifications for ${ticker.toUpperCase()}`
+              : `Enable notifications for ${ticker.toUpperCase()}`}
+          </button>
+  
+          <Screener stocks={[stock]} onAddToWatchlist={handleAddToWatchlist} />
+        </>
       ) : (
         <div className="text-sm text-tp-text-dim">Loading…</div>
       )}
     </div>
   );
+  
 }
