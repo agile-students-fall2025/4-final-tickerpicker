@@ -180,13 +180,14 @@ Features that explain financial concepts
 
 ## Project Status
 
-**Current Sprint:** Sprint 1
+**Current Sprint:** Sprint 2
 
-**Status:** Frontend and UI Development Phase
+**Status:** Backend Development Phase
 
 We're currently:
 
-- Developing multiple web pages
-- Developing a modular charting class
-- Creating a basic backend which can fetch real data
-- Establishing exactly what needs to be developed in the backend (next) sprint
+- Backend API endpoints fully integrated with frontend
+- Homepage features implemented: recommended picks (SPDR ETFs by Sharpe ratio) and top 10 performers (Nasdaq 100)
+- Stock data fetching, filtering, and watchlist management functional
+- Unit tests in place for backend routes
+- Frontend making API calls to backend for all data
