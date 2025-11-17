@@ -15,6 +15,7 @@ export default function StockPage() {
   const [error, setError] = useState(null);
   const [chartLoading, setChartLoading] = useState(true);
   const [chartError, setChartError] = useState(null);
+  const [notifEnabled, setNotifEnabled] = useState(false);
 
   // Chart ref
   const chartRef = useRef(null);
@@ -39,6 +40,7 @@ export default function StockPage() {
     };
   };
 
+  // 1) Fetch stock data
   useEffect(() => {
     if (!ticker) return;
 
@@ -63,7 +65,24 @@ export default function StockPage() {
     })();
   }, [ticker]);
 
-  // Initialize chart when ticker and stock are available
+  // 2) Check if notifications are enabled for this ticker
+  useEffect(() => {
+    if (!ticker) return;
+
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/notification-stocks`);
+        if (res.ok) {
+          const data = await res.json();
+          setNotifEnabled(data.enabled);
+        }
+      } catch (err) {
+        console.error("Failed to load notification status:", err);
+      }
+    })();
+  }, [ticker]);
+
+  // 3) Initialize chart when ticker and stock are available
   useEffect(() => {
     if (!ticker || !stock) return;
 
@@ -150,6 +169,33 @@ export default function StockPage() {
     };
   }, [ticker, stock]); // Depend on both ticker and stock
 
+  // 4) Toggle notifications for this stock
+  const handleToggleNotifications = async () => {
+    if (!ticker) return;
+    const symbol = ticker.toUpperCase();
+    console.log("[StockPage] toggle button clicked", {
+      symbol,
+      notifEnabledBefore: notifEnabled,
+    });
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/notification-stocks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol,
+          enabled: !notifEnabled,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setNotifEnabled(data.enabled);
+      }
+    } catch (err) {
+      console.error("Failed to toggle notifications:", err);
+    }
+  };
+
   const handleAddToWatchlist = (t) => {
     console.log("Add to watchlist:", t);
   };
@@ -162,8 +208,30 @@ export default function StockPage() {
     <div className="px-6 py-6 flex flex-col gap-8">
       {stock ? (
         <>
-          {/* Stock Details */}
-          <Screener stocks={[stock]} onAddToWatchlist={handleAddToWatchlist} />
+          {/* Stock Details + Notification toggle */}
+          <>
+            {/* ---- NOTIFICATION TOGGLE BUTTON ---- */}
+            {/* Notification Toggle */}
+            <button
+              type="button"
+              onClick={handleToggleNotifications}
+              className={`px-4 py-2 rounded-xl border text-sm transition ${
+                notifEnabled
+                  ? "bg-green-50 border-green-600 text-green-700"
+                  : "bg-red-50 border-red-400 text-red-700 hover:bg-red-100"
+              }`}
+            >
+              {notifEnabled
+                ? `Price Alerts for ${ticker.toUpperCase()}: ON`
+                : `Enable Price Alerts for ${ticker.toUpperCase()}: OFF`}
+            </button>
+
+
+            <Screener
+              stocks={[stock]}
+              onAddToWatchlist={handleAddToWatchlist}
+            />
+          </>
 
           {/* Price Chart */}
           <div className="tp-card p-6">

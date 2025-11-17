@@ -1,20 +1,19 @@
-import React, { useState } from "react";
-import { Link,useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react"; // 🔹 added useEffect
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { FaBell } from "react-icons/fa";
-
 
 export default function Navbar() {
     const { isAuthenticated, user } = useAuth();
 
     // for searching bar, searching query
-    const [query, setQuery] = useState("")
+    const [query, setQuery] = useState("");
     const navigate = useNavigate(); 
 
-    //notifications
-    const [notifItems] = useState([]); 
-      const unreadCount = notifItems.filter(n => n.unread).length;
-      const [isNotifOpen, setIsNotifOpen] = useState(false);
+    // notifications
+    const [notifItems, setNotifItems] = useState([]); // 🔹 was const [notifItems] = useState([])
+    const unreadCount = notifItems.filter(n => !n.isRead).length; // 🔹 use !n.isRead
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
 
     const avatarUrl = `https://picsum.photos/seed/${
         user?.email || "guest"
@@ -28,16 +27,33 @@ export default function Navbar() {
         // we can use this trimmedQuery to search in our database about anything
     };
 
+    // load notifications from backend when logged in
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        (async () => {
+            try {
+                const res = await fetch("http://localhost:3001/api/notifications");
+                if (!res.ok) {
+                    console.error("Navbar failed to load notifications:", res.status);
+                    return;
+                }
+                const data = await res.json();
+                setNotifItems(data);
+            } catch (err) {
+                console.error("Navbar error:", err);
+            }
+        })();
+    }, [isAuthenticated]);
 
     //temporary to route to stock page on search
     const handleSearchSubmit = (e) => {
-    const trimmedQuery = query.trim();
-    e.preventDefault();
-    const trimmed = query.trim();
-    // ignore what user typed; always go to /stock (AAPL)
-    navigate(`/stock/${trimmedQuery.toUpperCase()}`)
-    setQuery(""); // optional: clear search bar
-  };
+        const trimmedQuery = query.trim();
+        e.preventDefault();
+        if (!trimmedQuery) return;
+        navigate(`/stock/${trimmedQuery.toUpperCase()}`);
+        setQuery(""); // optional: clear search bar
+    };
 
     return (
         <header className="tp-top-nav">
@@ -54,22 +70,13 @@ export default function Navbar() {
                         <>
                             <div className="flex items-center">
                                 <form onSubmit={handleSearchSubmit}>
-                                <input
-                                    type="text"
-                                    className="flex-1 ml-2 tp-search-bar placeholder-tp-text-dim"
-                                    placeholder="Search TickerPicker"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                />
-
-                                {/* Search button, but feel that without it is more aethetically pleasing */}
-                                {/* <button
-                                    type="submit"
-                                    className="tp-btn-white text-xs text-white px-2.5 py-1 rounded-md ml-2 whitespace-nowrap"
-                                >
-                                    Search
-                                </button> */}
-
+                                    <input
+                                        type="text"
+                                        className="flex-1 ml-2 tp-search-bar placeholder-tp-text-dim"
+                                        placeholder="Search TickerPicker"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                    />
                                 </form>
                             </div>
                         </>
@@ -96,44 +103,62 @@ export default function Navbar() {
                     {isAuthenticated && (
                         <>
                             {/* Notification Bell */}
-                    <div 
-                    className="relative pb-2"
-                    onMouseEnter={() => setIsNotifOpen(true)}
-                    onMouseLeave={() => setIsNotifOpen(false)}
-                    >
-                    <button
-                        type="button"
-                        aria-label="Notifications"
-                        className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-                        onClick={() => setIsNotifOpen((prev) => !prev)} 
-                    >
-                        <FaBell className="text-lg" />
-                        <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500"></span>
-                    </button>
+                            <div 
+                                className="relative pb-2"
+                                onMouseEnter={() => setIsNotifOpen(true)}
+                                onMouseLeave={() => setIsNotifOpen(false)}
+                            >
+                                <button
+                                    type="button"
+                                    aria-label="Notifications"
+                                    className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                                    onClick={() => setIsNotifOpen((prev) => !prev)} 
+                                >
+                                    <FaBell className="text-lg" />
+                                    {notifItems.length > 0 && (
+                                        <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500"></span>
+                                    )}
+                                </button>
 
-                    {/* Dropdown (appears on hover) */}
-                    <div 
-                        className={`absolute left-1/2 -translate-x-1/2 mt-2 w-72 rounded-xl border border-tp-border bg-white text-black shadow-xl z-[60] ${isNotifOpen ? "block" : "hidden"}`}
-                        onMouseEnter={() => setIsNotifOpen(true)}
-                        onMouseLeave={() => setIsNotifOpen(false)}
-                    >
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-tp-border">
-                        <span className="text-sm font-semibold">Notifications</span>
-                        </div>
+                                {/* Dropdown (appears on hover) */}
+                                <div 
+                                    className={`absolute left-1/2 -translate-x-1/2 mt-2 w-72 rounded-xl border border-tp-border bg-white text-black shadow-xl z-[60] ${isNotifOpen ? "block" : "hidden"}`}
+                                    onMouseEnter={() => setIsNotifOpen(true)}
+                                    onMouseLeave={() => setIsNotifOpen(false)}
+                                >
+                                    <div className="flex items-center justify-between px-4 py-3 border-b border-tp-border">
+                                        <span className="text-sm font-semibold">Notifications</span>
+                                    </div>
 
-                        <ul className="max-h-72 overflow-auto text-sm">
-                        </ul>
+                                    <ul className="max-h-72 overflow-auto text-sm">
+                                        {notifItems.length === 0 ? (
+                                            <li className="px-4 py-3 text-tp-text-dim">
+                                                No notifications yet.
+                                            </li>
+                                        ) : (
+                                            notifItems.map((n) => (
+                                                <li key={n.id} className="px-4 py-3 border-b border-tp-border">
+                                                    <div className="font-semibold text-black">
+                                                        {n.symbol}
+                                                    </div>
+                                                    <div className="text-black">
+                                                        {n.message}
+                                                    </div>
+                                                    <div className="text-xs text-tp-text-dim">
+                                                        {new Date(n.createdAt).toLocaleString()}
+                                                    </div>
+                                                </li>
+                                            ))
+                                        )}
+                                    </ul>
 
-                        <div className="px-4 py-3 border-t border-tp-border text-center text-sm text-blue-600 hover:underline">
-                        <Link to="/profile">View all notifications</Link>
-                        </div>
-                    </div>
-                    </div>
-
-
+                                    <div className="px-4 py-3 border-t border-tp-border text-center text-sm text-blue-600 hover:underline">
+                                        <Link to="/profile">View all notifications</Link>
+                                    </div>
+                                </div>
+                            </div>
                         </>
                     )}
-
 
                     {isAuthenticated && (
                         <>
