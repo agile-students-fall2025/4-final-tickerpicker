@@ -41,6 +41,64 @@ export async function queryPriceData(
   }
 }
 
+// 批量获取quote数据 返回一个{[symbol]: quoteObject}的映射
+export async function fetchQuotes(symbols = []) {
+  const yahooFinance = new YahooFinance();
+  const result = {};
+
+  for (const symbol of symbols) {
+    try {
+      const quote = await yahooFinance.quote(symbol);
+      result[symbol] = quote;
+    } catch (err) {
+      console.error(`Error fetching quote for ${symbol}:`, err.message);
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Fetches quotes in parallel batches for better performance
+ * Processes symbols in batches of specified size to avoid overwhelming the API
+ *
+ * @param {Array<string>} symbols - Array of stock symbols
+ * @param {number} batchSize - Number of symbols to fetch in parallel (default: 20)
+ * @returns {Promise<Object>} Map of {symbol: quoteObject}
+ */
+export async function fetchQuotesParallel(symbols = [], batchSize = 20) {
+  const yahooFinance = new YahooFinance();
+  const result = {};
+
+  // Process symbols in batches
+  for (let i = 0; i < symbols.length; i += batchSize) {
+    const batch = symbols.slice(i, i + batchSize);
+
+    // Fetch all quotes in this batch in parallel
+    const batchPromises = batch.map(async (symbol) => {
+      try {
+        const quote = await yahooFinance.quote(symbol);
+        return { symbol, quote, error: null };
+      } catch (err) {
+        console.error(`Error fetching quote for ${symbol}:`, err.message);
+        return { symbol, quote: null, error: err.message };
+      }
+    });
+
+    // Wait for all in batch to complete
+    const batchResults = await Promise.all(batchPromises);
+
+    // Store successful results
+    batchResults.forEach(({ symbol, quote, error }) => {
+      if (quote) {
+        result[symbol] = quote;
+      }
+    });
+  }
+
+  return result;
+}
+
 /**
  * Fetches fundamental data for an asset symbol (Needs to be further developed after deciding what fundamental data we want to display)
  *
@@ -52,7 +110,12 @@ export async function getFundamentals(symbol) {
     const yahooFinance = new YahooFinance();
 
     const data = await yahooFinance.quoteSummary(symbol, {
-      modules: ["summaryDetail", "financialData", "defaultKeyStatistics"],
+      modules: [
+        "summaryDetail",
+        "financialData",
+        "defaultKeyStatistics",
+        "price",
+      ],
     });
 
     return data;
@@ -60,6 +123,54 @@ export async function getFundamentals(symbol) {
     console.error(`Error fetching fundamentals for ${symbol}:`, error.message);
     throw error;
   }
+}
+
+/**
+ * Extract metrics below from yFinance using getFundamentals
+ * - share price
+ * - market cap
+ * - P/E
+ * - debt-to-equity
+ * - beta
+ *
+ * @param {string} symbol
+ * @returns {Promise<{
+ *   symbol: string;
+ *   price: number | null;
+ *   marketCap: number | null;
+ *   pe: number | null;
+ *   debtToEquity: number | null;
+ *   beta: number | null;
+ * }>}
+ */
+export async function getKeyMetrics(symbol) {
+  if (!symbol) throw new Error("symbol is required");
+
+  const fundamentals = await getFundamentals(symbol);
+  const { summaryDetail, financialData, defaultKeyStatistics } =
+    fundamentals || {};
+
+  const unwrap = (v) => {
+    if (v == null) return null;
+    if (typeof v === "object" && "raw" in v) return v.raw;
+    return v;
+  };
+
+  return {
+    symbol,
+    price: unwrap(financialData?.currentPrice),
+    marketCap: unwrap(
+      summaryDetail?.marketCap ?? defaultKeyStatistics?.marketCap
+    ),
+    pe: unwrap(
+      summaryDetail?.trailingPE ??
+        summaryDetail?.forwardPE ??
+        defaultKeyStatistics?.trailingPE ??
+        defaultKeyStatistics?.forwardPE
+    ),
+    debtToEquity: unwrap(financialData?.debtToEquity),
+    beta: unwrap(summaryDetail?.beta ?? defaultKeyStatistics?.beta),
+  };
 }
 
 // Example usage and testing functions (uncomment to test)
@@ -84,5 +195,66 @@ async function testDataFetching() {
   }
 }
 
-// Uncomment to run test:
-testDataFetching();
+// testDataFetching();
+
+/**
+ * Fetches calendar events (earnings, dividends, splits) for a symbol
+ * @param {string} symbol - Stock symbol
+ * @returns {Object} Calendar events including earnings, dividends, and splits
+ */
+export async function getCalendarEvents(symbol) {
+  try {
+    const yahooFinance = new YahooFinance();
+    // api call to get calendar events from yahoo finance
+    const data = await yahooFinance.quoteSummary(symbol, {
+      modules: [
+        "calendarEvents",
+        "upgradeDowngradeHistory",
+        "earningsHistory",
+        "earnings",
+      ],
+    });
+
+    return {
+      earnings: data.earnings || null,
+      calendarEvents: data.calendarEvents || null,
+      earningsHistory: data.earningsHistory || null,
+    };
+  } catch (error) {
+    console.error(
+      `Error fetching calendar events for ${symbol}:`,
+      error.message
+    );
+    throw error;
+  }
+}
+
+/**
+ * Alternative method: Get events from chart data (dividends and splits)
+ * @param {string} symbol - Stock symbol
+ * @param {string} startDate - Start date in YYYY-MM-DD format
+ * @param {string} endDate - End date in YYYY-MM-DD format
+ * @returns {Object} Events including dividends and splits
+ */
+export async function getEventsFromChart(symbol, startDate, endDate) {
+  try {
+    const yahooFinance = new YahooFinance();
+
+    const data = await yahooFinance.chart(symbol, {
+      period1: startDate,
+      period2: endDate,
+      interval: "1d",
+    });
+
+    return {
+      dividends: data.events?.dividends || [],
+      splits: data.events?.splits || [],
+    };
+  } catch (error) {
+    console.error(
+      `Error fetching events from chart for ${symbol}:`,
+      error.message
+    );
+    throw error;
+  }
+}

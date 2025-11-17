@@ -31,40 +31,50 @@ export default function Navbar() {
 
     //temporary to route to stock page on search
     const handleSearchSubmit = (e) => {
+    const trimmedQuery = query.trim();
     e.preventDefault();
     const trimmed = query.trim();
     // ignore what user typed; always go to /stock (AAPL)
-    navigate(`/stock/${trimmed.toUpperCase()}`)
+    navigate(`/stock/${trimmedQuery.toUpperCase()}`)
     setQuery(""); // optional: clear search bar
   };
 
     return (
-        <header className="border-b border-tp-border bg-[#0f172a] text-white sticky top-0 z-50">
+        <header className="tp-top-nav">
             <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-4">
-                {/* Left: Logo */}
-                <Link
-                    to="/home"
-                    className="text-lg font-semibold text-white hover:text-tp-text-dim transition-colors">
-                    TickerPicker
-                </Link>
+                {/* Ticker Picker logo and search bar */}
+                <div className=" flex items-center gap-10">
+                    <Link
+                        to="/home"
+                        className="text-lg font-semibold text-white hover:text-tp-text-dim transition-colors">
+                        TickerPicker
+                    </Link>
 
-                {/* Center: Search bar */}
-                {isAuthenticated && (
-                    <div className="flex-1 flex justify-center">
-                        <form
-                            onSubmit={handleSearchSubmit}
-                            className="w-full max-w-xl"
-                        >
-                            <input
-                                type="text"
-                                className="w-full tp-search-bar placeholder-tp-text-dim"
-                                placeholder="Search TickerPicker"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                            />
-                        </form>
-                    </div>
-                )}
+                    {isAuthenticated && (
+                        <>
+                            <div className="flex items-center">
+                                <form onSubmit={handleSearchSubmit}>
+                                <input
+                                    type="text"
+                                    className="flex-1 ml-2 tp-search-bar placeholder-tp-text-dim"
+                                    placeholder="Search TickerPicker"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                />
+
+                                {/* Search button, but feel that without it is more aethetically pleasing */}
+                                {/* <button
+                                    type="submit"
+                                    className="tp-btn-white text-xs text-white px-2.5 py-1 rounded-md ml-2 whitespace-nowrap"
+                                >
+                                    Search
+                                </button> */}
+
+                                </form>
+                            </div>
+                        </>
+                    )}
+                </div>
 
                 {/* Right: Auth controls */}
                 <div className="flex items-center gap-4">

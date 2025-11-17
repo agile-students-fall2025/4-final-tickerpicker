@@ -5,13 +5,8 @@
 import React from "react";
 
 export default function AuthFormInput({
-    label,
-    type = "text",
-    name,
-    value,
-    onChange,
-    placeholder,
-    error
+    label, type = "text", name,
+    value, onChange, placeholder, error
 }) {
     return (
         <div className="flex flex-col">
