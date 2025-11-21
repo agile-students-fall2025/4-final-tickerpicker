@@ -61,7 +61,12 @@ If time permits, we'd like to add:
 
 - **Product Owner:** [Michael Mvano](https://github.com/michx02)
 - **Scrum Master:** [Lauren Throve](https://github.com/laurenst17)
+- 
+### Sprint 3 Roles
 
+- **Product Owner:** [Apoorv Belgundi](https://github.com/apoorvib)
+- **Scrum Master:** [Michael Mvano](https://github.com/michx02)
+- 
 ### Developers
 
 - [Lauren Throve](https://github.com/laurenst17)
