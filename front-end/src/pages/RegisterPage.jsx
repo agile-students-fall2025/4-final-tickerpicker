@@ -23,7 +23,7 @@ export default function RegisterPage() {
         setForm(prev => ({ ...prev, [name]: value }));
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
 
         const newErr = validateForm(form);
@@ -31,14 +31,14 @@ export default function RegisterPage() {
 
         if (Object.keys(newErr).length > 0) return;
 
-        const result = register({
+        const result = await register({
             name: form.name.trim(),
             email: form.email.trim(),
             password: form.password
         });
 
         if (result.ok) {
-            navigate("/home");
+            navigate("/Home");
         } else {
             setSubmitErr(result.error || "Registration failed.");
         }

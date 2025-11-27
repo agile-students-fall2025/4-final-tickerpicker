@@ -18,16 +18,16 @@ export default function LoginPage() {
         setForm(prev => ({ ...prev, [name]: value }));
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
 
-        const result = login({
+        const result = await login({
             email: form.email,
             password: form.password
         });
 
         if (result.ok) {
-            navigate("/home");
+            navigate("/Home");
         } else {
             setErrorMsg(result.error || "Login failed.");
         }
