@@ -59,9 +59,6 @@ const priceDataSchema = new mongoose.Schema(
 // Compound index for efficient queries by symbol, timeframe, and date range
 priceDataSchema.index({ symbol: 1, timeframe: 1, date: 1 }, { unique: true });
 
-// Additional index for date range queries
-priceDataSchema.index({ date: 1 });
-
 /**
  * PriceData Model
  * Collection name will be 'pricedatas' (Mongoose pluralizes)

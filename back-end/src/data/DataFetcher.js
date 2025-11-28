@@ -39,7 +39,13 @@ export async function queryPriceData(
       console.warn(
         `Database not connected, fetching ${symbol} data directly from API`
       );
-      return await fetchFromAPI(symbol, startDate, endDate, timeframe, getMetaData);
+      return await fetchFromAPI(
+        symbol,
+        startDate,
+        endDate,
+        timeframe,
+        getMetaData
+      );
     }
 
     // Step 1: Try to get cached data from database
@@ -52,7 +58,13 @@ export async function queryPriceData(
         dbError.message
       );
       // Fallback to API if database query fails
-      return await fetchFromAPI(symbol, startDate, endDate, timeframe, getMetaData);
+      return await fetchFromAPI(
+        symbol,
+        startDate,
+        endDate,
+        timeframe,
+        getMetaData
+      );
     }
 
     // Step 2: Find date gaps (missing dates in the requested range)
@@ -90,20 +102,58 @@ export async function queryPriceData(
       );
 
       // Fetch data for each gap
+      let totalFetched = 0;
+      let totalFiltered = 0;
       for (const gap of gaps) {
         try {
+          // Yahoo Finance API requires period1 and period2 to be different
+          // If startDate and endDate are the same, expand the range by 1 day
+          let gapStartDate = gap.startDate;
+          let gapEndDate = gap.endDate;
+          const isExpanded = gapStartDate === gapEndDate;
+
+          if (isExpanded) {
+            // Expand single-day gap to include day before and after
+            const singleDate = new Date(gapStartDate + "T00:00:00.000Z");
+            const dayBefore = new Date(singleDate);
+            dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
+            const dayAfter = new Date(singleDate);
+            dayAfter.setUTCDate(dayAfter.getUTCDate() + 1);
+
+            gapStartDate = formatDate(dayBefore);
+            gapEndDate = formatDate(dayAfter);
+          }
+
           const gapData = await fetchFromAPI(
             symbol,
-            gap.startDate,
-            gap.endDate,
+            gapStartDate,
+            gapEndDate,
             timeframe,
             false
           );
 
           if (gapData && gapData.length > 0) {
-            newData = newData.concat(gapData);
+            totalFetched += gapData.length;
 
-            // Store newly fetched data in database
+            // If we expanded the date range (single-day gap), filter to only include original gap dates
+            let filteredGapData = gapData;
+            if (isExpanded) {
+              // Only include data for the original single date
+              filteredGapData = gapData.filter(
+                (quote) => quote.date === gap.startDate
+              );
+            } else {
+              // Include all data within the original gap range
+              filteredGapData = gapData.filter((quote) => {
+                const quoteDate = quote.date;
+                return quoteDate >= gap.startDate && quoteDate <= gap.endDate;
+              });
+            }
+
+            totalFiltered += filteredGapData.length;
+
+            // Store all fetched data in DB (including expanded range) for future queries
+            // But only add filtered data to newData for this request
             try {
               await insertPriceData(symbol, timeframe, gapData);
             } catch (insertError) {
@@ -111,8 +161,9 @@ export async function queryPriceData(
                 `Error inserting data for ${symbol} into database:`,
                 insertError.message
               );
-              // Continue even if insert fails
             }
+
+            newData = newData.concat(filteredGapData);
           }
         } catch (gapFetchError) {
           console.error(
@@ -121,6 +172,12 @@ export async function queryPriceData(
           );
           // Continue with other gaps even if one fails
         }
+      }
+
+      if (totalFetched > 0) {
+        console.log(
+          `Fetched ${totalFetched} records for ${symbol}, filtered to ${totalFiltered} records for requested gaps, stored ${totalFetched} records in DB`
+        );
       }
     }
 
@@ -168,7 +225,13 @@ export async function queryPriceData(
     console.error(`Error in queryPriceData for ${symbol}:`, error.message);
     // Final fallback: try direct API call
     try {
-      return await fetchFromAPI(symbol, startDate, endDate, timeframe, getMetaData);
+      return await fetchFromAPI(
+        symbol,
+        startDate,
+        endDate,
+        timeframe,
+        getMetaData
+      );
     } catch (fallbackError) {
       console.error(
         `Fallback API call also failed for ${symbol}:`,
@@ -180,10 +243,27 @@ export async function queryPriceData(
 }
 
 /**
+ * Helper function to format a Date object to YYYY-MM-DD string
+ * @private
+ */
+function formatDate(date) {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Helper function to fetch data directly from Yahoo Finance API
  * @private
  */
-async function fetchFromAPI(symbol, startDate, endDate, timeframe, getMetaData) {
+async function fetchFromAPI(
+  symbol,
+  startDate,
+  endDate,
+  timeframe,
+  getMetaData
+) {
   const yahooFinance = new YahooFinance();
 
   const data = await yahooFinance.chart(symbol, {
@@ -197,11 +277,12 @@ async function fetchFromAPI(symbol, startDate, endDate, timeframe, getMetaData) 
   } else {
     // Transform quotes to match our format (ensure date is in YYYY-MM-DD format)
     return data.quotes.map((quote) => {
-      const date = quote.date instanceof Date
-        ? quote.date.toISOString().split("T")[0]
-        : typeof quote.date === "string"
-        ? quote.date.split("T")[0]
-        : new Date(quote.date * 1000).toISOString().split("T")[0];
+      const date =
+        quote.date instanceof Date
+          ? quote.date.toISOString().split("T")[0]
+          : typeof quote.date === "string"
+          ? quote.date.split("T")[0]
+          : new Date(quote.date * 1000).toISOString().split("T")[0];
 
       return {
         date: date,
