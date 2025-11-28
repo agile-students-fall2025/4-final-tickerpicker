@@ -14,7 +14,7 @@ const API_BASE_URL =
     : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function TickerPickerPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, accessToken } = useAuth();
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -45,7 +45,11 @@ export default function TickerPickerPage() {
 
       const response = await fetch(`${API_BASE_URL}/api/dashboard/filter`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({
           symbolsParam: [
             "AAPL",
@@ -63,6 +67,13 @@ export default function TickerPickerPage() {
         }),
       });
 
+      if (response.status === 401) {
+        console.error("Unauthorized (401). Please sign in.");
+        setAllStocks([]);
+        setFilteredStocks([]);
+        return;
+      }
+      
       if (!response.ok) {
         console.error(
           "Dashboard API error:",
@@ -100,6 +111,7 @@ export default function TickerPickerPage() {
         setWatchlists(mockWatchlists);
       } else {
         // fetch stocks from API with filters set
+        if (!isAuthenticated) return;
         await fetchFilteredStocksFromApi(filters);
         setWatchlists([]);
       }
@@ -197,6 +209,10 @@ export default function TickerPickerPage() {
       console.log(
         "(this is just mocking) Apply Filter clicked client-side filtering"
       );
+      return;
+    }
+    if (!isAuthenticated) {
+      console.log("Cannot apply filters: user not authenticated.");
       return;
     }
     await fetchFilteredStocksFromApi(filters);

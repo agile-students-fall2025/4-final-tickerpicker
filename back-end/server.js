@@ -2,6 +2,7 @@ import express, { json } from "express";
 import cors from "cors";
 import dashboardRouter from "./src/routes/dashboard.js";
 import homeRouter from "./src/routes/home.js";
+import authRouter from "./src/routes/auth.js";
 import { toStock } from "./src/utils/MetricsFilters.js";
 import {
   queryPriceData,
@@ -781,6 +782,9 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
  *
  * SERVER WASN'T RUNNING WITH IT
  */
+
+// Auth routes (login / register / update email / update password)
+app.use("/api/auth", authRouter);
 
 // Dashboard routes (TickerPicker)
 app.use("/api/dashboard", dashboardRouter);
