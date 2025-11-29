@@ -12,9 +12,12 @@ import {
   fetchQuotes,
 } from "./src/data/DataFetcher.js";
 
-// import env, if finally we are going to use like a yFinance key or something
-// import dotenv from "dotenv";
-// dotenv.config();
+// Load environment variables from .env file
+import dotenv from "dotenv";
+dotenv.config();
+
+// Import database connection
+import { connectToDatabase } from "./src/db/connection.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -798,9 +801,24 @@ app.get("/api/health", (req, res) => {
 });
 
 if (process.env.NODE_ENV !== "test") {
-  app.listen(PORT, () => {
-    console.log(`Backend server running on http://localhost:${PORT}`);
-  });
+  // Connect to MongoDB before starting the server
+  connectToDatabase()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Backend server running on http://localhost:${PORT}`);
+      });
+    })
+    .catch((error) => {
+      console.error("Failed to start server:", error.message);
+      console.error(
+        "Server will continue without database connection. Some features may not work."
+      );
+      // Start server anyway for graceful degradation
+      app.listen(PORT, () => {
+        console.log(`Backend server running on http://localhost:${PORT}`);
+        console.warn("Running without database connection");
+      });
+    });
 }
 
 export default app;
