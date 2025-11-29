@@ -1,9 +1,5 @@
 import mongoose from "mongoose";
 
-/*export const USERS = [
-
-];*/
-
 // Schema by which user data is structured
 const userSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true },

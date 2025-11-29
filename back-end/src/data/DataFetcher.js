@@ -51,7 +51,7 @@ export async function queryPriceData(
     // Step 1: Try to get cached data from database
     let cachedData = [];
     try {
-      cachedData = await findPriceData(symbol, startDate, endDate, timeframe);
+      cachedData = await findPriceData(symbol, startDate, endDate, timeframe); //<-- data/PriceDataService.js
     } catch (dbError) {
       console.warn(
         `Error querying database for ${symbol}, falling back to API:`,
@@ -412,6 +412,7 @@ export async function getKeyMetrics(symbol) {
     return v;
   };
 
+  // return the key metrics
   return {
     symbol,
     price: unwrap(financialData?.currentPrice),

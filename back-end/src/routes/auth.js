@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { User } from '../data/users.js'; //<-- mongo db Schemas & Models
+import { User } from '../data/users.js';
 import { verifyPassword, hashPassword } from '../auth/password.js';
 import { signJWT } from '../auth/jwt.js';
 import { requireAuth } from '../middleware/AuthRequirement.js';
@@ -78,7 +78,9 @@ router.post('/register', async (req, res) => {
   return res.status(201).json({ message: 'registered', user: { id: newUser.id, username } });
 });
 
-// MODIFY FOR DB INTEGRATION
+// MODIFIED FOR DB INTEGRATION
+// PUT /api/auth/email
+// body: { newEmail }
 router.put('/email', requireAuth, async (req, res) => {
   const { newEmail } = req.body || {};
   const userId = req.user?.sub; //<-- userId === null handler??
@@ -115,7 +117,9 @@ router.put('/email', requireAuth, async (req, res) => {
   });
 });
 
-// MODIFY FOR DB INTEGRATION
+// MODIFIED FOR DB INTEGRATION
+// PUT /api/auth/password
+// body: { oldPassword, newPassword }
 router.put('/password', requireAuth, async (req, res) => {
   const { oldPassword, newPassword } = req.body || {};
   const userId = req.user?.sub;
