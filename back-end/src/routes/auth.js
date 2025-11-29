@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { USERS } from '../data/users.js';
+import { User } from '../data/users.js'; //<-- mongo db Schemas & Models
 import { verifyPassword, hashPassword } from '../auth/password.js';
 import { signJWT } from '../auth/jwt.js';
 import { requireAuth } from '../middleware/AuthRequirement.js';
@@ -7,20 +7,25 @@ import { requireAuth } from '../middleware/AuthRequirement.js';
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
+
 // POST /api/auth/login
 // body: { username, password }
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { username, password } = req.body || {};
+
   if (!username || !password) {
     return res.status(400).json({ error: 'username and password are required' });
   }
+
   // TO BE REPLACED WITH DATABASE QUERY
-  const user = USERS.find(u => u.username === username);
-  if (!user || !verifyPassword(password, user)) {
+  const user = await User.findOne({username});
+  // if 'users' with 'username' not in DB
+  if (!user || !verifyPassword(password, user)) { //<-- see password.js/verifyPassword()
     return res.status(401).json({ error: 'Invalid credentials' });
   }
   // END TO BE REPLACED WITH DATABASE QUERY
 
+  // ??
   const accessToken = signJWT(
     { sub: user.id, username: user.username, roles: user.roles || [] },
     JWT_SECRET,
@@ -28,6 +33,7 @@ router.post('/login', (req, res) => {
   );
 
   return res.json({
+    // ??
     accessToken,
     tokenType: 'Bearer',
     expiresIn: 7200,
@@ -37,20 +43,37 @@ router.post('/login', (req, res) => {
 
 // POST /api/auth/register (temporarily for development, will change after connecting to db)
 // body: { username, password }
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
   const { username, password } = req.body || {};
+
   if (!username || !password) {
     return res.status(400).json({ error: 'username and password are required' });
   }
+
   // TO BE REPLACED WITH DATABASE QUERY
-  if (USERS.find(u => u.username === username)) {
+  // if 'username' already in DB
+  if (await User.findOne({username})) { //<-- User is a Model, not a collection??
     return res.status(409).json({ error: 'username already exists' });
   }
-  // END TO BE REPLACED WITH DATABASE QUERY
-  const { salt, hash, iterations, keylen, digest } = hashPassword(password);
-  const newUser = { id: 'u' + (USERS.length + 1), username, roles: ['user'], salt, hash, iterations, keylen, digest };
-  USERS.push(newUser);
 
+  // register 'newUser' in DB
+  const { salt, hash, iterations, keylen, digest } = hashPassword(password); // <-- see password.js/hashPassword()
+  const newUser = new User({
+    id: 'u' + (USERS.length + 1),
+    username: username,
+    password: password,
+    // cryptographic password fields
+    salt: salt, hash: hash, iterations: iterations, keylen: keylen, digest: digest,
+    // end of cryptographic password fields
+    
+  });
+  //save 'newUser' to DB
+  await newUser.save();
+
+  //const newUser = { id: 'u' + (USERS.length + 1), username, roles: ['user'], salt, hash, iterations, keylen, digest };
+  //USERS.push(newUser);
+  // END TO BE REPLACED WITH DATABASE QUERY
+  
   return res.status(201).json({ message: 'registered', user: { id: newUser.id, username } });
 });
 

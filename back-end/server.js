@@ -2,7 +2,10 @@ import express, { json } from "express";
 import cors from "cors";
 import dashboardRouter from "./src/routes/dashboard.js";
 import homeRouter from "./src/routes/home.js";
+
 import authRouter from "./src/routes/auth.js";
+import { connectToDatabase, closeDatabaseConnection } from "./src/db/connection.js";
+
 import { toStock } from "./src/utils/MetricsFilters.js";
 import {
   queryPriceData,
@@ -15,9 +18,6 @@ import {
 // Load environment variables from .env file
 import dotenv from "dotenv";
 dotenv.config();
-
-// Import database connection
-import { connectToDatabase } from "./src/db/connection.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -282,7 +282,6 @@ function getRecentNotificationsForSymbol(symbolUpper, daysBack) {
   });
 }
 
-
 // Helper function to check calendar events and create notifications
 async function checkCalendarEventsForSymbol(symbol) {
   try {
@@ -467,8 +466,6 @@ app.post("/api/notifications/debug-seed", (req, res) => {
   res.json(notification);
 });
 
-
-
 // Endpoint to manually check calendar events for a symbol
 app.post("/api/calendar-events/check", async (req, res) => {
   try {
@@ -537,7 +534,8 @@ app.post("/api/watchlists", (req, res) => {
     // END TO BE REPLACED WITH DATABASE QUERY
 
     return res.status(201).json(newWatchlist);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("Error creating watchlist:", error);
     res.status(500).json({
       error: "Failed to create watchlist",
@@ -783,15 +781,13 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
   }
 });
 
-/**?
+
+
+/**
  * UNCOMMENT THE CODE BELOW AFTER dashboardRouter is created.
  *
  * SERVER WASN'T RUNNING WITH IT
  */
-
-// Auth routes (login / register / update email / update password)
-app.use("/api/auth", authRouter);
-
 // Dashboard routes (TickerPicker)
 app.use("/api/dashboard", dashboardRouter);
 
@@ -803,6 +799,11 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Backend API is running" });
 });
 
+
+// Auth routes (login / register / update email / update password)
+app.use("/api/auth", authRouter);
+
+// this 'server.js' calls 'connectToDatabase()' from 'connection.js'
 if (process.env.NODE_ENV !== "test") {
   // Connect to MongoDB before starting the server
   connectToDatabase()
@@ -823,5 +824,7 @@ if (process.env.NODE_ENV !== "test") {
       });
     });
 }
+
+
 
 export default app;
