@@ -14,10 +14,12 @@ router.post('/login', (req, res) => {
   if (!username || !password) {
     return res.status(400).json({ error: 'username and password are required' });
   }
+  // TO BE REPLACED WITH DATABASE QUERY
   const user = USERS.find(u => u.username === username);
   if (!user || !verifyPassword(password, user)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
+  // END TO BE REPLACED WITH DATABASE QUERY
 
   const accessToken = signJWT(
     { sub: user.id, username: user.username, roles: user.roles || [] },
@@ -40,9 +42,11 @@ router.post('/register', (req, res) => {
   if (!username || !password) {
     return res.status(400).json({ error: 'username and password are required' });
   }
+  // TO BE REPLACED WITH DATABASE QUERY
   if (USERS.find(u => u.username === username)) {
     return res.status(409).json({ error: 'username already exists' });
   }
+  // END TO BE REPLACED WITH DATABASE QUERY
   const { salt, hash, iterations, keylen, digest } = hashPassword(password);
   const newUser = { id: 'u' + (USERS.length + 1), username, roles: ['user'], salt, hash, iterations, keylen, digest };
   USERS.push(newUser);

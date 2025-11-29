@@ -116,8 +116,6 @@ app.post("/api/notifications", (req, res) => {
   res.json(notification);
 });
 
-
-
 // enable/disable notifs
 app.post("/api/notification-stocks", async (req, res) => {
   try {
@@ -180,7 +178,6 @@ app.post("/api/notification-stocks", async (req, res) => {
     });
   }
 });
-
 
 //check is a stock is in notifications stock list
 app.get("/api/notification-stocks/:symbol", async (req, res) => {
@@ -501,7 +498,7 @@ app.post("/api/calendar-events/check", async (req, res) => {
 app.post("/api/watchlists", (req, res) => {
   try {
     const { name } = req.body;
-
+    // invalid name
     if (!name || !name.trim()) {
       return res.status(400).json({
         error: "Watchlist name cannot be empty.",
@@ -511,6 +508,7 @@ app.post("/api/watchlists", (req, res) => {
     const trimmedName = name.trim();
 
     // Prevent duplicate names (case-insensitive)
+    // TO BE REPLACED WITH DATABASE QUERY
     const exists = mockWatchlists.some(
       (wl) => wl.name.toLowerCase() === trimmedName.toLowerCase()
     );
@@ -519,6 +517,7 @@ app.post("/api/watchlists", (req, res) => {
         error: "A watchlist with this name already exists.",
       });
     }
+    // END TO BE REPLACED WITH DATABASE QUERY
 
     const newId =
       mockWatchlists.length > 0
@@ -530,8 +529,12 @@ app.post("/api/watchlists", (req, res) => {
       name: trimmedName,
       stocks: [],
     };
-
+    // ADD NEW WATCHLIST TO DATABASE
+    /*
+    Find this user's watchlist, append newWachlist, save to DB.
+    */
     mockWatchlists.push(newWatchlist);
+    // END TO BE REPLACED WITH DATABASE QUERY
 
     return res.status(201).json(newWatchlist);
   } catch (error) {
