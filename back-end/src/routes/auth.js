@@ -13,17 +13,17 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 router.post('/login', async (req, res) => {
   const { username, password } = req.body || {};
 
-  if (!username || !password) {
+  if (!username || !password ) {
     return res.status(400).json({ error: 'username and password are required' });
   }
 
-  // TO BE REPLACED WITH DATABASE QUERY
+  // DB MODIFICATION INTEGRATION
   const user = await User.findOne({username});
   // if 'users' with 'username' not in DB
   if (!user || !verifyPassword(password, user)) { //<-- see password.js/verifyPassword()
     return res.status(401).json({ error: 'Invalid credentials' });
   }
-  // END TO BE REPLACED WITH DATABASE QUERY
+  // END OF DB MODIFICATION INTEGRATION
 
   // ??
   const accessToken = signJWT(
@@ -44,15 +44,15 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/register (temporarily for development, will change after connecting to db)
 // body: { username, password }
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body || {};
+  const { username, password, email } = req.body || {}; //<-- payload to /register URL includes email??
 
-  if (!username || !password) {
-    return res.status(400).json({ error: 'username and password are required' });
+  if (!username || !password || !email) {
+    return res.status(400).json({ error: 'username, password, AND email are required' });
   }
 
-  // TO BE REPLACED WITH DATABASE QUERY
+  // DB MODIFICATION INTEGRATION
   // if 'username' already in DB
-  if (await User.findOne({username})) { //<-- User is a Model, not a collection??
+  if (await User.findOne({username})) {
     return res.status(409).json({ error: 'username already exists' });
   }
 
@@ -65,18 +65,20 @@ router.post('/register', async (req, res) => {
     // cryptographic password fields
     salt: salt, hash: hash, iterations: iterations, keylen: keylen, digest: digest,
     // end of cryptographic password fields
-    
+    email: email,
   });
-  //save 'newUser' to DB
+
+  // save 'newUser' to DB
   await newUser.save();
 
-  //const newUser = { id: 'u' + (USERS.length + 1), username, roles: ['user'], salt, hash, iterations, keylen, digest };
-  //USERS.push(newUser);
-  // END TO BE REPLACED WITH DATABASE QUERY
+  /*const newUser = { id: 'u' + (USERS.length + 1), username, roles: ['user'], salt, hash, iterations, keylen, digest };
+  USERS.push(newUser);*/
+  // END OF DB MODIFICATION INTEGRATION
   
   return res.status(201).json({ message: 'registered', user: { id: newUser.id, username } });
 });
 
+// MODIFY FOR DB INTEGRATION
 router.put('/email', requireAuth, (req, res) => {
   const { newEmail } = req.body || {};
   const userId = req.user?.sub;
