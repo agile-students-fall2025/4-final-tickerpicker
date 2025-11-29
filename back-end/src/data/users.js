@@ -7,8 +7,8 @@ import mongoose from "mongoose";
 // Schema by which user data is structured
 const userSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true },
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    username: { type: String, required: true, unique: true }, // username = email
+    password: { type: String, required: true }, //<-- do we store the plain password??
     
     // cyptographic password fields
     salt: { type: String, required: true },
@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     digest: { type: String, required: true, default: "sha256" },
     // end of cryptographic password fields
 
-    email: { type: String, required: true, unique: false },
+    //email: { type: String, required: true, unique: false },
     // arary of watchlists, each is an OBJECT with 'name' and array of 'tickers'
     watchlists: 
     { 
