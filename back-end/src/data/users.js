@@ -19,19 +19,18 @@ const userSchema = new mongoose.Schema({
     // end of cryptographic password fields
 
     email: { type: String, required: true, unique: false },
-    watchlists: { type: [watchlistSchema], required: false, default: [] },
+    // arary of watchlists, each is an OBJECT with 'name' and array of 'tickers'
+    watchlists: 
+    { 
+        type: [
+            { // array of wacthlist objects
+                name: { type: String, required: true }, 
+                tickers: [ {type: String} ] 
+            }
+        ],
+        default: [],
+    }
 });
 
 // Compile user Schema into a Model
 export const User = mongoose.model('User', userSchema);
-
-// Watchlist schema
-const watchlistSchema = new mongoose.Schema({
-    id: { type: Number, required: true, unique: true },
-    userId: { type: String, required: true }, // watchlists belong to users, therefore userId = owner reference (username, foreign key)
-    name: { type: String, required: true },
-    // array of ticker symbols as strings
-    tickers: { type: [String], required: true },
-});
-
-export const Watchlist = mongoose.model('Watchlist', watchlistSchema);
