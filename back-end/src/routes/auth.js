@@ -53,23 +53,24 @@ router.post('/register', async (req, res) => {
   // DB MODIFICATION INTEGRATION
   // if 'username' already in DB
   if (await User.findOne({username: username})) {
+    console.log('username already exists:', username);//TEST
     return res.status(409).json({ error: 'username already exists' });
   }
 
   // register 'newUser' in DB
   const { salt, hash, iterations, keylen, digest } = hashPassword(password); // <-- see password.js/hashPassword()
   const newUser = new User({
-    id: 'u' + (USERS.length + 1),
+    id: 'u' + (await User.countDocuments() + 1),
     username: username,
     password: password,
     // cryptographic password fields
     salt: salt, hash: hash, iterations: iterations, keylen: keylen, digest: digest,
     // end of cryptographic password fields
-    email: email,
   });
 
   // save 'newUser' to DB
   await newUser.save();
+  console.log('registered new user:', newUser.toJSON());//TEST
 
   /*const newUser = { id: 'u' + (USERS.length + 1), username, roles: ['user'], salt, hash, iterations, keylen, digest };
   USERS.push(newUser);*/

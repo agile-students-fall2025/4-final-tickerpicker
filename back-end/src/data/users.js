@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 // Schema by which user data is structured
 const userSchema = new mongoose.Schema({
-    id: { type: Number, required: true, unique: true },
+    id: { type: String, required: true, unique: true },
     username: { type: String, required: true, unique: true }, // username = email
     password: { type: String, required: true }, //<-- do we store the plain password??
     
