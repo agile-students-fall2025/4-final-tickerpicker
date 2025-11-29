@@ -2,7 +2,10 @@ import express, { json } from "express";
 import cors from "cors";
 import dashboardRouter from "./src/routes/dashboard.js";
 import homeRouter from "./src/routes/home.js";
+
 import authRouter from "./src/routes/auth.js";
+import { connectToDatabase, closeDatabaseConnection } from "./src/db/connection.js";
+
 import { toStock } from "./src/utils/MetricsFilters.js";
 import {
   queryPriceData,
@@ -15,9 +18,6 @@ import {
 // Load environment variables from .env file
 import dotenv from "dotenv";
 dotenv.config();
-
-// Import database connection
-import { connectToDatabase } from "./src/db/connection.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -116,8 +116,6 @@ app.post("/api/notifications", (req, res) => {
   res.json(notification);
 });
 
-
-
 // enable/disable notifs
 app.post("/api/notification-stocks", async (req, res) => {
   try {
@@ -180,7 +178,6 @@ app.post("/api/notification-stocks", async (req, res) => {
     });
   }
 });
-
 
 //check is a stock is in notifications stock list
 app.get("/api/notification-stocks/:symbol", async (req, res) => {
@@ -284,7 +281,6 @@ function getRecentNotificationsForSymbol(symbolUpper, daysBack) {
     return created >= cutoff;
   });
 }
-
 
 // Helper function to check calendar events and create notifications
 async function checkCalendarEventsForSymbol(symbol) {
@@ -470,8 +466,6 @@ app.post("/api/notifications/debug-seed", (req, res) => {
   res.json(notification);
 });
 
-
-
 // Endpoint to manually check calendar events for a symbol
 app.post("/api/calendar-events/check", async (req, res) => {
   try {
@@ -501,7 +495,7 @@ app.post("/api/calendar-events/check", async (req, res) => {
 app.post("/api/watchlists", (req, res) => {
   try {
     const { name } = req.body;
-
+    // invalid name
     if (!name || !name.trim()) {
       return res.status(400).json({
         error: "Watchlist name cannot be empty.",
@@ -511,6 +505,7 @@ app.post("/api/watchlists", (req, res) => {
     const trimmedName = name.trim();
 
     // Prevent duplicate names (case-insensitive)
+    // TO BE REPLACED WITH DATABASE QUERY
     const exists = mockWatchlists.some(
       (wl) => wl.name.toLowerCase() === trimmedName.toLowerCase()
     );
@@ -519,6 +514,7 @@ app.post("/api/watchlists", (req, res) => {
         error: "A watchlist with this name already exists.",
       });
     }
+    // END TO BE REPLACED WITH DATABASE QUERY
 
     const newId =
       mockWatchlists.length > 0
@@ -530,11 +526,16 @@ app.post("/api/watchlists", (req, res) => {
       name: trimmedName,
       stocks: [],
     };
-
+    // ADD NEW WATCHLIST TO DATABASE
+    /*
+    Find this user's watchlist, append newWachlist, save to DB.
+    */
     mockWatchlists.push(newWatchlist);
+    // END TO BE REPLACED WITH DATABASE QUERY
 
     return res.status(201).json(newWatchlist);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("Error creating watchlist:", error);
     res.status(500).json({
       error: "Failed to create watchlist",
@@ -780,15 +781,13 @@ app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
   }
 });
 
-/**?
+
+
+/**
  * UNCOMMENT THE CODE BELOW AFTER dashboardRouter is created.
  *
  * SERVER WASN'T RUNNING WITH IT
  */
-
-// Auth routes (login / register / update email / update password)
-app.use("/api/auth", authRouter);
-
 // Dashboard routes (TickerPicker)
 app.use("/api/dashboard", dashboardRouter);
 
@@ -800,6 +799,11 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Backend API is running" });
 });
 
+
+// Auth routes (login / register / update email / update password)
+app.use("/api/auth", authRouter);
+
+// this 'server.js' calls 'connectToDatabase()' from 'connection.js'
 if (process.env.NODE_ENV !== "test") {
   // Connect to MongoDB before starting the server
   connectToDatabase()
@@ -820,5 +824,7 @@ if (process.env.NODE_ENV !== "test") {
       });
     });
 }
+
+
 
 export default app;
