@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { User } from '../data/users.js'; //<-- mongo db Schemas & Models
+import { User } from '../data/users.js';
 import { verifyPassword, hashPassword } from '../auth/password.js';
 import { signJWT } from '../auth/jwt.js';
 import { requireAuth } from '../middleware/AuthRequirement.js';
@@ -18,8 +18,8 @@ router.post('/login', async (req, res) => {
   }
 
   // DB MODIFICATION INTEGRATION
-  const user = await User.findOne({username});
-  // if 'users' with 'username' not in DB
+  const user = await User.findOne({username: username});
+  // if 'user' with 'username' not in DB
   if (!user || !verifyPassword(password, user)) { //<-- see password.js/verifyPassword()
     return res.status(401).json({ error: 'Invalid credentials' });
   }
@@ -44,32 +44,33 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/register (temporarily for development, will change after connecting to db)
 // body: { username, password }
 router.post('/register', async (req, res) => {
-  const { username, password, email } = req.body || {}; //<-- payload to /register URL includes email??
+  const { username, password } = req.body || {};
 
-  if (!username || !password || !email) {
-    return res.status(400).json({ error: 'username, password, AND email are required' });
+  if (!username || !password) {
+    return res.status(400).json({ error: 'username and password are required' });
   }
 
   // DB MODIFICATION INTEGRATION
   // if 'username' already in DB
-  if (await User.findOne({username})) {
+  if (await User.findOne({username: username})) {
+    console.log('username already exists:', username);//TEST
     return res.status(409).json({ error: 'username already exists' });
   }
 
   // register 'newUser' in DB
   const { salt, hash, iterations, keylen, digest } = hashPassword(password); // <-- see password.js/hashPassword()
   const newUser = new User({
-    id: 'u' + (USERS.length + 1),
+    id: 'u' + (await User.countDocuments() + 1),
     username: username,
     password: password,
     // cryptographic password fields
     salt: salt, hash: hash, iterations: iterations, keylen: keylen, digest: digest,
     // end of cryptographic password fields
-    email: email,
   });
 
   // save 'newUser' to DB
   await newUser.save();
+  console.log('registered new user:', newUser.toJSON());//TEST
 
   /*const newUser = { id: 'u' + (USERS.length + 1), username, roles: ['user'], salt, hash, iterations, keylen, digest };
   USERS.push(newUser);*/
@@ -78,21 +79,30 @@ router.post('/register', async (req, res) => {
   return res.status(201).json({ message: 'registered', user: { id: newUser.id, username } });
 });
 
-// MODIFY FOR DB INTEGRATION
-router.put('/email', requireAuth, (req, res) => {
+// MODIFIED FOR DB INTEGRATION
+// PUT /api/auth/email
+// body: { newEmail }
+router.put('/email', requireAuth, async (req, res) => {
   const { newEmail } = req.body || {};
-  const userId = req.user?.sub;
+  const userId = req.user?.sub; //<-- userId === null handler??
 
   if (!newEmail || typeof newEmail !== 'string') {
     return res.status(400).json({ error: 'newEmail is required' });
   }
 
-  const me = USERS.find(u => u.id === userId);
+  // MODIFY FOR DB INTEGRATION
+  //const me = USERS.find(u => u.id === userId);
+  // find 'me' in DB
+  const me = await User.findOne({id: userId});
   if (!me) return res.status(404).json({ error: 'User not found' });
 
-  const exists = USERS.find(u => u.username === newEmail && u.id !== userId);
-  if (exists) return res.status(409).json({ error: 'Email/username already in use' });
+  //const exists = USERS.find(u => u.username === newEmail && u.id !== userId);
+  if (me.username === newEmail) return res.status(409).json({ error: 'Email/username already in use' });
+  
+  // update 'me' email/username in DB
   me.username = newEmail.trim();
+  await me.save();
+  // END OF DB INTEGRATION MODIFICATION
 
   const accessToken = signJWT(
     { sub: me.id, username: me.username, roles: me.roles || [] },
@@ -108,7 +118,10 @@ router.put('/email', requireAuth, (req, res) => {
   });
 });
 
-router.put('/password', requireAuth, (req, res) => {
+// MODIFIED FOR DB INTEGRATION
+// PUT /api/auth/password
+// body: { oldPassword, newPassword }
+router.put('/password', requireAuth, async (req, res) => {
   const { oldPassword, newPassword } = req.body || {};
   const userId = req.user?.sub;
 
@@ -119,19 +132,24 @@ router.put('/password', requireAuth, (req, res) => {
     return res.status(400).json({ error: 'New password cannot be the old password' });
   }
 
-  const me = USERS.find(u => u.id === userId);
+  // MODIFY FOR DB INTEGRATION
+  //const me = USERS.find(u => u.id === userId);
+  const me = await User.findOne({id: userId});
   if (!me) return res.status(404).json({ error: 'User not found' });
 
   if (!verifyPassword(oldPassword, me)) {
     return res.status(401).json({ error: 'Old password incorrect' });
   }
 
+  // update credentials in DB
   const { salt, hash, iterations, keylen, digest } = hashPassword(newPassword);
+  me.password = newPassword;//<-- do we store the plain password??
   me.salt = salt;
   me.hash = hash;
   me.iterations = iterations;
   me.keylen = keylen;
   me.digest = digest;
+  // END OF DB INTEGRATION MODIFICATION
 
   const accessToken = signJWT(
     { sub: me.id, username: me.username, roles: me.roles || [] },
