@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     { 
         type: [
             { // array of wacthlist objects
+                id: { type: Number, required: true },
                 name: { type: String, required: true }, 
                 tickers: [ {type: String} ] 
             }

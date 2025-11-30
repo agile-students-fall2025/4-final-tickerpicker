@@ -8,7 +8,7 @@ const API_BASE_URL =
     : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function WatchlistPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, fetchWithAuth } = useAuth();
 
   // State management
   const [watchlists, setWatchlists] = useState([]);
@@ -41,9 +41,7 @@ export default function WatchlistPage() {
             "WatchlistPage: USE_MOCK is false, fetching from backend..."
           );
 
-          const response = await fetch(
-            `${API_BASE_URL}/api/watchlists/initial`
-          );
+          const response = await fetchWithAuth("/api/watchlists/initial");
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -126,12 +124,9 @@ export default function WatchlistPage() {
 
   // ---- REAL BACKEND MODE ----
   try {
-    const response = await fetch(`${API_BASE_URL}/api/watchlists`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name: trimmedName }),
+    const response = await fetchWithAuth("/api/watchlists", {
+  method: "POST",
+  body: JSON.stringify({ name: trimmedName }),
     });
 
     if (!response.ok) {
@@ -215,16 +210,10 @@ export default function WatchlistPage() {
 
   // --- REAL BACKEND MODE ---
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/watchlists/${selectedWatchlistId}/stocks`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ symbol: trimmedSymbol }),
-      }
-    );
+    const response = await fetchWithAuth(
+  `/api/watchlists/${selectedWatchlistId}/stocks`,
+  { method: "POST", body: JSON.stringify({ symbol: trimmedSymbol }) }
+  );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -290,12 +279,10 @@ export default function WatchlistPage() {
 
   // ---- REAL BACKEND MODE ----
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/watchlists/${selectedWatchlistId}/stocks/${symbolUpper}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const response = await fetchWithAuth(
+  `/api/watchlists/${selectedWatchlistId}/stocks/${symbolUpper}`,
+  { method: "DELETE" }
+  );
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
