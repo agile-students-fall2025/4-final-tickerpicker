@@ -15,6 +15,7 @@ export async function connectToDatabase() {
     }
 
     // Connect to MongoDB
+    // may have to use .createConnection() if we have more than 1 DB
     await mongoose.connect(mongoUri, {
       // These options are recommended for Mongoose 6+
       // serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
@@ -38,7 +39,8 @@ export async function connectToDatabase() {
       console.log("MongoDB connection closed through app termination");
       process.exit(0);
     });
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("Error connecting to MongoDB:", error.message);
     throw error;
   }
