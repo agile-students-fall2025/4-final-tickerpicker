@@ -29,20 +29,6 @@ const mockNotificationStocks = new Set(); // Set of stock symbols that have noti
 const mockTrackedEvents = new Map(); // Map<eventId, event> - tracks events we've already notified about
 const DEFAULT_DAYS_BEFORE = 60; // Default: notify 60 days before events
 
-// ---- Mock watchlist data (in-memory for now) ----
-//JUST A SAMPLE TO MAKE THE WATCHLIST PAGE NON-EMPTY
-const mockWatchlists = [
-  {
-    id: 1,
-    name: "Tech Giants",
-    stocks: ["AAPL", "MSFT", "GOOGL"],
-  },
-  {
-    id: 2,
-    name: "Energy",
-    stocks: ["XOM", "CVX"],
-  },
-];
 
 // Middleware
 app.use(cors());
