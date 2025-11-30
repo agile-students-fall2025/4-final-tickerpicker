@@ -17,6 +17,23 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 const AuthContext = createContext(null);
 const API_BASE_URL = "http://localhost:3001";
 
+//helper for normalizing name/email from backend to frontend
+function normalizeUser(raw) {
+    if (!raw) return null;
+
+    const username = (raw.username || raw.email || raw.name || "").trim();
+    const base = username || "user";
+
+    return {
+        id: raw.id,
+        username: base,
+        // 让 Profile 能正常显示
+        name: raw.name || base,
+        email: raw.email || base,
+        roles: raw.roles || [],
+    };
+}
+
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [accessToken, setAccessToken] = useState(null);
@@ -28,10 +45,11 @@ export function AuthProvider({ children }) {
             if (rawUser) {
             const parsed = JSON.parse(rawUser);
             if (parsed && parsed.password) {
-              delete parsed.password;
-              window.localStorage.setItem("tp-user", JSON.stringify(parsed));
+                delete parsed.password;
             }
-            setUser(parsed || null);
+            const normalized = normalizeUser(parsed);
+            window.localStorage.setItem("tp-user", JSON.stringify(normalized));
+            setUser(normalized || null);
         }
             const token = window.localStorage.getItem("tp-access");
             if (token) setAccessToken(token);
@@ -48,7 +66,7 @@ export function AuthProvider({ children }) {
     // Persist user/token to localStorage(not storing password)
     function persistAuth({ nextUser, token }) {
         if (nextUser) {
-            const safeUser = { ...nextUser };
+            const safeUser = normalizeUser(nextUser);
             delete safeUser.password;
             window.localStorage.setItem("tp-user", JSON.stringify(safeUser));
             setUser(safeUser);

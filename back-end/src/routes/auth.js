@@ -7,6 +7,11 @@ import { requireAuth } from '../middleware/AuthRequirement.js';
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
+//helper: normalize email adress
+function norm(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
 // POST /api/auth/login
 // body: { username, password }
 router.post('/login', (req, res) => {
