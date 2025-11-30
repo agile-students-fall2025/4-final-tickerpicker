@@ -346,6 +346,41 @@ export default function WatchlistPage() {
           </div>
         </div>
 
+        {/* Add Stock Card */}
+        <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
+          <h3 className="text-lg font-semibold text-black">Add Stock</h3>
+          <form className="flex flex-col gap-6" onSubmit={handleAddStock}>
+            <div>
+              <label className="tp-label pb-2" htmlFor="newStockSymbol">
+                Stock Symbol:
+              </label>
+              <input
+                id="newStockSymbol"
+                type="text"
+                value={newStockSymbol}
+                onChange={(e) => setNewStockSymbol(e.target.value)}
+                placeholder="e.g., AAPL, MSFT"
+                className="tp-input"
+                autoComplete="off"
+              />
+            </div>
+            {stockMessage.text && (
+              <p
+                className={
+                  stockMessage.type === "ok"
+                    ? "text-sm text-green-400"
+                    : "tp-error"
+                }
+              >
+                {stockMessage.text}
+              </p>
+            )}
+            <button type="submit" className="tp-btn-primary w-full sm:w-32">
+              Add
+            </button>
+          </form>
+        </div>
+
         {/* Create New Watchlist Card */}
         <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
           <h3 className="text-lg font-semibold text-black">
@@ -386,40 +421,7 @@ export default function WatchlistPage() {
           </form>
         </div>
 
-        {/* Add Stock Card */}
-        <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
-          <h3 className="text-lg font-semibold text-black">Add Stock</h3>
-          <form className="flex flex-col gap-6" onSubmit={handleAddStock}>
-            <div>
-              <label className="tp-label pb-2" htmlFor="newStockSymbol">
-                Stock Symbol:
-              </label>
-              <input
-                id="newStockSymbol"
-                type="text"
-                value={newStockSymbol}
-                onChange={(e) => setNewStockSymbol(e.target.value)}
-                placeholder="e.g., AAPL, MSFT"
-                className="tp-input"
-                autoComplete="off"
-              />
-            </div>
-            {stockMessage.text && (
-              <p
-                className={
-                  stockMessage.type === "ok"
-                    ? "text-sm text-green-400"
-                    : "tp-error"
-                }
-              >
-                {stockMessage.text}
-              </p>
-            )}
-            <button type="submit" className="tp-btn-primary w-full sm:w-32">
-              Add
-            </button>
-          </form>
-        </div>
+        
       </div>
 
       {/* Right Column - Stock List Display */}
