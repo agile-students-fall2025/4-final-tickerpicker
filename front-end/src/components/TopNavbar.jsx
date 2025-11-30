@@ -11,14 +11,31 @@ export default function Navbar() {
     const navigate = useNavigate(); 
 
     //notifications
-    const [notifItems] = useState([]); 
-      const unreadCount = notifItems.filter(n => n.unread).length;
-      const [isNotifOpen, setIsNotifOpen] = useState(false);
-      const notifRef = useRef(null);
+    const [notifItems, setNotifItems] = useState([]);
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const notifRef = useRef(null);
       
     // Mobile menu state
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const mobileMenuRef = useRef(null);
+
+
+    //helper function to load notifications
+    const loadNotifications = async () => {
+        if (!isAuthenticated) return;
+    
+        try {
+            const res = await fetch("/api/notifications");
+            
+            const data = await res.json();
+    
+            setNotifItems(data);
+        } catch (err) {
+            console.error("Navbar fetch error:", err);
+        }
+    };
+    
+    
 
     // Close notification dropdown when clicking outside (mobile)
     useEffect(() => {
@@ -283,8 +300,15 @@ export default function Navbar() {
                                     type="button"
                                     aria-label="Notifications"
                                     className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-                                    onClick={() => setIsNotifOpen((prev) => !prev)} 
-                                >
+                                    onClick={async () => {
+                                        const willOpen = !isNotifOpen;
+                                        setIsNotifOpen(willOpen);
+                                        if (willOpen) {
+                                            await loadNotifications(); 
+                                        }
+                                    }}
+>
+
                                     <FaBell className="text-lg" />
                                     {notifItems.length > 0 && (
                                         <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500"></span>
