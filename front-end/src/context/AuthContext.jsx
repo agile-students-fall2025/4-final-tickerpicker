@@ -19,19 +19,15 @@ const API_BASE_URL = "http://localhost:3001";
 
 //helper for normalizing name/email from backend to frontend
 function normalizeUser(raw) {
-    if (!raw) return null;
-
-    const username = (raw.username || raw.email || raw.name || "").trim();
-    const base = username || "user";
-
-    return {
-        id: raw.id,
-        username: base,
-        // 让 Profile 能正常显示
-        name: raw.name || base,
-        email: raw.email || base,
-        roles: raw.roles || [],
-    };
+  if (!raw) return null;
+  const uname = (raw.username || raw.name || "").trim(); //Now we seperate raw.username and raw.email. They shouldnt overlap with each other
+  return {
+    id: raw.id,
+    username: uname || "user",
+    name: raw.name || uname || "user",
+    email: (raw.email || "").trim(),
+    roles: raw.roles || [],
+  };
 }
 
 export function AuthProvider({ children }) {
@@ -100,16 +96,17 @@ export function AuthProvider({ children }) {
     }
 
     async function register({ name, email, password }) {
-        const username = (email || name || "").trim();
-        if (!username || !password) {
-            return { ok: false, error: "username/email and password are required" };
+        const username = (name || "").trim();
+        const normEmail = (email || "").trim();
+        if (!normEmail || !username || !password) {
+            return { ok: false, error: "email, username and password are required" };
         }
         try {
             // 1st: register the user
             const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ email: normEmail, username, password }),
             });
             const regData = await res.json().catch(() => ({}));
 
@@ -149,15 +146,15 @@ export function AuthProvider({ children }) {
 
     // Login: validate credentials
     async function login({ email, password }) {
-    const username = (email || "").trim();
-        if (!username || !password) {
+        const normEmail = (email || "").trim();
+        if (!normEmail || !password) {
           return { ok: false, error: "email and password are required" };
         }
         try {
             const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ normEmail, password }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
