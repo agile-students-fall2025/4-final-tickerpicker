@@ -10,7 +10,7 @@ const API_BASE_URL =
     : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated , fetchWithAuth } = useAuth();
 
   // Chart refs
   const nasdaqRef = useRef(null);
@@ -67,8 +67,15 @@ export default function HomePage() {
         setTopPerformers(mockTopPerformers);
       } else {
         // Fetch watchlists (if you have that endpoint)
-        // For now, keep watchlists empty or fetch from /api/watchlists/initial
-        setWatchlists([]);
+        try {
+          const wlRes = await fetchWithAuth("/api/watchlists/initial");
+          if (!wlRes.ok) throw new Error(`Watchlists error ${wlRes.status}`);
+          const wlData = await wlRes.json();
+          setWatchlists(wlData.watchlists || []);
+        } catch (err) {
+          console.error("Failed to fetch watchlists:", err);
+          setWatchlists([]);
+        }
 
         // Fetch recommended picks from backend
         try {
