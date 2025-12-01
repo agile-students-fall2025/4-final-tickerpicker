@@ -3,9 +3,11 @@ import { User } from '../data/users.js';
 import { verifyPassword, hashPassword } from '../auth/password.js';
 import { signJWT } from '../auth/jwt.js';
 import { requireAuth } from '../middleware/AuthRequirement.js';
+import dotenv from "dotenv";
+dotenv.config();
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 //helper: normalize email adress
 function norm(email) {

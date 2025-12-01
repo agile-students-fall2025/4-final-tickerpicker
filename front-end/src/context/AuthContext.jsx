@@ -118,7 +118,7 @@ export function AuthProvider({ children }) {
         const loginRes = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ email: normEmail, password }),
         });
 
         const loginData = await loginRes.json().catch(() => ({}));
@@ -154,7 +154,7 @@ export function AuthProvider({ children }) {
             const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ normEmail, password }),
+                body: JSON.stringify({ email: normEmail, password }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
