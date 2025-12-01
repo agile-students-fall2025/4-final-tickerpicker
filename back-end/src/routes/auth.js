@@ -3,22 +3,28 @@ import { User } from '../data/users.js';
 import { verifyPassword, hashPassword } from '../auth/password.js';
 import { signJWT } from '../auth/jwt.js';
 import { requireAuth } from '../middleware/AuthRequirement.js';
+import dotenv from "dotenv";
+dotenv.config();
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET;
 
+//helper: normalize email adress
+function norm(email) {
+  return String(email || '').trim().toLowerCase();
+}
 
 // POST /api/auth/login
-// body: { username, password }
+// body: { email, password }
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body || {};
-
-  if (!username || !password ) {
-    return res.status(400).json({ error: 'username and password are required' });
+  const { email, password } = req.body || {};
+  const normEmail = norm(email);
+  if (!normEmail || !password ) {
+    return res.status(400).json({ error: 'email and password are required' });
   }
 
   // DB MODIFICATION INTEGRATION
-  const user = await User.findOne({username: username});
+  const user = await User.findOne({email: normEmail});
   // if 'user' with 'username' not in DB
   if (!user || !verifyPassword(password, user)) { //<-- see password.js/verifyPassword()
     return res.status(401).json({ error: 'Invalid credentials' });
@@ -37,31 +43,33 @@ router.post('/login', async (req, res) => {
     accessToken,
     tokenType: 'Bearer',
     expiresIn: 7200,
-    user: { id: user.id, username: user.username, roles: user.roles || [] },
+    user: { id: user.id, username: user.username, email: user.email, roles: user.roles || [] },
   });
 });
 
 // POST /api/auth/register (temporarily for development, will change after connecting to db)
 // body: { username, password }
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body || {};
+  const { email, username, password } = req.body || {};
+  const normEmail = norm(email);
 
-  if (!username || !password) {
-    return res.status(400).json({ error: 'username and password are required' });
+  if (!normEmail||!username || !password) {
+    return res.status(400).json({ error: 'email, username and password are required' });
   }
 
   // DB MODIFICATION INTEGRATION
   // if 'username' already in DB
-  if (await User.findOne({username: username})) {
-    console.log('username already exists:', username);//TEST
-    return res.status(409).json({ error: 'username already exists' });
+  if (await User.findOne({email: normEmail})) {
+    console.log('email already exists:', email);//TEST
+    return res.status(409).json({ error: 'email already exists' });
   }
 
   // register 'newUser' in DB
   const { salt, hash, iterations, keylen, digest } = hashPassword(password); // <-- see password.js/hashPassword()
   const newUser = new User({
     id: 'u' + (await User.countDocuments() + 1),
-    username: username,
+    email: normEmail,
+    username: username.trim(),
     password: password,
     // cryptographic password fields
     salt: salt, hash: hash, iterations: iterations, keylen: keylen, digest: digest,
@@ -76,7 +84,7 @@ router.post('/register', async (req, res) => {
   USERS.push(newUser);*/
   // END OF DB MODIFICATION INTEGRATION
   
-  return res.status(201).json({ message: 'registered', user: { id: newUser.id, username } });
+  return res.status(201).json({ message: 'registered', user: { id: newUser.id, username: newUser.username, email: newUser.email, roles: newUser.roles || [] } });
 });
 
 // MODIFIED FOR DB INTEGRATION
@@ -86,21 +94,22 @@ router.put('/email', requireAuth, async (req, res) => {
   const { newEmail } = req.body || {};
   const userId = req.user?.sub; //<-- userId === null handler??
 
-  if (!newEmail || typeof newEmail !== 'string') {
-    return res.status(400).json({ error: 'newEmail is required' });
-  }
-
   // MODIFY FOR DB INTEGRATION
   //const me = USERS.find(u => u.id === userId);
   // find 'me' in DB
   const me = await User.findOne({id: userId});
   if (!me) return res.status(404).json({ error: 'User not found' });
 
+  const normNewEmail = norm(newEmail);
+  if (!normNewEmail || typeof newEmail !== 'string') {
+    return res.status(400).json({ error: 'newEmail is required' });
+  }
+
   //const exists = USERS.find(u => u.username === newEmail && u.id !== userId);
-  if (me.username === newEmail) return res.status(409).json({ error: 'Email/username already in use' });
+  if (me.email === normNewEmail) return res.status(409).json({ error: 'Email/username already in use' });
   
   // update 'me' email/username in DB
-  me.username = newEmail.trim();
+  me.email = normNewEmail.trim();
   await me.save();
   // END OF DB INTEGRATION MODIFICATION
 

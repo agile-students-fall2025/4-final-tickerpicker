@@ -1,6 +1,8 @@
 import { verifyJWT } from '../auth/jwt.js';
+import dotenv from "dotenv";
+dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export function requireAuth(req, res, next) {
   try {

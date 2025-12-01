@@ -17,6 +17,19 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 const AuthContext = createContext(null);
 const API_BASE_URL = "http://localhost:3001";
 
+//helper for normalizing name/email from backend to frontend
+function normalizeUser(raw) {
+  if (!raw) return null;
+  const uname = (raw.username || raw.name || "").trim(); //Now we seperate raw.username and raw.email. They shouldnt overlap with each other
+  return {
+    id: raw.id,
+    username: uname || "user",
+    name: raw.name || uname || "user",
+    email: (raw.email || "").trim(),
+    roles: raw.roles || [],
+  };
+}
+
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [accessToken, setAccessToken] = useState(null);
@@ -28,10 +41,11 @@ export function AuthProvider({ children }) {
             if (rawUser) {
             const parsed = JSON.parse(rawUser);
             if (parsed && parsed.password) {
-              delete parsed.password;
-              window.localStorage.setItem("tp-user", JSON.stringify(parsed));
+                delete parsed.password;
             }
-            setUser(parsed || null);
+            const normalized = normalizeUser(parsed);
+            window.localStorage.setItem("tp-user", JSON.stringify(normalized));
+            setUser(normalized || null);
         }
             const token = window.localStorage.getItem("tp-access");
             if (token) setAccessToken(token);
@@ -48,7 +62,7 @@ export function AuthProvider({ children }) {
     // Persist user/token to localStorage(not storing password)
     function persistAuth({ nextUser, token }) {
         if (nextUser) {
-            const safeUser = { ...nextUser };
+            const safeUser = normalizeUser(nextUser);
             delete safeUser.password;
             window.localStorage.setItem("tp-user", JSON.stringify(safeUser));
             setUser(safeUser);
@@ -82,16 +96,17 @@ export function AuthProvider({ children }) {
     }
 
     async function register({ name, email, password }) {
-        const username = (email || name || "").trim();
-        if (!username || !password) {
-            return { ok: false, error: "username/email and password are required" };
+        const username = (name || "").trim();
+        const normEmail = (email || "").trim();
+        if (!normEmail || !username || !password) {
+            return { ok: false, error: "email, username and password are required" };
         }
         try {
             // 1st: register the user
             const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ email: normEmail, username, password }),
             });
             const regData = await res.json().catch(() => ({}));
 
@@ -103,7 +118,7 @@ export function AuthProvider({ children }) {
         const loginRes = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
+            body: JSON.stringify({ email: normEmail, password }),
         });
 
         const loginData = await loginRes.json().catch(() => ({}));
@@ -131,15 +146,15 @@ export function AuthProvider({ children }) {
 
     // Login: validate credentials
     async function login({ email, password }) {
-    const username = (email || "").trim();
-        if (!username || !password) {
+        const normEmail = (email || "").trim();
+        if (!normEmail || !password) {
           return { ok: false, error: "email and password are required" };
         }
         try {
             const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ email: normEmail, password }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
