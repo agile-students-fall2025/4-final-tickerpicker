@@ -27,7 +27,7 @@ router.post('/login', async (req, res) => {
   const user = await User.findOne({email: normEmail});
   // if 'user' with 'username' not in DB
   if (!user || !verifyPassword(password, user)) { //<-- see password.js/verifyPassword()
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: 'Invalid email or password' });
   }
   // END OF DB MODIFICATION INTEGRATION
 

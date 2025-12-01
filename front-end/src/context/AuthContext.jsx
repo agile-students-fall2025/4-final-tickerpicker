@@ -158,7 +158,7 @@ export function AuthProvider({ children }) {
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-                return { ok: false, error: data.error || "Invalid credentials" };
+                return { ok: false, error: data.error || "Invalid email or password" };
             }
             persistAuth({ nextUser: data.user || { username }, token: data.accessToken });
             return { ok: true };
