@@ -61,12 +61,12 @@ If time permits, we'd like to add:
 
 - **Product Owner:** [Michael Mvano](https://github.com/michx02)
 - **Scrum Master:** [Lauren Throve](https://github.com/laurenst17)
-- 
+
 ### Sprint 3 Roles
 
 - **Product Owner:** [Apoorv Belgundi](https://github.com/apoorvib)
 - **Scrum Master:** [Michael Mvano](https://github.com/michx02)
-- 
+
 ### Developers
 
 - [Lauren Throve](https://github.com/laurenst17)
@@ -83,7 +83,7 @@ TickerPicker started during our project proposal assignment when Apoorv, Lauren,
 
 Platforms like Robinhood show you a price chart, basic technical indicators, and not much else, which is fine for buying but not for research. Professional tools like Bloomberg Terminal or even Yahoo Finance dump every possible metric on you without explaining what matters or why. We wanted something in between: a tool that shows beginners the important fundamentals, lets them filter by what matters to their strategy, and doesn't assume they already have a finance degree.
 
-After Julien and Jerry joined, we refined the concept and started planning. We're currently in Sprint 0, setting up our development environment and finalizing our technical architecture.
+After Julien and Jerry joined, we refined the concept and started planning. We're currently in Sprint 3, integrating MongoDB database for efficient data storage and retrieval.
 
 ## Contributing
 
@@ -99,8 +99,8 @@ Want to contribute? Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 - **Frontend:** React
 - **Charts:** TradingView Lightweight Charts API
 - **Backend:** Express.js (Node.js) + Python
-- **Database:** TBD
-- **Authentication:** TBD
+- **Database:** MongoDB (MongoDB Atlas)
+- **Authentication:** JWT (JSON Web Tokens)
 
 ## How to Run
 
@@ -108,6 +108,22 @@ Want to contribute? Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) for:
 
 - Node.js installed
 - npm installed
+- MongoDB Atlas account
+
+### Environment Setup
+
+**1. Configure Environment Variables:**
+
+Before running the backend, you need to set up your environment variables:
+
+```bash
+cd back-end
+cp .env.example .env
+```
+
+Then edit the `.env` file and add your MongoDB Atlas connection string. See `.env.example` for the required format.
+
+**Note:** The `.env` file is not tracked in git for security reasons. Make sure to create it locally with your MongoDB credentials.
 
 ### Running the Application
 
@@ -120,6 +136,8 @@ npm run dev
 ```
 
 Backend will run on `http://localhost:3001`
+
+**Note:** If MongoDB connection fails, the server will still start but will fall back to direct API calls (no caching). Make sure your `.env` file has a valid `MONGODB_URI`.
 
 **2. Start the Frontend (in a new terminal) in the root:**
 
@@ -185,14 +203,17 @@ Features that explain financial concepts
 
 ## Project Status
 
-**Current Sprint:** Sprint 2
+**Current Sprint:** Sprint 3
 
-**Status:** Backend Development Phase
+**Status:** Database Integration Phase
 
 We're currently:
 
+- **MongoDB database integrated** with Mongoose for data persistence
+- **Price data caching system** - MongoDB stores historical OHLCV data with gap-filling strategy (checks DB first, fetches only missing dates from Yahoo Finance API)
+- **User authentication with MongoDB** - User registration, login, password updates, and email changes all use MongoDB with secure password hashing (PBKDF2)
+- **Notification model created** - Mongoose schema ready for notifications (earnings, dividends) with user association
 - Backend API endpoints fully integrated with frontend
 - Homepage features implemented: recommended picks (SPDR ETFs by Sharpe ratio) and top 10 performers (Nasdaq 100)
 - Stock data fetching, filtering, and watchlist management functional
 - Unit tests in place for backend routes
-- Frontend making API calls to backend for all data
