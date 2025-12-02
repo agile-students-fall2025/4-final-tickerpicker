@@ -9,6 +9,9 @@ dotenv.config();
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
 //helper: normalize email adress
 function norm(email) {
   return String(email || '').trim().toLowerCase();
@@ -21,6 +24,10 @@ router.post('/login', async (req, res) => {
   const normEmail = norm(email);
   if (!normEmail || !password ) {
     return res.status(400).json({ error: 'email and password are required' });
+  }
+
+  if (!EMAIL_REGEX.test(normEmail)) {
+    return res.status(400).json({ error: 'Invalid email format' });
   }
 
   // DB MODIFICATION INTEGRATION
@@ -55,6 +62,16 @@ router.post('/register', async (req, res) => {
 
   if (!normEmail||!username || !password) {
     return res.status(400).json({ error: 'email, username and password are required' });
+  }
+
+  if (!EMAIL_REGEX.test(normEmail)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
+  if (!PASSWORD_REGEX.test(password)) {
+    return res.status(400).json({
+      error: 'Password must be at least 8 characters and include a letter, a number, and a special character',
+    });
   }
 
   // DB MODIFICATION INTEGRATION
@@ -105,6 +122,10 @@ router.put('/email', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'newEmail is required' });
   }
 
+  if (!EMAIL_REGEX.test(normNewEmail)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
   //const exists = USERS.find(u => u.username === newEmail && u.id !== userId);
   if (me.email === normNewEmail) return res.status(409).json({ error: 'Email/username already in use' });
   
@@ -149,6 +170,12 @@ router.put('/password', requireAuth, async (req, res) => {
   if (!verifyPassword(oldPassword, me)) {
     return res.status(401).json({ error: 'Old password incorrect' });
   }
+
+  if (!PASSWORD_REGEX.test(newPassword)) {
+  return res.status(400).json({
+    error: 'Password must be at least 8 characters and include a letter, a number, and a special character',
+  });
+}
 
   // update credentials in DB
   const { salt, hash, iterations, keylen, digest } = hashPassword(newPassword);

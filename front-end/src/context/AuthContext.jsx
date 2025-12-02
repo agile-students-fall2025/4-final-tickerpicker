@@ -17,6 +17,9 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 const AuthContext = createContext(null);
 const API_BASE_URL = "http://localhost:3001";
 
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
 //helper for normalizing name/email from backend to frontend
 function normalizeUser(raw) {
   if (!raw) return null;
@@ -101,6 +104,19 @@ export function AuthProvider({ children }) {
         if (!normEmail || !username || !password) {
             return { ok: false, error: "email, username and password are required" };
         }
+
+        if (!EMAIL_REGEX.test(normEmail)) {
+        return { ok: false, error: "Please enter a valid email address." };
+        }
+
+        if (!PASSWORD_REGEX.test(password)) {
+            return {
+                ok: false,
+                error:
+                    "Password must be at least 8 characters and include a letter, a number, and a special character.",
+            };
+        }
+
         try {
             // 1st: register the user
             const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
@@ -177,10 +193,16 @@ export function AuthProvider({ children }) {
         if (!newEmail || typeof newEmail !== "string") {
             return { ok: false, error: "newEmail is required" };
         }
+
+         const normEmail = newEmail.trim();
+        if (!EMAIL_REGEX.test(normEmail)) {
+            return { ok: false, error: "Please enter a valid email address." };
+        }
+
         try {
             const res = await fetchWithAuth("/api/auth/email", {
                 method: "PUT",
-                body: JSON.stringify({ newEmail }),
+                body: JSON.stringify({ normEmail }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
@@ -198,6 +220,15 @@ export function AuthProvider({ children }) {
         if (!oldPassword || !newPassword) {
             return { ok: false, error: "oldPassword and newPassword are required" };
         }
+
+        if (!PASSWORD_REGEX.test(newPassword)) {
+            return {
+                ok: false,
+                error:
+                    "Password must be at least 8 characters and include a letter, a number, and a special character.",
+            };
+        }
+
         try {
             const res = await fetchWithAuth("/api/auth/password", {
                 method: "PUT",
@@ -207,7 +238,6 @@ export function AuthProvider({ children }) {
             if (!res.ok) {
                 return { ok: false, error: data.error || "Update password failed" };
             }
-
             persistAuth({ nextUser: data.user, token: data.accessToken });
             return { ok: true };
         } catch (e) {
