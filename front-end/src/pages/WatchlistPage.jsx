@@ -8,7 +8,7 @@ const API_BASE_URL =
     : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function WatchlistPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, fetchWithAuth } = useAuth();
 
   // State management
   const [watchlists, setWatchlists] = useState([]);
@@ -41,9 +41,7 @@ export default function WatchlistPage() {
             "WatchlistPage: USE_MOCK is false, fetching from backend..."
           );
 
-          const response = await fetch(
-            `${API_BASE_URL}/api/watchlists/initial`
-          );
+          const response = await fetchWithAuth("/api/watchlists/initial");
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -126,12 +124,9 @@ export default function WatchlistPage() {
 
   // ---- REAL BACKEND MODE ----
   try {
-    const response = await fetch(`${API_BASE_URL}/api/watchlists`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name: trimmedName }),
+    const response = await fetchWithAuth("/api/watchlists", {
+  method: "POST",
+  body: JSON.stringify({ name: trimmedName }),
     });
 
     if (!response.ok) {
@@ -215,16 +210,10 @@ export default function WatchlistPage() {
 
   // --- REAL BACKEND MODE ---
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/watchlists/${selectedWatchlistId}/stocks`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ symbol: trimmedSymbol }),
-      }
-    );
+    const response = await fetchWithAuth(
+  `/api/watchlists/${selectedWatchlistId}/stocks`,
+  { method: "POST", body: JSON.stringify({ symbol: trimmedSymbol }) }
+  );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -290,12 +279,10 @@ export default function WatchlistPage() {
 
   // ---- REAL BACKEND MODE ----
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/watchlists/${selectedWatchlistId}/stocks/${symbolUpper}`,
-      {
-        method: "DELETE",
-      }
-    );
+    const response = await fetchWithAuth(
+  `/api/watchlists/${selectedWatchlistId}/stocks/${symbolUpper}`,
+  { method: "DELETE" }
+  );
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
@@ -359,6 +346,8 @@ export default function WatchlistPage() {
           </div>
         </div>
 
+        
+
         {/* Create New Watchlist Card */}
         <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
           <h3 className="text-lg font-semibold text-black">
@@ -399,40 +388,7 @@ export default function WatchlistPage() {
           </form>
         </div>
 
-        {/* Add Stock Card */}
-        <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
-          <h3 className="text-lg font-semibold text-black">Add Stock</h3>
-          <form className="flex flex-col gap-6" onSubmit={handleAddStock}>
-            <div>
-              <label className="tp-label pb-2" htmlFor="newStockSymbol">
-                Stock Symbol:
-              </label>
-              <input
-                id="newStockSymbol"
-                type="text"
-                value={newStockSymbol}
-                onChange={(e) => setNewStockSymbol(e.target.value)}
-                placeholder="e.g., AAPL, MSFT"
-                className="tp-input"
-                autoComplete="off"
-              />
-            </div>
-            {stockMessage.text && (
-              <p
-                className={
-                  stockMessage.type === "ok"
-                    ? "text-sm text-green-400"
-                    : "tp-error"
-                }
-              >
-                {stockMessage.text}
-              </p>
-            )}
-            <button type="submit" className="tp-btn-primary w-full sm:w-32">
-              Add
-            </button>
-          </form>
-        </div>
+        
       </div>
 
       {/* Right Column - Stock List Display */}
@@ -510,6 +466,41 @@ export default function WatchlistPage() {
               Please select a watchlist to view stocks.
             </div>
           )}
+        </div>
+
+        {/* Add Stock Card */}
+        <div className="tp-card flex flex-col gap-4 md:gap-6 p-4 md:p-8">
+          <h3 className="text-lg font-semibold text-black">Add Stock</h3>
+          <form className="flex flex-col gap-6" onSubmit={handleAddStock}>
+            <div>
+              <label className="tp-label pb-2" htmlFor="newStockSymbol">
+                Stock Symbol:
+              </label>
+              <input
+                id="newStockSymbol"
+                type="text"
+                value={newStockSymbol}
+                onChange={(e) => setNewStockSymbol(e.target.value)}
+                placeholder="e.g., AAPL, MSFT"
+                className="tp-input"
+                autoComplete="off"
+              />
+            </div>
+            {stockMessage.text && (
+              <p
+                className={
+                  stockMessage.type === "ok"
+                    ? "text-sm text-green-400"
+                    : "tp-error"
+                }
+              >
+                {stockMessage.text}
+              </p>
+            )}
+            <button type="submit" className="tp-btn-primary w-full sm:w-32">
+              Add
+            </button>
+          </form>
         </div>
       </div>
     </section>

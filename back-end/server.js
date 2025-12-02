@@ -4,6 +4,8 @@ import dashboardRouter from "./src/routes/dashboard.js";
 import homeRouter from "./src/routes/home.js";
 import Notification from "./src/models/Notifications.js";
 import authRouter from "./src/routes/auth.js";
+import { connectToDatabase, closeDatabaseConnection } from "./src/db/connection.js";
+
 import { toStock } from "./src/utils/MetricsFilters.js";
 import {
   queryPriceData,
@@ -13,12 +15,12 @@ import {
   fetchQuotes,
 } from "./src/data/DataFetcher.js";
 
+import { User } from "./src/data/users.js";
+import { requireAuth } from "./src/middleware/AuthRequirement.js";
+
 // Load environment variables from .env file
 import dotenv from "dotenv";
 dotenv.config();
-
-// Import database connection
-import { connectToDatabase } from "./src/db/connection.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,24 +30,22 @@ const PORT = process.env.PORT || 3001;
 //const mockNotificationStocks = new Set(); // Set of stock symbols that have notifications enabled
 const DEFAULT_DAYS_BEFORE = 60; // Default: notify 60 days before events
 
-// ---- Mock watchlist data (in-memory for now) ----
-//JUST A SAMPLE TO MAKE THE WATCHLIST PAGE NON-EMPTY
-const mockWatchlists = [
-  {
-    id: 1,
-    name: "Tech Giants",
-    stocks: ["AAPL", "MSFT", "GOOGL"],
-  },
-  {
-    id: 2,
-    name: "Energy",
-    stocks: ["XOM", "CVX"],
-  },
-];
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+
+//getting userId
+function getUserId(req) {
+  // Adjust this to match whatever your auth actually puts on req
+  if (req.user?.id) return req.user.id;           // e.g. { id: "abc123", username: "email" }
+  if (req.user?.username) return req.user.username; // sometimes only username is available
+  if (req.session?.userId) return req.session.userId;
+
+  // TEMP fallback so it doesn't just explode silently
+  return null;
+}
 
 // API Routes
 app.get("/api/price-data/:symbol", async (req, res) => {
@@ -128,7 +128,7 @@ app.post("/api/notifications", async (req, res) => {
   }
 });
 
-// Enable/disable notifications for a stock
+// enable/disable notifs
 app.post("/api/notification-stocks", async (req, res) => {
   try {
     const { symbol, enabled } = req.body;
@@ -173,7 +173,6 @@ app.post("/api/notification-stocks", async (req, res) => {
     });
   }
 });
-
 
 //check is a stock is in notifications stock list
 app.get("/api/notification-stocks/:symbol", async (req, res) => {
@@ -281,7 +280,6 @@ app.get("/api/notifications/:symbol", async (req, res) => {
 });
 
 
-
 // Helper function to check calendar events and create notifications
 async function checkCalendarEventsForSymbol(symbol) {
   try {
@@ -362,8 +360,6 @@ async function checkCalendarEventsForSymbol(symbol) {
 
 
 
-
-
 // Endpoint to manually check calendar events for a symbol
 app.post("/api/calendar-events/check", async (req, res) => {
   try {
@@ -390,164 +386,60 @@ app.post("/api/calendar-events/check", async (req, res) => {
 // Watchlist API (used by WatchlistPage when USE_MOCK=false)
 
 // Create a new watchlist
-app.post("/api/watchlists", (req, res) => {
-  try {
-    const { name } = req.body;
+app.post("/api/watchlists", requireAuth, async (req, res) => {
+  const userId = req.user?.sub;
+  const name = (req.body?.name || "").trim();
+  if (!name) return res.status(400).json({ error: "Watchlist name cannot be empty." });
 
-    if (!name || !name.trim()) {
-      return res.status(400).json({
-        error: "Watchlist name cannot be empty.",
-      });
-    }
+  const user = await User.findOne({ id: userId });
+  if (!user) return res.status(404).json({ error: "User not found" });
 
-    const trimmedName = name.trim();
+  const exists = (user.watchlists || []).some(
+    (wl) => wl.name.toLowerCase() === name.toLowerCase()
+  );
+  if (exists) return res.status(400).json({ error: "A watchlist with this name already exists." });
 
-    // Prevent duplicate names (case-insensitive)
-    const exists = mockWatchlists.some(
-      (wl) => wl.name.toLowerCase() === trimmedName.toLowerCase()
-    );
-    if (exists) {
-      return res.status(400).json({
-        error: "A watchlist with this name already exists.",
-      });
-    }
+  const newId = (user.watchlists || []).reduce((max, wl) => Math.max(max, wl.id || 0), 0) + 1;
+  user.watchlists.push({ id: newId, name, tickers: [] });
+  await user.save();
 
-    const newId =
-      mockWatchlists.length > 0
-        ? Math.max(...mockWatchlists.map((wl) => wl.id)) + 1
-        : 1;
-
-    const newWatchlist = {
-      id: newId,
-      name: trimmedName,
-      stocks: [],
-    };
-
-    mockWatchlists.push(newWatchlist);
-
-    return res.status(201).json(newWatchlist);
-  } catch (error) {
-    console.error("Error creating watchlist:", error);
-    res.status(500).json({
-      error: "Failed to create watchlist",
-      message: error.message,
-    });
-  }
+  res.status(201).json({ id: newId, name, stocks: [] });
 });
 
 // Remove a stock from a watchlist
-app.delete("/api/watchlists/:watchlistId/stocks/:symbol", (req, res) => {
-  try {
-    const watchlistId = parseInt(req.params.watchlistId, 10);
-    const symbolParam = req.params.symbol;
+app.delete("/api/watchlists/:watchlistId/stocks/:symbol", requireAuth, async (req, res) => {
+  const user = await User.findOne({ id: req.user?.sub });
+  const wlId = Number(req.params.watchlistId);
+  const symbolUpper = (req.params.symbol || "").toUpperCase();
+  const wl = user?.watchlists?.find((w) => w.id === wlId);
+  if (!wl) return res.status(404).json({ error: "Watchlist not found" });
 
-    if (!symbolParam) {
-      return res.status(400).json({ error: "symbol is required" });
-    }
-
-    const symbolUpper = symbolParam.toUpperCase();
-
-    const watchlist = mockWatchlists.find((wl) => wl.id === watchlistId);
-    if (!watchlist) {
-      return res.status(404).json({ error: "Watchlist not found" });
-    }
-
-    // If the symbol is not in this watchlist, just return current watchlist
-    if (!watchlist.stocks.includes(symbolUpper)) {
-      return res.json({ watchlist });
-    }
-
-    // Remove symbol
-    watchlist.stocks = watchlist.stocks.filter(
-      (s) => s.toUpperCase() !== symbolUpper
-    );
-
-    return res.json({ watchlist });
-  } catch (error) {
-    console.error("Error removing stock from watchlist:", error);
-    res.status(500).json({
-      error: "Failed to remove stock from watchlist",
-      message: error.message,
-    });
-  }
+  wl.tickers = wl.tickers.filter((t) => t.toUpperCase() !== symbolUpper);
+  await user.save();
+  res.json({ watchlist: { id: wl.id, name: wl.name, stocks: wl.tickers } });
 });
 
 // GET /api/watchlists/initial
 // Returns:
 //   - watchlists: [{ id, name, stocks: [symbols...] }]
 //   - priceDataMap: { [symbol]: { price, change, changePercent } }
-app.get("/api/watchlists/initial", async (req, res) => {
-  try {
-    // 1. Use our mock watchlists for now (later, replace with DB)
-    const watchlists = mockWatchlists;
+app.get("/api/watchlists/initial", requireAuth, async (req, res) => {
+  const user = await User.findOne({ id: req.user?.sub });
+  if (!user) return res.json({ watchlists: [], priceDataMap: {} });
 
-    // 2. Collect all unique symbols across all watchlists
-    const allSymbols = Array.from(
-      new Set(watchlists.flatMap((wl) => wl.stocks))
-    );
-
-    if (allSymbols.length === 0) {
-      return res.json({ watchlists: [], priceDataMap: {} });
-    }
-
-    // 3. Fetch live quotes from Yahoo Finance
-    const quotes = await fetchQuotes(allSymbols);
-
-    // 4. Build priceDataMap in the shape the front end expects
-    const priceDataMap = {};
-
-    for (const symbol of allSymbols) {
-      const quote = quotes[symbol];
-
-      if (!quote) {
-        // If quote failed, still include the key with nulls
-        priceDataMap[symbol] = {
-          price: null,
-          change: null,
-          changePercent: null,
-        };
-        continue;
-      }
-
-      // yahoo-finance2 typical fields
-      const price =
-        quote.regularMarketPrice ??
-        quote.postMarketPrice ??
-        quote.preMarketPrice ??
-        quote.previousClose ??
-        null;
-
-      const change =
-        quote.regularMarketChange ??
-        (price != null && quote.previousClose != null
-          ? price - quote.previousClose
-          : null);
-
-      const changePercent =
-        quote.regularMarketChangePercent ??
-        (change != null && quote.previousClose
-          ? (change / quote.previousClose) * 100
-          : null);
-
-      priceDataMap[symbol] = {
-        price: typeof price === "number" ? price : null,
-        change: typeof change === "number" ? change : null,
-        changePercent: typeof changePercent === "number" ? changePercent : null,
-      };
-    }
-
-    res.json({
-      watchlists,
-      priceDataMap,
-    });
-  } catch (error) {
-    console.error("Error fetching watchlists:", error);
-    res.status(500).json({
-      error: "Failed to fetch watchlists",
-      message: error.message,
-    });
-  }
+  const watchlists = (user.watchlists || []).map((wl) => ({
+    id: wl.id,
+    name: wl.name,
+    stocks: (wl.tickers || []).map((t) => t.toUpperCase()),
+  }));
+  const allSymbols = [...new Set(watchlists.flatMap((wl) => wl.stocks))];
+  const quotes = allSymbols.length ? await fetchQuotes(allSymbols) : {};
+  const priceDataMap = Object.fromEntries(
+    allSymbols.map((s) => [s, buildPriceDataFromQuote(quotes[s])])
+  );
+  res.json({ watchlists, priceDataMap });
 });
+
 
 // Helper to build price/change/changePercent from a yahoo-finance2 quote
 function buildPriceDataFromQuote(quote) {
@@ -614,73 +506,46 @@ app.get("/api/stocks/:symbol", async (req, res) => {
 });
 
 // Add a stock to a watchlist and return updated watchlist + price data
-app.post("/api/watchlists/:watchlistId/stocks", async (req, res) => {
-  try {
-    const watchlistId = parseInt(req.params.watchlistId, 10);
-    const { symbol } = req.body;
+app.post("/api/watchlists/:watchlistId/stocks", requireAuth, async (req, res) => {
+  const user = await User.findOne({ id: req.user?.sub });
+  const wlId = Number(req.params.watchlistId);
+  const symbolUpper = (req.body?.symbol || "").trim().toUpperCase();
+  if (!symbolUpper) return res.status(400).json({ error: "symbol is required" });
 
-    if (!symbol) {
-      return res.status(400).json({ error: "symbol is required" });
-    }
+  const wl = user?.watchlists?.find((w) => w.id === wlId);
+  if (!wl) return res.status(404).json({ error: "Watchlist not found" });
 
-    const symbolUpper = symbol.trim().toUpperCase();
-    if (!symbolUpper) {
-      return res.status(400).json({ error: "symbol cannot be empty" });
-    }
-
-    const watchlist = mockWatchlists.find((wl) => wl.id === watchlistId);
-    if (!watchlist) {
-      return res.status(404).json({ error: "Watchlist not found" });
-    }
-
-    // If it is already in the list, just return current data
-    if (!watchlist.stocks.includes(symbolUpper)) {
-      watchlist.stocks.push(symbolUpper);
-    }
-
-    // Fetch quote for this symbol
-    // Fetch quote for this symbol
+  if (!wl.tickers.includes(symbolUpper)) {
     const quotes = await fetchQuotes([symbolUpper]);
     const quote = quotes[symbolUpper];
-
-    // If yahoo-finance2 could not return a quote, treat it as invalid
-    if (!quote) {
-      // Remove it again if we optimistically pushed it
-      watchlist.stocks = watchlist.stocks.filter(
-        (s) => s.toUpperCase() !== symbolUpper
-      );
-
-      return res.status(400).json({
-        error: `Symbol "${symbolUpper}" is invalid or data is not available.`,
-      });
-    }
-
-    const priceData = buildPriceDataFromQuote(quote);
-
-    return res.json({
-      watchlist,
-      priceDataMap: {
-        [symbolUpper]: priceData,
-      },
-    });
-  } catch (error) {
-    console.error("Error adding stock to watchlist:", error);
-    res.status(500).json({
-      error: "Failed to add stock to watchlist",
-      message: error.message,
-    });
+    if (!quote) return res.status(400).json({ error: `Symbol "${symbolUpper}" is invalid or data is not available.` });
+    wl.tickers.push(symbolUpper);
+    await user.save();
+    return res.json({ watchlist: { id: wl.id, name: wl.name, stocks: wl.tickers }, priceDataMap: { [symbolUpper]: buildPriceDataFromQuote(quote) } });
   }
+  res.json({ watchlist: { id: wl.id, name: wl.name, stocks: wl.tickers }, priceDataMap: {} });
 });
 
-/**?
+
+//DEBUG 
+app.get("/api/debug/me", (req, res) => {
+  console.log("DEBUG /api/debug/me");
+  console.log("req.user =", req.user);
+  console.log("req.session =", req.session);
+  res.json({
+    user: req.user || null,
+    session: req.session || null,
+  });
+});
+
+
+
+
+/**
  * UNCOMMENT THE CODE BELOW AFTER dashboardRouter is created.
  *
  * SERVER WASN'T RUNNING WITH IT
  */
-
-// Auth routes (login / register / update email / update password)
-app.use("/api/auth", authRouter);
-
 // Dashboard routes (TickerPicker)
 app.use("/api/dashboard", dashboardRouter);
 
@@ -692,6 +557,11 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Backend API is running" });
 });
 
+
+// Auth routes (login / register / update email / update password)
+app.use("/api/auth", authRouter);
+
+// this 'server.js' calls 'connectToDatabase()' from 'connection.js'
 if (process.env.NODE_ENV !== "test") {
   // Connect to MongoDB before starting the server
   connectToDatabase()
@@ -712,5 +582,6 @@ if (process.env.NODE_ENV !== "test") {
       });
     });
 }
+
 
 export default app;

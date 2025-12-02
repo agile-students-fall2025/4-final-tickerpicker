@@ -7,3 +7,7 @@ You will most likely initiate the back-end Node.js/Express.js server by running 
 
 Please set `USE_MOCK=false` to avoid using Mock Data from the front-end. 
 All data should be fetched from the back-end from Sprint 2.
+
+#DATA STORAGE NITE
+
+By the end of Sprint 3 all data should be stored and fetched from a database.
