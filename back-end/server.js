@@ -2,7 +2,7 @@ import express, { json } from "express";
 import cors from "cors";
 import dashboardRouter from "./src/routes/dashboard.js";
 import homeRouter from "./src/routes/home.js";
-
+import Notification from "./src/models/Notifications.js";
 import authRouter from "./src/routes/auth.js";
 import { connectToDatabase, closeDatabaseConnection } from "./src/db/connection.js";
 
@@ -26,10 +26,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Mock data storage (in-memory for now, will be replaced with database later)
-const mockAlerts = new Map(); // Map<alertId, alert>
-const mockNotifications = new Map(); // Map<notificationId, notification>
-const mockNotificationStocks = new Set(); // Set of stock symbols that have notifications enabled
-const mockTrackedEvents = new Map(); // Map<eventId, event> - tracks events we've already notified about
+//const mockNotifications = new Map(); // Map<notificationId, notification>
+//const mockNotificationStocks = new Set(); // Set of stock symbols that have notifications enabled
 const DEFAULT_DAYS_BEFORE = 60; // Default: notify 60 days before events
 
 
@@ -92,7 +90,7 @@ app.get("/api/fundamentals/:symbol", async (req, res) => {
 //list all monitored stocks - return as array
 app.get("/api/notification-stocks", async (req, res) => {
   try {
-    const stocks = Array.from(mockNotificationStocks);
+    const stocks = await Notification.distinct("symbol");
     res.json({ stocks });
   } catch (error) {
     console.error("Error fetching notification stocks:", error);
@@ -103,18 +101,31 @@ app.get("/api/notification-stocks", async (req, res) => {
   }
 });
 
-// Create a new notification
-app.post("/api/notifications", (req, res) => {
-  const id = Date.now().toString();
-  const notification = {
-    id,
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    ...req.body,
-  };
 
-  mockNotifications.set(id, notification);
-  res.json(notification);
+// Create a new notification
+app.post("/api/notifications", async (req, res) => {
+  try {
+    const { userId, symbol, eventType, eventDate, daysUntil, amount, message } = req.body;
+
+    const newNotification = new Notification({
+      userId,
+      symbol,
+      eventType,
+      eventDate,
+      daysUntil,
+      amount,
+      message,
+    });
+
+    const savedNotification = await newNotification.save();
+    res.status(201).json(savedNotification);
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    res.status(500).json({
+      error: "Failed to create notification",
+      message: error.message,
+    });
+  }
 });
 
 // enable/disable notifs
@@ -124,7 +135,7 @@ app.post("/api/notification-stocks", async (req, res) => {
 
     if (!symbol) {
       return res.status(400).json({
-        error: "symbol is required",
+        error: "Symbol is required",
       });
     }
 
@@ -132,35 +143,18 @@ app.post("/api/notification-stocks", async (req, res) => {
 
     if (enabled === true || enabled === undefined) {
       // Enable notifications for this stock
-      mockNotificationStocks.add(symbolUpper);
-
-      // Optionally generate new calendar-based notifications for this symbol
-      // (this uses your existing helper)
       await checkCalendarEventsForSymbol(symbolUpper);
 
-      // Get all notifications for this symbol from the last 90 days
-      const recentNotifications = getRecentNotificationsForSymbol(
-        symbolUpper,
-        90
-      );
-
-      // Log them in the backend terminal
-      console.log(
-        `[Notifications] Recent notifications for ${symbolUpper} (last 90 days):`,
-        recentNotifications
-      );
-
-      return res.json({
+      res.json({
         success: true,
         symbol: symbolUpper,
         enabled: true,
         message: `Notifications enabled for ${symbolUpper} (all event types)`,
-        notifications: recentNotifications, // <-- send to frontend too
       });
     } else if (enabled === false) {
       // Disable notifications for this stock
-      mockNotificationStocks.delete(symbolUpper);
-      return res.json({
+      await Notification.deleteMany({ symbol: symbolUpper });
+      res.json({
         success: true,
         symbol: symbolUpper,
         enabled: false,
@@ -168,7 +162,7 @@ app.post("/api/notification-stocks", async (req, res) => {
       });
     } else {
       return res.status(400).json({
-        error: "enabled must be true or false",
+        error: "Enabled must be true or false",
       });
     }
   } catch (error) {
@@ -185,11 +179,10 @@ app.get("/api/notification-stocks/:symbol", async (req, res) => {
   try {
     const { symbol } = req.params;
     const symbolUpper = symbol.toUpperCase();
-    const isEnabled = mockNotificationStocks.has(symbolUpper);
-
+    const exists = await Notification.exists({ symbol: symbolUpper });
     res.json({
       symbol: symbolUpper,
-      enabled: isEnabled,
+      enabled: !!exists,
     });
   } catch (error) {
     console.error("Error checking notification stock:", error);
@@ -200,26 +193,21 @@ app.get("/api/notification-stocks/:symbol", async (req, res) => {
   }
 });
 
+
 //get all notifications
 app.get("/api/notifications", async (req, res) => {
   try {
     const { unreadOnly, limit } = req.query;
 
-    // Get all notifications
-    let notifications = Array.from(mockNotifications.values());
-
-    // Filter by unread if requested
+    // Query notifications from the database
+    let query = {};
     if (unreadOnly === "true") {
-      notifications = notifications.filter((n) => !n.isRead);
+      query.isRead = false;
     }
 
-    // Sort by createdAt descending (newest first)
-    notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    // Limit results if requested
-    if (limit) {
-      notifications = notifications.slice(0, parseInt(limit));
-    }
+    let notifications = await Notification.find(query)
+      .sort({ createdAt: -1 }) // Sort by newest 
+      .limit(limit ? parseInt(limit) : 0);
 
     res.json(notifications);
   } catch (error) {
@@ -231,11 +219,11 @@ app.get("/api/notifications", async (req, res) => {
   }
 });
 
-//counts unread notifs
+// Counts unread notifications
 app.get("/api/notifications/unread-count", async (req, res) => {
   try {
-    const allNotifications = Array.from(mockNotifications.values());
-    const count = allNotifications.filter((n) => !n.isRead).length;
+    // Fetch unread notifications count from the database
+    const count = await Notification.countDocuments({ isRead: false });
 
     res.json({ count });
   } catch (error) {
@@ -247,18 +235,23 @@ app.get("/api/notifications/unread-count", async (req, res) => {
   }
 });
 
-//mark a notif as read
+// Mark a notification as read
 app.put("/api/notifications/:notificationId/read", async (req, res) => {
   try {
     const { notificationId } = req.params;
-    const notification = mockNotifications.get(notificationId);
+
+    // Find the notification by ID and update its isRead status
+    const notification = await Notification.findByIdAndUpdate(
+      notificationId,
+      { isRead: true },
+      { new: true } // Return the updated document
+    );
+
     if (!notification) {
       return res.status(404).json({ error: "Notification not found" });
     }
 
-    notification.isRead = true;
-    mockNotifications.set(notificationId, notification);
-    res.json({ success: true });
+    res.json({ success: true, notification });
   } catch (error) {
     console.error("Error marking notification as read:", error);
     res.status(500).json({
@@ -268,20 +261,24 @@ app.put("/api/notifications/:notificationId/read", async (req, res) => {
   }
 });
 
-// Helper: get notifications for a symbol within the last N days
-function getRecentNotificationsForSymbol(symbolUpper, daysBack) {
-  const now = new Date();
-  const cutoff = new Date();
-  cutoff.setDate(now.getDate() - daysBack);
+// Fetch notifications for a specific symbol
+app.get("/api/notifications/:symbol", async (req, res) => {
+  try {
+    const { symbol } = req.params;
 
-  return Array.from(mockNotifications.values()).filter((n) => {
-    if (!n.symbol || !n.createdAt) return false;
-    if (n.symbol.toUpperCase() !== symbolUpper) return false;
+    const notifications = await Notification.find({ symbol: symbol.toUpperCase() })
+      .sort({ createdAt: -1 });
 
-    const created = new Date(n.createdAt);
-    return created >= cutoff;
-  });
-}
+    res.json(notifications);
+  } catch (error) {
+    console.error("Error fetching notifications for symbol:", error);
+    res.status(500).json({
+      error: "Failed to fetch notifications",
+      message: error.message,
+    });
+  }
+});
+
 
 // Helper function to check calendar events and create notifications
 async function checkCalendarEventsForSymbol(symbol) {
@@ -289,22 +286,10 @@ async function checkCalendarEventsForSymbol(symbol) {
     const symbolUpper = symbol.toUpperCase();
     const today = new Date();
 
-    // Make sure notifications are actually enabled for this symbol
-    if (!mockNotificationStocks.has(symbolUpper)) {
-      console.log(
-        `[checkCalendarEventsForSymbol] ${symbolUpper} is NOT enabled. Skipping.`
-      );
-      return;
-    }
-
-    // 1) Fetch calendar events (earnings, dividend dates, etc.)
+    // Fetch calendar events (earnings, dividend dates, etc.)
     const calendarData = await getCalendarEvents(symbolUpper);
-    console.log(
-      `[checkCalendarEventsForSymbol] calendarData for ${symbolUpper}:`,
-      JSON.stringify(calendarData?.calendarEvents ?? null, null, 2)
-    );
 
-    // 2) Fetch chart events (dividends/splits over next 90 days)
+    // Fetch chart events (dividends/splits over next 90 days)
     const futureDate = new Date(today);
     futureDate.setDate(futureDate.getDate() + 90); // next 90 days
 
@@ -312,160 +297,68 @@ async function checkCalendarEventsForSymbol(symbol) {
     const endDate = futureDate.toISOString().split("T")[0];
 
     const chartEvents = await getEventsFromChart(symbolUpper, startDate, endDate);
-    console.log(
-      `[checkCalendarEventsForSymbol] chartEvents for ${symbolUpper}:`,
-      JSON.stringify(chartEvents ?? null, null, 2)
-    );
 
-    // --------------------------------------------------
-    // EARNINGS NOTIFICATIONS
-    // --------------------------------------------------
-    const earningsDatesRaw =
-      calendarData?.calendarEvents?.earnings?.earningsDate;
-
+    // Handle earnings notifications
+    const earningsDatesRaw = calendarData?.calendarEvents?.earnings?.earningsDate;
     if (earningsDatesRaw) {
       const earningsDates = Array.isArray(earningsDatesRaw)
         ? earningsDatesRaw
         : [earningsDatesRaw];
 
-      earningsDates.forEach((earningsDate) => {
-        if (!earningsDate) return;
-
-        let eventDate;
-
-        // Case 1: yahoo-finance2 returns a JS Date (what your npx output shows)
-        if (earningsDate instanceof Date) {
-          eventDate = earningsDate;
-        }
-        // Case 2: if it were a Unix timestamp in seconds
-        else if (typeof earningsDate === "number") {
-          eventDate = new Date(earningsDate * 1000);
-        } else {
-          console.warn(
-            "[checkCalendarEventsForSymbol] Unknown earningsDate type:",
-            earningsDate
-          );
-          return;
-        }
-
-        const daysUntil = Math.ceil(
-          (eventDate - today) / (1000 * 60 * 60 * 24)
-        );
+      for (const earningsDate of earningsDates) {
+        const eventDate = new Date(earningsDate);
+        const daysUntil = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
 
         if (daysUntil >= 0 && daysUntil <= DEFAULT_DAYS_BEFORE) {
-          const eventId = `earnings-${symbolUpper}-${eventDate.toISOString()}`;
+          const notification = new Notification({
+            symbol: symbolUpper,
+            eventType: "earnings",
+            eventDate,
+            daysUntil,
+            message: `${symbolUpper} earnings on ${eventDate.toLocaleDateString()} (${
+              daysUntil === 0 ? "today" : `${daysUntil} day${daysUntil > 1 ? "s" : ""} away`
+            })`,
+            isRead: false,
+          });
 
-          if (!mockTrackedEvents.has(eventId)) {
-            const notificationId = Date.now().toString();
-            const notification = {
-              id: notificationId,
-              symbol: symbolUpper,
-              eventType: "earnings",
-              eventDate: eventDate.toISOString(),
-              daysUntil,
-              message: `${symbolUpper} earnings on ${eventDate.toLocaleDateString()} (${
-                daysUntil === 0
-                  ? "today"
-                  : `${daysUntil} day${daysUntil > 1 ? "s" : ""} away`
-              })`,
-              isRead: false,
-              createdAt: new Date().toISOString(),
-            };
-
-            mockNotifications.set(notificationId, notification);
-            mockTrackedEvents.set(eventId, {
-              eventId,
-              notifiedAt: new Date().toISOString(),
-            });
-
-            console.log("[NOTIF CREATED - EARNINGS]", notification);
-          }
+          await notification.save();
+          console.log("[NOTIF CREATED - EARNINGS]", notification);
         }
-      });
+      }
     }
 
-    // --------------------------------------------------
-    // DIVIDEND NOTIFICATIONS (from chart events)
-    // --------------------------------------------------
+    // Handle dividend notifications
     if (chartEvents?.dividends && chartEvents.dividends.length > 0) {
-      chartEvents.dividends.forEach((dividend) => {
-        if (!dividend?.date) return;
-
-        let eventDate;
-
-        // yahoo-finance2 chart() usually returns timestamp (seconds)
-        if (dividend.date instanceof Date) {
-          eventDate = dividend.date;
-        } else if (typeof dividend.date === "number") {
-          eventDate = new Date(dividend.date * 1000);
-        } else {
-          console.warn(
-            "[checkCalendarEventsForSymbol] Unknown dividend date type:",
-            dividend.date
-          );
-          return;
-        }
-
-        const daysUntil = Math.ceil(
-          (eventDate - today) / (1000 * 60 * 60 * 24)
-        );
+      for (const dividend of chartEvents.dividends) {
+        const eventDate = new Date(dividend.date * 1000);
+        const daysUntil = Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24));
 
         if (daysUntil >= 0 && daysUntil <= DEFAULT_DAYS_BEFORE) {
-          const eventId = `dividend-${symbolUpper}-${eventDate.toISOString()}`;
+          const notification = new Notification({
+            symbol: symbolUpper,
+            eventType: "dividend",
+            eventDate,
+            daysUntil,
+            amount: dividend.amount,
+            message: `${symbolUpper} dividend of $${
+              dividend.amount?.toFixed?.(2) ?? "N/A"
+            } on ${eventDate.toLocaleDateString()} (${
+              daysUntil === 0 ? "today" : `${daysUntil} day${daysUntil > 1 ? "s" : ""} away`
+            })`,
+            isRead: false,
+          });
 
-          if (!mockTrackedEvents.has(eventId)) {
-            const notificationId = Date.now().toString();
-            const notification = {
-              id: notificationId,
-              symbol: symbolUpper,
-              eventType: "dividend",
-              eventDate: eventDate.toISOString(),
-              daysUntil,
-              amount: dividend.amount,
-              message: `${symbolUpper} dividend of $${
-                dividend.amount?.toFixed?.(2) ?? "N/A"
-              } on ${eventDate.toLocaleDateString()} (${
-                daysUntil === 0
-                  ? "today"
-                  : `${daysUntil} day${daysUntil > 1 ? "s" : ""} away`
-              })`,
-              isRead: false,
-              createdAt: new Date().toISOString(),
-            };
-
-            mockNotifications.set(notificationId, notification);
-            mockTrackedEvents.set(eventId, {
-              eventId,
-              notifiedAt: new Date().toISOString(),
-            });
-
-            console.log("[NOTIF CREATED - DIVIDEND]", notification);
-          }
+          await notification.save();
+          console.log("[NOTIF CREATED - DIVIDEND]", notification);
         }
-      });
+      }
     }
   } catch (error) {
     console.error(`Error checking calendar events for ${symbol}:`, error);
   }
 }
 
-// TEMP: seed a fake notification to test /api/notifications
-app.post("/api/notifications/debug-seed", (req, res) => {
-  const id = Date.now().toString();
-  const notification = {
-    id,
-    symbol: "DEBUG",
-    eventType: "test",
-    message: "This is a debug notification",
-    isRead: false,
-    createdAt: new Date().toISOString(),
-  };
 
-  console.log("[DEBUG-SEED] Creating notification", notification);
-
-  mockNotifications.set(id, notification);
-  res.json(notification);
-});
 
 // Endpoint to manually check calendar events for a symbol
 app.post("/api/calendar-events/check", async (req, res) => {
