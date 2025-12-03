@@ -8,23 +8,16 @@ import mongoose from "mongoose";
 const priceDataSchema = new mongoose.Schema(
   {
     symbol: {
-      type: String,
-      required: true,
-      index: true,
-      uppercase: true, // Always store symbols in uppercase
+      type: String, required: true, index: true, uppercase: true, // Always store symbols in uppercase
       trim: true,
     },
     timeframe: {
-      type: String,
-      required: true,
-      index: true,
+      type: String, required: true, index: true,
       enum: ["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"],
       default: "1d",
     },
-    date: {
-      type: Date,
-      required: true,
-      index: true,
+    date: { 
+      type: Date, required: true, index: true 
     },
     open: {
       type: Number,
