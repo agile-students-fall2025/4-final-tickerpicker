@@ -202,7 +202,7 @@ export function AuthProvider({ children }) {
         try {
             const res = await fetchWithAuth("/api/auth/email", {
                 method: "PUT",
-                body: JSON.stringify({ normEmail }),
+                body: JSON.stringify({ newEmail: normEmail }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
