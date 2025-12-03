@@ -23,12 +23,6 @@ export default function ProfilePage() {
 
     if (!isAuthenticated) {
         console.log("Make sure the user is valid and authenticated when view profile")
-        
-        return;
-    }
-
-    if (!isAuthenticated) {
-        console.log("Make sure the user is valid and authenticated when view profile")
         return;
     }
 
@@ -56,12 +50,8 @@ export default function ProfilePage() {
         e.preventDefault();
         setPasswordMessage({ type: "", text: "" });
 
-        if(!oldPassword || !newPassword) {
+        if(!oldPassword || !newPassword || !confirmPassword) {
             setPasswordMessage({ type: "err", text: "Please fill all password fields." });
-            return;
-        }
-        if (newPassword.length < 6){
-            setPasswordMessage({ type: "err", text: "Use at least 6 characters." });
             return;
         }
         if (newPassword !== confirmPassword) {

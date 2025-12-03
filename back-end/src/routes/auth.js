@@ -144,7 +144,7 @@ router.put('/email', requireAuth, async (req, res) => {
     accessToken,
     tokenType: 'Bearer',
     expiresIn: 7200,
-    user: { id: me.id, username: me.username, roles: me.roles || [] },
+    user: { id: me.id, username: me.username, email: me.email, roles: me.roles || [] },
   });
 });
 
@@ -186,6 +186,8 @@ router.put('/password', requireAuth, async (req, res) => {
   me.keylen = keylen;
   me.digest = digest;
   // END OF DB INTEGRATION MODIFICATION
+  
+  await me.save();
 
   const accessToken = signJWT(
     { sub: me.id, username: me.username, roles: me.roles || [] },
@@ -198,7 +200,7 @@ router.put('/password', requireAuth, async (req, res) => {
     accessToken,
     tokenType: 'Bearer',
     expiresIn: 7200,
-    user: { id: me.id, username: me.username, roles: me.roles || [] },
+    user: { id: me.id, username: me.username, email: me.email, roles: me.roles || [] },
   });
 });
 

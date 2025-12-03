@@ -41,15 +41,15 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         try {
             const rawUser = window.localStorage.getItem("tp-user");
-            if (rawUser) {
-            const parsed = JSON.parse(rawUser);
-            if (parsed && parsed.password) {
-                delete parsed.password;
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                if (parsed && parsed.password) {
+                    delete parsed.password;
+                }
+                const normalized = normalizeUser(parsed);
+                window.localStorage.setItem("tp-user", JSON.stringify(normalized));
+                setUser(normalized || null);
             }
-            const normalized = normalizeUser(parsed);
-            window.localStorage.setItem("tp-user", JSON.stringify(normalized));
-            setUser(normalized || null);
-        }
             const token = window.localStorage.getItem("tp-access");
             if (token) setAccessToken(token);
         } catch (err) {
@@ -106,7 +106,7 @@ export function AuthProvider({ children }) {
         }
 
         if (!EMAIL_REGEX.test(normEmail)) {
-        return { ok: false, error: "Please enter a valid email address." };
+            return { ok: false, error: "Please enter a valid email address." };
         }
 
         if (!PASSWORD_REGEX.test(password)) {
@@ -191,7 +191,7 @@ export function AuthProvider({ children }) {
       // PUT /api/auth/email(requires Bearer token)
     async function updateEmail(newEmail) {
         if (!newEmail || typeof newEmail !== "string") {
-            return { ok: false, error: "newEmail is required" };
+            return { ok: false, error: "new email is required" };
         }
 
          const normEmail = newEmail.trim();
@@ -202,7 +202,7 @@ export function AuthProvider({ children }) {
         try {
             const res = await fetchWithAuth("/api/auth/email", {
                 method: "PUT",
-                body: JSON.stringify({ normEmail }),
+                body: JSON.stringify({ newEmail: normEmail }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
@@ -218,7 +218,7 @@ export function AuthProvider({ children }) {
     //PUT /api/auth/password(require Bearer token)
     async function updatePassword(oldPassword, newPassword) {
         if (!oldPassword || !newPassword) {
-            return { ok: false, error: "oldPassword and newPassword are required" };
+            return { ok: false, error: "old password and new password are required" };
         }
 
         if (!PASSWORD_REGEX.test(newPassword)) {
