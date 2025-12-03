@@ -20,7 +20,6 @@ export default function ProfilePage() {
     const [notifications, setNotifications] = useState([]);
 
 
-
     const avatarUrl = `https://picsum.photos/seed/${user?.email || "guest"}/140/140`;
 
     // if (!isAuthenticated) {
@@ -29,16 +28,10 @@ export default function ProfilePage() {
 
     if (!isAuthenticated) {
         console.log("Make sure the user is valid and authenticated when view profile")
-        
         return;
     }
 
-    if (!isAuthenticated) {
-        console.log("Make sure the user is valid and authenticated when view profile")
-        return;
-    }
-
-    // 🔁 Load notifications when the profile page mounts
+    // Load notifications when the profile page mounts
     useEffect(() => {
         (async () => {
             try {
