@@ -191,7 +191,7 @@ export function AuthProvider({ children }) {
       // PUT /api/auth/email(requires Bearer token)
     async function updateEmail(newEmail) {
         if (!newEmail || typeof newEmail !== "string") {
-            return { ok: false, error: "newEmail is required" };
+            return { ok: false, error: "new email is required" };
         }
 
          const normEmail = newEmail.trim();
@@ -218,7 +218,7 @@ export function AuthProvider({ children }) {
     //PUT /api/auth/password(require Bearer token)
     async function updatePassword(oldPassword, newPassword) {
         if (!oldPassword || !newPassword) {
-            return { ok: false, error: "oldPassword and newPassword are required" };
+            return { ok: false, error: "old password and new password are required" };
         }
 
         if (!PASSWORD_REGEX.test(newPassword)) {
