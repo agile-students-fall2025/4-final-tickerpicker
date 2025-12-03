@@ -200,7 +200,7 @@ router.put('/password', requireAuth, async (req, res) => {
     accessToken,
     tokenType: 'Bearer',
     expiresIn: 7200,
-    user: { id: me.id, username: me.username, roles: me.roles || [] },
+    user: { id: me.id, username: me.username, email: me.email, roles: me.roles || [] },
   });
 });
 
