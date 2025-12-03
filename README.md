@@ -67,6 +67,12 @@ If time permits, we'd like to add:
 - **Product Owner:** [Apoorv Belgundi](https://github.com/apoorvib)
 - **Scrum Master:** [Michael Mvano](https://github.com/michx02)
 
+### Sprint 4 Roles
+
+- **Product Owner:** [Julien Soto-Raspa](https://github.com/jlnsr)
+- **Scrum Master:** [Muyao (Jerry) Kong](https://github.com/Jerry-K5050)
+
+
 ### Developers
 
 - [Lauren Throve](https://github.com/laurenst17)
