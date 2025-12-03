@@ -19,36 +19,12 @@ export default function ProfilePage() {
     const [textPriceAlerts, setTextPriceAlerts] = useState(false);
     const [notifications, setNotifications] = useState([]);
 
-
     const avatarUrl = `https://picsum.photos/seed/${user?.email || "guest"}/140/140`;
-
-    // if (!isAuthenticated) {
-    //     throw 
-    // }
 
     if (!isAuthenticated) {
         console.log("Make sure the user is valid and authenticated when view profile")
         return;
     }
-
-    // Load notifications when the profile page mounts
-    useEffect(() => {
-        (async () => {
-            try {
-                const res = await fetch("http://localhost:3001/api/notifications");
-                if (!res.ok) {
-                    console.error("Failed to load notifications:", res.status);
-                    return;
-                }
-                const data = await res.json();
-                setNotifications(data);
-                console.log("Loaded notifications:", data);
-            } catch (err) {
-                console.error("Error fetching notifications:", err);
-            }
-        })();
-    }, []);
-
 
     async function onSubmitEmail(e) {
         e.preventDefault();
@@ -192,26 +168,11 @@ export default function ProfilePage() {
 
         <div className="md:col-span-6 flex flex-col gap-6 md:gap-8">
 
-        <ul className="space-y-3">
-          {notifications.length === 0 ? (
-            <li className="text-tp-text-dim">No notifications yet.</li>
-          ) : (
-            notifications.map((n) => (
-                <li key={n.id} className="tp-card p-4 text-black">
-                <div className="font-semibold text-black">{n.symbol}</div>
-                <div className="text-black">{n.message}</div>
-                <div className="text-xs text-tp-text-dim">
-                  {new Date(n.createdAt).toLocaleString()}
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
 
 
 
-            <div className="tp-card p-4 md:p-8">
-  <h3 className="text-lg font-semibold text-black pb-4">Notification preferences</h3>
+<div className="tp-card p-4 md:p-8">
+
 
   <div className="flex flex-col gap-4">
 

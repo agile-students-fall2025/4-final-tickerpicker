@@ -2,7 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 
 export default function LeftNav() {
-    const links = ['Home', 'Watchlist', 'TickerPicker', 'Profile'].map(link => {
+    const links = ['Home', 'Watchlist', 'TickerPicker','Notifications', 'Profile',].map(link => {
         return (
             <NavLink
                 key={link}

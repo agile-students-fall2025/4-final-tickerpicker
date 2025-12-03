@@ -14,7 +14,7 @@ export default function Navbar() {
     const [notifItems, setNotifItems] = useState([]);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const notifRef = useRef(null);
-      
+
     // Mobile menu state
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const mobileMenuRef = useRef(null);
@@ -25,7 +25,7 @@ export default function Navbar() {
         if (!isAuthenticated) return;
     
         try {
-            const res = await fetch("/api/notifications");
+            const res = await fetch("http://localhost:3001/api/notifications");
             
             const data = await res.json();
     
@@ -33,10 +33,7 @@ export default function Navbar() {
         } catch (err) {
             console.error("Navbar fetch error:", err);
         }
-    };
-    
-    
-
+    };    
     // Close notification dropdown when clicking outside (mobile)
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -55,8 +52,8 @@ export default function Navbar() {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isNotifOpen, isMobileMenuOpen]);
-    
+    }, [isNotifOpen, isMobileMenuOpen]);  
+
     // Prevent body scroll when mobile menu is open
     useEffect(() => {
         if (isMobileMenuOpen) {
@@ -71,7 +68,7 @@ export default function Navbar() {
     }, [isMobileMenuOpen]);
     
     // Navigation links
-    const navLinks = ['Home', 'Watchlist', 'TickerPicker', 'Profile'];
+    const navLinks = ['Home', 'Watchlist', 'TickerPicker', 'Profile', 'Notifications'];
 
     const avatarUrl = `https://picsum.photos/seed/${
         user?.email || "guest"
@@ -175,9 +172,7 @@ export default function Navbar() {
                                                 </button>
                                             </div>
                                             <ul className="max-h-72 overflow-auto text-sm"></ul>
-                                            <div className="px-4 py-3 border-t border-tp-border text-center text-sm text-blue-600 hover:underline">
-                                                <Link to="/profile" onClick={() => setIsNotifOpen(false)}>View all notifications</Link>
-                                            </div>
+
                                         </div>
                                     )}
                                 </div>
@@ -296,6 +291,7 @@ export default function Navbar() {
                                 onMouseEnter={() => setIsNotifOpen(true)}
                                 onMouseLeave={() => setIsNotifOpen(false)}
                             >
+                                
                                 <button
                                     type="button"
                                     aria-label="Notifications"
@@ -311,7 +307,9 @@ export default function Navbar() {
 
                                     <FaBell className="text-lg" />
                                     {notifItems.length > 0 && (
-                                        <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500"></span>
+                                            <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 flex items-center justify-center rounded-full bg-red-600 text-white text-xs font-semibold">
+                                            {notifItems.length}
+                                        </span>
                                     )}
                                 </button>
 
@@ -343,13 +341,10 @@ export default function Navbar() {
                                                         {new Date(n.createdAt).toLocaleString()}
                                                     </div>
                                                 </li>
-                                            ))
+                                            ))                          
                                         )}
                                     </ul>
 
-                                    <div className="px-4 py-3 border-t border-tp-border text-center text-sm text-blue-600 hover:underline">
-                                        <Link to="/profile">View all notifications</Link>
-                                    </div>
                                 </div>
                             </div>
                         </>
