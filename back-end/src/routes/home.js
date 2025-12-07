@@ -1,12 +1,15 @@
 import { Router } from "express";
-import {
-  queryPriceData,
-  fetchQuotes,
-  fetchQuotesParallel,
-} from "../data/DataFetcher.js";
+import { queryPriceData, fetchQuotes } from "../data/DataFetcher.js";
 import { calculateSharpeRatio } from "../utils/SharpeRatio.js";
 
 const router = Router();
+
+// Simple in-memory caches to cut upstream calls
+const RECOMMENDED_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const TOP_PERFORMERS_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+
+let recommendedCache = { data: null, expiresAt: 0 };
+let topPerformersCache = { data: null, expiresAt: 0 };
 
 // SPDR Sector Select ETFs
 const SPDR_ETFS = [
@@ -43,6 +46,11 @@ const SPDR_ETFS = [
  */
 router.get("/recommended-picks", async (req, res) => {
   try {
+    // Serve from cache if fresh
+    if (recommendedCache.data && recommendedCache.expiresAt > Date.now()) {
+      return res.json(recommendedCache.data);
+    }
+
     // Calculate date range (last 30 days)
     const endDate = new Date();
     const startDate = new Date();
@@ -58,43 +66,37 @@ router.get("/recommended-picks", async (req, res) => {
     const startDateStr = formatDate(startDate);
     const endDateStr = formatDate(endDate);
 
-    // Fetch price data and calculate Sharpe ratios for all ETFs
-    const etfData = [];
+    // Fetch price data and calculate Sharpe ratios for all ETFs in parallel
+    const etfData = (
+      await Promise.all(
+        SPDR_ETFS.map(async (symbol) => {
+          try {
+            const priceData = await queryPriceData(
+              symbol,
+              startDateStr,
+              endDateStr,
+              "1d"
+            );
 
-    for (const symbol of SPDR_ETFS) {
-      try {
-        // Fetch 1 month of daily price data
-        const priceData = await queryPriceData(
-          symbol,
-          startDateStr,
-          endDateStr,
-          "1d"
-        );
+            if (!priceData || priceData.length < 2) {
+              console.warn(`Insufficient data for ${symbol}`);
+              return null;
+            }
 
-        if (!priceData || priceData.length < 2) {
-          console.warn(`Insufficient data for ${symbol}`);
-          continue;
-        }
+            const sharpeRatio = calculateSharpeRatio(priceData);
+            if (sharpeRatio === null || isNaN(sharpeRatio)) {
+              console.warn(`Could not calculate Sharpe ratio for ${symbol}`);
+              return null;
+            }
 
-        // Calculate Sharpe ratio
-        const sharpeRatio = calculateSharpeRatio(priceData);
-
-        if (sharpeRatio === null || isNaN(sharpeRatio)) {
-          console.warn(`Could not calculate Sharpe ratio for ${symbol}`);
-          continue;
-        }
-
-        etfData.push({
-          symbol,
-          sharpeRatio,
-          priceData, // Keep for later use
-        });
-      } catch (error) {
-        console.error(`Error processing ${symbol}:`, error.message);
-        // Continue with other ETFs even if one fails
-        continue;
-      }
-    }
+            return { symbol, sharpeRatio };
+          } catch (error) {
+            console.error(`Error processing ${symbol}:`, error.message);
+            return null;
+          }
+        })
+      )
+    ).filter(Boolean);
 
     // Sort by Sharpe ratio (highest first)
     etfData.sort((a, b) => b.sharpeRatio - a.sharpeRatio);
@@ -103,7 +105,12 @@ router.get("/recommended-picks", async (req, res) => {
     const topPicks = etfData.slice(0, 5);
 
     if (topPicks.length === 0) {
-      return res.json({ picks: [] });
+      const payload = { picks: [] };
+      recommendedCache = {
+        data: payload,
+        expiresAt: Date.now() + RECOMMENDED_CACHE_TTL_MS,
+      };
+      return res.json(payload);
     }
 
     // Fetch current quotes for the top picks to get price, change, changePercent
@@ -155,7 +162,13 @@ router.get("/recommended-picks", async (req, res) => {
       })
       .filter((p) => p !== null); // Remove any null entries
 
-    res.json({ picks });
+    const payload = { picks };
+    recommendedCache = {
+      data: payload,
+      expiresAt: Date.now() + RECOMMENDED_CACHE_TTL_MS,
+    };
+
+    res.json(payload);
   } catch (error) {
     console.error("Error fetching recommended picks:", error);
     res.status(500).json({
@@ -279,13 +292,17 @@ const NASDAQ_100 = [
  */
 router.get("/top-performers", async (req, res) => {
   try {
+    if (topPerformersCache.data && topPerformersCache.expiresAt > Date.now()) {
+      return res.json(topPerformersCache.data);
+    }
+
     console.log(
       `Fetching quotes for ${NASDAQ_100.length} Nasdaq 100 stocks...`
     );
     const startTime = Date.now();
 
-    // Fetch all quotes in parallel batches (20 at a time)
-    const quotes = await fetchQuotesParallel(NASDAQ_100, 20);
+    // Fetch all quotes using cached fetchQuotes (includes in-flight dedupe + TTL)
+    const quotes = await fetchQuotes(NASDAQ_100, 20);
 
     const fetchTime = Date.now() - startTime;
     console.log(
@@ -344,7 +361,12 @@ router.get("/top-performers", async (req, res) => {
     const top10 = performers.slice(0, 10);
 
     console.log(`Returning top ${top10.length} performers`);
-    res.json({ performers: top10 });
+    const payload = { performers: top10 };
+    topPerformersCache = {
+      data: payload,
+      expiresAt: Date.now() + TOP_PERFORMERS_CACHE_TTL_MS,
+    };
+    res.json(payload);
   } catch (error) {
     console.error("Error fetching top performers:", error);
     res.status(500).json({
