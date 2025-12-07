@@ -6,6 +6,15 @@ import {
 } from "./PriceDataService.js";
 import mongoose from "mongoose";
 
+// Lightweight in-memory caches to avoid hammering upstream APIs
+const QUOTE_TTL_MS = 90 * 1000; // short TTL for price quotes
+const FUNDAMENTAL_TTL_MS = 6 * 60 * 60 * 1000; // longer TTL for fundamentals
+
+const quoteCache = new Map(); // symbol -> { data, expiresAt }
+const quoteInFlight = new Map(); // symbol -> Promise<quote>
+const fundamentalsCache = new Map(); // symbol -> { data, expiresAt }
+const fundamentalsInFlight = new Map(); // symbol -> Promise<data>
+
 /**
  * Fetches historical price data using yahoo-finance2 chart() method
  * Now with MongoDB caching: checks database first, fetches only missing date ranges from API
@@ -298,17 +307,64 @@ async function fetchFromAPI(
 }
 
 // 批量获取quote数据 返回一个{[symbol]: quoteObject}的映射
-export async function fetchQuotes(symbols = []) {
+export async function fetchQuotes(symbols = [], batchSize = 20) {
   const yahooFinance = new YahooFinance();
   const result = {};
+  const now = Date.now();
 
-  for (const symbol of symbols) {
-    try {
-      const quote = await yahooFinance.quote(symbol);
-      result[symbol] = quote;
-    } catch (err) {
-      console.error(`Error fetching quote for ${symbol}:`, err.message);
+  // First, collect cache hits and misses
+  const misses = [];
+  for (const raw of symbols) {
+    const symbol = raw.toUpperCase();
+    const cached = quoteCache.get(symbol);
+    if (cached && cached.expiresAt > now) {
+      result[symbol] = cached.data;
+    } else {
+      misses.push(symbol);
     }
+  }
+
+  // Set up in-flight fetches for misses (dedupe concurrent calls)
+  const toFetch = Array.from(new Set(misses));
+  for (const symbol of toFetch) {
+    if (!quoteInFlight.has(symbol)) {
+      const p = yahooFinance
+        .quote(symbol)
+        .then((quote) => {
+          if (quote) {
+            quoteCache.set(symbol, {
+              data: quote,
+              expiresAt: Date.now() + QUOTE_TTL_MS,
+            });
+          }
+          return quote;
+        })
+        .catch((err) => {
+          console.error(`Error fetching quote for ${symbol}:`, err.message);
+          return null;
+        })
+        .finally(() => quoteInFlight.delete(symbol));
+
+      quoteInFlight.set(symbol, p);
+    }
+  }
+
+  // Consume in-flight fetches in batches to avoid overwhelming upstream
+  for (let i = 0; i < toFetch.length; i += batchSize) {
+    const batch = toFetch.slice(i, i + batchSize);
+    await Promise.all(
+      batch.map(async (symbol) => {
+        try {
+          const quote = await quoteInFlight.get(symbol);
+          if (quote) result[symbol] = quote;
+        } catch (err) {
+          console.error(
+            `Error resolving quote for ${symbol} from in-flight cache:`,
+            err.message
+          );
+        }
+      })
+    );
   }
 
   return result;
@@ -362,23 +418,43 @@ export async function fetchQuotesParallel(symbols = [], batchSize = 20) {
  * @returns {Object} Fundamental data including summary, financials, key statistics
  */
 export async function getFundamentals(symbol) {
-  try {
-    const yahooFinance = new YahooFinance();
+  if (!symbol) throw new Error("symbol is required");
+  const key = symbol.toUpperCase();
+  const now = Date.now();
 
-    const data = await yahooFinance.quoteSummary(symbol, {
-      modules: [
-        "summaryDetail",
-        "financialData",
-        "defaultKeyStatistics",
-        "price",
-      ],
-    });
+  const cached = fundamentalsCache.get(key);
+  if (cached && cached.expiresAt > now) return cached.data;
 
-    return data;
-  } catch (error) {
-    console.error(`Error fetching fundamentals for ${symbol}:`, error.message);
-    throw error;
+  if (!fundamentalsInFlight.has(key)) {
+    const p = (async () => {
+      const yahooFinance = new YahooFinance();
+      const data = await yahooFinance.quoteSummary(key, {
+        modules: [
+          "summaryDetail",
+          "financialData",
+          "defaultKeyStatistics",
+          "price",
+        ],
+      });
+      fundamentalsCache.set(key, {
+        data,
+        expiresAt: Date.now() + FUNDAMENTAL_TTL_MS,
+      });
+      return data;
+    })()
+      .catch((error) => {
+        console.error(
+          `Error fetching fundamentals for ${key}:`,
+          error.message
+        );
+        throw error;
+      })
+      .finally(() => fundamentalsInFlight.delete(key));
+
+    fundamentalsInFlight.set(key, p);
   }
+
+  return fundamentalsInFlight.get(key);
 }
 
 /**
