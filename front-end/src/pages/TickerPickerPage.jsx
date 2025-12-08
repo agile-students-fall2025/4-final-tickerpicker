@@ -30,6 +30,31 @@ export default function TickerPickerPage() {
   const [watchlists, setWatchlists] = useState([]);
   const [allStocks, setAllStocks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingWatchlists, setIsLoadingWatchlists] = useState(false);
+
+  async function fetchWatchlists() {
+    if (!isAuthenticated) return;
+    setIsLoadingWatchlists(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/watchlists/initial`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!res.ok) {
+        console.error("Failed to fetch watchlists:", res.status);
+        setWatchlists([]);
+        return;
+      }
+      const data = await res.json();
+      setWatchlists(data.watchlists || []);
+    } catch (err) {
+      console.error("Error loading watchlists:", err);
+      setWatchlists([]);
+    } finally {
+      setIsLoadingWatchlists(false);
+    }
+  }
 
   async function fetchFilteredStocksFromApi(currentFilters) {
     setIsLoading(true);
@@ -113,11 +138,11 @@ export default function TickerPickerPage() {
         // fetch stocks from API with filters set
         if (!isAuthenticated) return;
         await fetchFilteredStocksFromApi(filters);
-        setWatchlists([]);
+        await fetchWatchlists();
       }
     };
     loadData();
-  }, []);
+  }, [isAuthenticated]);
 
   // Filter stocks based on active filters, runs everytime 'filters' changes
   useEffect(() => {
@@ -233,37 +258,54 @@ export default function TickerPickerPage() {
     }
   }
 
-  function handleAddToWatchlist(ticker) {
-    // Get first watchlist or create one if none exists
-    const targetWatchlist = watchlists[0] || {
-      id: 1,
-      name: "My Watchlist",
-      stocks: [],
-    };
-
-    // Check if stock already exists
-    if (targetWatchlist.stocks.includes(ticker)) {
-      alert(`${ticker} is already in your watchlist`);
+  async function handleAddToWatchlist(ticker, watchlistId) {
+    if (USE_MOCK) {
+      const updated = watchlists.map((wl) =>
+        wl.id === watchlistId
+          ? { ...wl, stocks: wl.stocks.includes(ticker) ? wl.stocks : [...wl.stocks, ticker] }
+          : wl
+      );
+      setWatchlists(updated);
+      alert(`${ticker} added to watchlist`);
       return;
     }
 
-    // Add to watchlist
-    const updatedWatchlist = {
-      ...targetWatchlist,
-      stocks: [...targetWatchlist.stocks, ticker],
-    };
-
-    if (watchlists.length === 0) {
-      setWatchlists([updatedWatchlist]);
-    } else {
-      setWatchlists(
-        watchlists.map((wl) =>
-          wl.id === targetWatchlist.id ? updatedWatchlist : wl
-        )
-      );
+    if (!isAuthenticated) {
+      alert("Please sign in to save to a watchlist.");
+      return;
     }
 
-    alert(`${ticker} added to watchlist`);
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/watchlists/${watchlistId}/stocks`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ symbol: ticker }),
+        }
+      );
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        alert(error.error || "Failed to add to watchlist.");
+        return;
+      }
+
+      const data = await res.json();
+      const updatedWatchlist = data.watchlist;
+      setWatchlists((prev) =>
+        prev.map((wl) =>
+          wl.id === updatedWatchlist.id ? { ...wl, ...updatedWatchlist } : wl
+        )
+      );
+      alert(`${ticker} added to ${updatedWatchlist.name}`);
+    } catch (err) {
+      console.error("Add to watchlist failed:", err);
+      alert("Failed to add to watchlist.");
+    }
   }
 
   if (!isAuthenticated) {
@@ -331,6 +373,7 @@ export default function TickerPickerPage() {
           ) : (
             <Screener
               stocks={filteredStocks}
+              watchlists={watchlists}
               onAddToWatchlist={handleAddToWatchlist}
             />
           )}

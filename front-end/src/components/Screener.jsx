@@ -1,12 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 /**
  * @param {*} Props List of stocks to display, and function that adds a stock to the watchlist.
  * Formats stock data and renders all the stocks that match the filter parameters.
  */
-export default function Screener({ stocks, onAddToWatchlist }) {
+export default function Screener({ stocks, watchlists = [], onAddToWatchlist }) {
   const tril = Math.pow(10, 12);
   const bil = Math.pow(10, 9);
   const mil = Math.pow(10, 6);
+  const [openTicker, setOpenTicker] = useState(null);
+
+  const handleOpenPicker = (ticker) => {
+    setOpenTicker((prev) => (prev === ticker ? null : ticker));
+  };
+
+  const handlePickWatchlist = (ticker, watchlistId) => {
+    onAddToWatchlist(ticker, watchlistId);
+    setOpenTicker(null);
+  };
   // Format market cap into human-readable string
   const formatMarketCap = (cap) => {
     if (cap >= tril) {
@@ -129,11 +139,45 @@ export default function Screener({ stocks, onAddToWatchlist }) {
             {/* Right side - Add button */}
             <div className="flex flex-col items-start sm:items-end gap-4 w-full sm:w-auto">
               <button
-                onClick={() => onAddToWatchlist(stock.ticker)}
+                onClick={() => handleOpenPicker(stock.ticker)}
                 className="tp-btn-primary text-xs px-4 py-2 w-full sm:w-auto"
               >
                 Add to Watchlist
               </button>
+              {openTicker === stock.ticker && (
+                <div className="w-full sm:w-64 tp-card border border-tp-border bg-white shadow-lg rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-black">
+                      Choose a watchlist
+                    </p>
+                    <button
+                      className="text-xs text-tp-text-dim hover:text-black"
+                      onClick={() => setOpenTicker(null)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                  {watchlists.length === 0 ? (
+                    <p className="text-xs text-tp-text-dim">
+                      No watchlists found.
+                    </p>
+                  ) : (
+                    <div className="space-y-1">
+                      {watchlists.map((wl) => (
+                        <button
+                          key={wl.id}
+                          onClick={() =>
+                            handlePickWatchlist(stock.ticker, wl.id)
+                          }
+                          className="w-full text-left text-xs px-3 py-2 rounded-md hover:bg-tp-bg"
+                        >
+                          {wl.name} ({wl.stocks?.length || 0})
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
