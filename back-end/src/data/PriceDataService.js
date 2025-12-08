@@ -1,26 +1,5 @@
 import PriceData from "../models/PriceData.js";
-
-/**
- * Converts a date string (YYYY-MM-DD) to a Date object at start of day (UTC)
- * @param {string} dateStr - Date string in YYYY-MM-DD format
- * @returns {Date} Date object at start of day in UTC
- */
-function parseDate(dateStr) {
-  const date = new Date(dateStr + "T00:00:00.000Z");
-  return date;
-}
-
-/**
- * Converts a Date object to YYYY-MM-DD string
- * @param {Date} date - Date object
- * @returns {string} Date string in YYYY-MM-DD format
- */
-function formatDate(date) {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
+import { parseDate, formatDate } from "../utils/dateUtils.js";
 
 /**
  * Finds price data in the database for a given symbol, date range, and timeframe
@@ -30,7 +9,12 @@ function formatDate(date) {
  * @param {string} timeframe - Timeframe (e.g., '1d', '1wk', '1mo')
  * @returns {Promise<Array>} Array of quote objects with date, open, high, low, close, volume, adjClose
  */
-export async function findPriceData(symbol, startDate, endDate, timeframe = "1d") {
+export async function findPriceData(
+  symbol,
+  startDate,
+  endDate,
+  timeframe = "1d"
+) {
   try {
     const symbolUpper = symbol.toUpperCase();
     const start = parseDate(startDate);
@@ -129,7 +113,12 @@ export async function insertPriceData(symbol, timeframe, quotes) {
  * @param {string} timeframe - Timeframe (e.g., '1d', '1wk', '1mo')
  * @returns {Promise<Array>} Array of { startDate, endDate } objects for missing ranges
  */
-export async function findDateGaps(symbol, startDate, endDate, timeframe = "1d") {
+export async function findDateGaps(
+  symbol,
+  startDate,
+  endDate,
+  timeframe = "1d"
+) {
   try {
     const symbolUpper = symbol.toUpperCase();
     const start = parseDate(startDate);
@@ -172,7 +161,9 @@ export async function findDateGaps(symbol, startDate, endDate, timeframe = "1d")
     }
 
     // Find missing dates
-    const missingDates = expectedDates.filter((date) => !existingDates.has(date));
+    const missingDates = expectedDates.filter(
+      (date) => !existingDates.has(date)
+    );
 
     if (missingDates.length === 0) {
       return []; // No gaps
@@ -238,4 +229,3 @@ export async function getLatestDate(symbol, timeframe = "1d") {
     throw error;
   }
 }
-

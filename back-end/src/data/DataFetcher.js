@@ -5,6 +5,11 @@ import {
   findDateGaps,
 } from "./PriceDataService.js";
 import mongoose from "mongoose";
+import { formatDate } from "../utils/dateUtils.js";
+import { logger } from "../utils/logger.js";
+
+// Reuse a single YahooFinance instance across all functions for better performance
+const yahooFinance = new YahooFinance();
 
 // Lightweight in-memory caches to avoid hammering upstream APIs
 const QUOTE_TTL_MS = 90 * 1000; // short TTL for price quotes
@@ -45,7 +50,7 @@ export async function queryPriceData(
 
     if (!isDbConnected) {
       // Fallback to direct API call if database is not connected
-      console.warn(
+      logger.warn(
         `Database not connected, fetching ${symbol} data directly from API`
       );
       return await fetchFromAPI(
@@ -62,7 +67,7 @@ export async function queryPriceData(
     try {
       cachedData = await findPriceData(symbol, startDate, endDate, timeframe); //<-- data/PriceDataService.js
     } catch (dbError) {
-      console.warn(
+      logger.warn(
         `Error querying database for ${symbol}, falling back to API:`,
         dbError.message
       );
@@ -81,7 +86,7 @@ export async function queryPriceData(
     try {
       gaps = await findDateGaps(symbol, startDate, endDate, timeframe);
     } catch (gapError) {
-      console.warn(
+      logger.warn(
         `Error finding date gaps for ${symbol}, using cached data only:`,
         gapError.message
       );
@@ -103,91 +108,117 @@ export async function queryPriceData(
       return cachedData;
     }
 
-    // Step 3: If there are gaps, fetch missing data from API
-    let newData = [];
-    if (gaps.length > 0) {
-      console.log(
-        `Found ${gaps.length} date gap(s) for ${symbol}, fetching from API...`
-      );
-
-      // Fetch data for each gap
-      let totalFetched = 0;
-      let totalFiltered = 0;
-      for (const gap of gaps) {
+    // Optimization #4: Early return if no gaps (all data is cached)
+    if (gaps.length === 0) {
+      // No gaps, return cached data immediately
+      if (getMetaData) {
+        // Still need metadata from API
         try {
-          // Yahoo Finance API requires period1 and period2 to be different
-          // If startDate and endDate are the same, expand the range by 1 day
-          let gapStartDate = gap.startDate;
-          let gapEndDate = gap.endDate;
-          const isExpanded = gapStartDate === gapEndDate;
-
-          if (isExpanded) {
-            // Expand single-day gap to include day before and after
-            const singleDate = new Date(gapStartDate + "T00:00:00.000Z");
-            const dayBefore = new Date(singleDate);
-            dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
-            const dayAfter = new Date(singleDate);
-            dayAfter.setUTCDate(dayAfter.getUTCDate() + 1);
-
-            gapStartDate = formatDate(dayBefore);
-            gapEndDate = formatDate(dayAfter);
-          }
-
-          const gapData = await fetchFromAPI(
+          const apiData = await fetchFromAPI(
             symbol,
-            gapStartDate,
-            gapEndDate,
+            startDate,
+            endDate,
             timeframe,
-            false
+            true
           );
-
-          if (gapData && gapData.length > 0) {
-            totalFetched += gapData.length;
-
-            // If we expanded the date range (single-day gap), filter to only include original gap dates
-            let filteredGapData = gapData;
-            if (isExpanded) {
-              // Only include data for the original single date
-              filteredGapData = gapData.filter(
-                (quote) => quote.date === gap.startDate
-              );
-            } else {
-              // Include all data within the original gap range
-              filteredGapData = gapData.filter((quote) => {
-                const quoteDate = quote.date;
-                return quoteDate >= gap.startDate && quoteDate <= gap.endDate;
-              });
-            }
-
-            totalFiltered += filteredGapData.length;
-
-            // Store all fetched data in DB (including expanded range) for future queries
-            // But only add filtered data to newData for this request
-            try {
-              await insertPriceData(symbol, timeframe, gapData);
-            } catch (insertError) {
-              console.warn(
-                `Error inserting data for ${symbol} into database:`,
-                insertError.message
-              );
-            }
-
-            newData = newData.concat(filteredGapData);
-          }
-        } catch (gapFetchError) {
-          console.error(
-            `Error fetching gap data for ${symbol} (${gap.startDate} to ${gap.endDate}):`,
-            gapFetchError.message
+          return {
+            ...apiData,
+            quotes: cachedData.length > 0 ? cachedData : apiData.quotes,
+          };
+        } catch (metaError) {
+          logger.warn(
+            `Error fetching metadata for ${symbol}, returning quotes only:`,
+            metaError.message
           );
-          // Continue with other gaps even if one fails
+          return cachedData;
         }
       }
+      return cachedData;
+    }
 
-      if (totalFetched > 0) {
-        console.log(
-          `Fetched ${totalFetched} records for ${symbol}, filtered to ${totalFiltered} records for requested gaps, stored ${totalFetched} records in DB`
+    // Step 3: Fetch missing data from API for gaps
+    let newData = [];
+    logger.log(
+      `Found ${gaps.length} date gap(s) for ${symbol}, fetching from API...`
+    );
+
+    // Fetch data for each gap
+    let totalFetched = 0;
+    let totalFiltered = 0;
+    for (const gap of gaps) {
+      try {
+        // Yahoo Finance API requires period1 and period2 to be different
+        // If startDate and endDate are the same, expand the range by 1 day
+        let gapStartDate = gap.startDate;
+        let gapEndDate = gap.endDate;
+        const isExpanded = gapStartDate === gapEndDate;
+
+        if (isExpanded) {
+          // Expand single-day gap to include day before and after
+          const singleDate = new Date(gapStartDate + "T00:00:00.000Z");
+          const dayBefore = new Date(singleDate);
+          dayBefore.setUTCDate(dayBefore.getUTCDate() - 1);
+          const dayAfter = new Date(singleDate);
+          dayAfter.setUTCDate(dayAfter.getUTCDate() + 1);
+
+          gapStartDate = formatDate(dayBefore);
+          gapEndDate = formatDate(dayAfter);
+        }
+
+        const gapData = await fetchFromAPI(
+          symbol,
+          gapStartDate,
+          gapEndDate,
+          timeframe,
+          false
         );
+
+        if (gapData && gapData.length > 0) {
+          totalFetched += gapData.length;
+
+          // If we expanded the date range (single-day gap), filter to only include original gap dates
+          let filteredGapData = gapData;
+          if (isExpanded) {
+            // Only include data for the original single date
+            filteredGapData = gapData.filter(
+              (quote) => quote.date === gap.startDate
+            );
+          } else {
+            // Include all data within the original gap range
+            filteredGapData = gapData.filter((quote) => {
+              const quoteDate = quote.date;
+              return quoteDate >= gap.startDate && quoteDate <= gap.endDate;
+            });
+          }
+
+          totalFiltered += filteredGapData.length;
+
+          // Store all fetched data in DB (including expanded range) for future queries
+          // But only add filtered data to newData for this request
+          try {
+            await insertPriceData(symbol, timeframe, gapData);
+          } catch (insertError) {
+            logger.warn(
+              `Error inserting data for ${symbol} into database:`,
+              insertError.message
+            );
+          }
+
+          newData = newData.concat(filteredGapData);
+        }
+      } catch (gapFetchError) {
+        logger.error(
+          `Error fetching gap data for ${symbol} (${gap.startDate} to ${gap.endDate}):`,
+          gapFetchError.message
+        );
+        // Continue with other gaps even if one fails
       }
+    }
+
+    if (totalFetched > 0) {
+      logger.log(
+        `Fetched ${totalFetched} records for ${symbol}, filtered to ${totalFiltered} records for requested gaps, stored ${totalFetched} records in DB`
+      );
     }
 
     // Step 4: Merge cached and newly fetched data
@@ -219,7 +250,7 @@ export async function queryPriceData(
           quotes: mergedData.length > 0 ? mergedData : apiData.quotes,
         };
       } catch (metaError) {
-        console.warn(
+        logger.warn(
           `Error fetching metadata for ${symbol}, returning quotes only:`,
           metaError.message
         );
@@ -231,7 +262,7 @@ export async function queryPriceData(
     // Return merged and sorted data
     return mergedData;
   } catch (error) {
-    console.error(`Error in queryPriceData for ${symbol}:`, error.message);
+    logger.error(`Error in queryPriceData for ${symbol}:`, error.message);
     // Final fallback: try direct API call
     try {
       return await fetchFromAPI(
@@ -242,24 +273,13 @@ export async function queryPriceData(
         getMetaData
       );
     } catch (fallbackError) {
-      console.error(
+      logger.error(
         `Fallback API call also failed for ${symbol}:`,
         fallbackError.message
       );
       throw error; // Throw original error
     }
   }
-}
-
-/**
- * Helper function to format a Date object to YYYY-MM-DD string
- * @private
- */
-function formatDate(date) {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -273,8 +293,6 @@ async function fetchFromAPI(
   timeframe,
   getMetaData
 ) {
-  const yahooFinance = new YahooFinance();
-
   const data = await yahooFinance.chart(symbol, {
     period1: startDate,
     period2: endDate,
@@ -286,12 +304,16 @@ async function fetchFromAPI(
   } else {
     // Transform quotes to match our format (ensure date is in YYYY-MM-DD format)
     return data.quotes.map((quote) => {
-      const date =
-        quote.date instanceof Date
-          ? quote.date.toISOString().split("T")[0]
-          : typeof quote.date === "string"
-          ? quote.date.split("T")[0]
-          : new Date(quote.date * 1000).toISOString().split("T")[0];
+      // Simplify date transformation logic for better readability
+      let date;
+      if (quote.date instanceof Date) {
+        date = quote.date.toISOString().split("T")[0];
+      } else if (typeof quote.date === "string") {
+        date = quote.date.split("T")[0];
+      } else {
+        // Assume it's a Unix timestamp (seconds)
+        date = new Date(quote.date * 1000).toISOString().split("T")[0];
+      }
 
       return {
         date: date,
@@ -308,7 +330,6 @@ async function fetchFromAPI(
 
 // 批量获取quote数据 返回一个{[symbol]: quoteObject}的映射
 export async function fetchQuotes(symbols = [], batchSize = 20) {
-  const yahooFinance = new YahooFinance();
   const result = {};
   const now = Date.now();
 
@@ -340,7 +361,7 @@ export async function fetchQuotes(symbols = [], batchSize = 20) {
           return quote;
         })
         .catch((err) => {
-          console.error(`Error fetching quote for ${symbol}:`, err.message);
+          logger.error(`Error fetching quote for ${symbol}:`, err.message);
           return null;
         })
         .finally(() => quoteInFlight.delete(symbol));
@@ -358,7 +379,7 @@ export async function fetchQuotes(symbols = [], batchSize = 20) {
           const quote = await quoteInFlight.get(symbol);
           if (quote) result[symbol] = quote;
         } catch (err) {
-          console.error(
+          logger.error(
             `Error resolving quote for ${symbol} from in-flight cache:`,
             err.message
           );
@@ -379,7 +400,6 @@ export async function fetchQuotes(symbols = [], batchSize = 20) {
  * @returns {Promise<Object>} Map of {symbol: quoteObject}
  */
 export async function fetchQuotesParallel(symbols = [], batchSize = 20) {
-  const yahooFinance = new YahooFinance();
   const result = {};
 
   // Process symbols in batches
@@ -392,7 +412,7 @@ export async function fetchQuotesParallel(symbols = [], batchSize = 20) {
         const quote = await yahooFinance.quote(symbol);
         return { symbol, quote, error: null };
       } catch (err) {
-        console.error(`Error fetching quote for ${symbol}:`, err.message);
+        logger.error(`Error fetching quote for ${symbol}:`, err.message);
         return { symbol, quote: null, error: err.message };
       }
     });
@@ -427,7 +447,6 @@ export async function getFundamentals(symbol) {
 
   if (!fundamentalsInFlight.has(key)) {
     const p = (async () => {
-      const yahooFinance = new YahooFinance();
       const data = await yahooFinance.quoteSummary(key, {
         modules: [
           "summaryDetail",
@@ -443,10 +462,7 @@ export async function getFundamentals(symbol) {
       return data;
     })()
       .catch((error) => {
-        console.error(
-          `Error fetching fundamentals for ${key}:`,
-          error.message
-        );
+        logger.error(`Error fetching fundamentals for ${key}:`, error.message);
         throw error;
       })
       .finally(() => fundamentalsInFlight.delete(key));
@@ -516,15 +532,15 @@ async function testDataFetching() {
       "2024-01-31",
       "1d"
     );
-    console.log(`Fetched ${historicalData.length} days of AAPL data`);
-    console.log(historicalData);
-    console.log(historicalData[0]);
+    logger.log(`Fetched ${historicalData.length} days of AAPL data`);
+    logger.log(historicalData);
+    logger.log(historicalData[0]);
 
     // Test fundamentals
     const fundamentals = await getFundamentals("AAPL");
-    console.log("AAPL fundamentals:", fundamentals.summaryDetail);
+    logger.log("AAPL fundamentals:", fundamentals.summaryDetail);
   } catch (error) {
-    console.error("Test failed:", error.message);
+    logger.error("Test failed:", error.message);
   }
 }
 
@@ -537,7 +553,6 @@ async function testDataFetching() {
  */
 export async function getCalendarEvents(symbol) {
   try {
-    const yahooFinance = new YahooFinance();
     // api call to get calendar events from yahoo finance
     const data = await yahooFinance.quoteSummary(symbol, {
       modules: [
@@ -554,7 +569,7 @@ export async function getCalendarEvents(symbol) {
       earningsHistory: data.earningsHistory || null,
     };
   } catch (error) {
-    console.error(
+    logger.error(
       `Error fetching calendar events for ${symbol}:`,
       error.message
     );
@@ -571,8 +586,6 @@ export async function getCalendarEvents(symbol) {
  */
 export async function getEventsFromChart(symbol, startDate, endDate) {
   try {
-    const yahooFinance = new YahooFinance();
-
     const data = await yahooFinance.chart(symbol, {
       period1: startDate,
       period2: endDate,
@@ -584,7 +597,7 @@ export async function getEventsFromChart(symbol, startDate, endDate) {
       splits: data.events?.splits || [],
     };
   } catch (error) {
-    console.error(
+    logger.error(
       `Error fetching events from chart for ${symbol}:`,
       error.message
     );
