@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import Screener from "../components/Screener.jsx";
 import ChartManager from "../charts/ChartManager.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const API_BASE_URL =
   typeof window !== "undefined" && window.location.hostname === "localhost"
@@ -11,11 +12,13 @@ const API_BASE_URL =
 
 export default function StockPage() {
   const { ticker } = useParams();
+  const { isAuthenticated, accessToken } = useAuth();
   const [stock, setStock] = useState(null);
   const [error, setError] = useState(null);
   const [chartLoading, setChartLoading] = useState(true);
   const [chartError, setChartError] = useState(null);
   const [notifEnabled, setNotifEnabled] = useState(false);
+  const [watchlists, setWatchlists] = useState([]);
 
   // Chart ref
   const chartRef = useRef(null);
@@ -84,6 +87,30 @@ export default function StockPage() {
       }
     })();
   }, [ticker]);
+
+  // 3) Load watchlists for add-to-watchlist picker
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/watchlists/initial`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        if (!res.ok) {
+          console.error("Failed to load watchlists:", res.status);
+          setWatchlists([]);
+          return;
+        }
+        const data = await res.json();
+        setWatchlists(data.watchlists || []);
+      } catch (err) {
+        console.error("Error fetching watchlists:", err);
+        setWatchlists([]);
+      }
+    })();
+  }, [isAuthenticated, accessToken]);
 
   // 3) Initialize chart when ticker and stock are available
   useEffect(() => {
@@ -210,8 +237,39 @@ export default function StockPage() {
     }
   };
 
-  const handleAddToWatchlist = (t) => {
-    console.log("Add to watchlist:", t);
+  const handleAddToWatchlist = async (symbol, watchlistId) => {
+    if (!isAuthenticated) {
+      alert("Please sign in to save to a watchlist.");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/watchlists/${watchlistId}/stocks`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ symbol }),
+        }
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Failed to add to watchlist.");
+        return;
+      }
+      const data = await res.json();
+      const updated = data.watchlist;
+      setWatchlists((prev) =>
+        prev.map((wl) => (wl.id === updated.id ? { ...wl, ...updated } : wl))
+      );
+      alert(`${symbol} added to ${updated.name}`);
+    } catch (err) {
+      console.error("Add to watchlist failed:", err);
+      alert("Failed to add to watchlist.");
+    }
   };
 
   if (error) {
@@ -243,6 +301,7 @@ export default function StockPage() {
 
             <Screener
               stocks={[stock]}
+              watchlists={watchlists}
               onAddToWatchlist={handleAddToWatchlist}
             />
           </>
