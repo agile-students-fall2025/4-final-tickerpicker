@@ -277,12 +277,16 @@ async function fetchFromAPI(
   } else {
     // Transform quotes to match our format (ensure date is in YYYY-MM-DD format)
     return data.quotes.map((quote) => {
-      const date =
-        quote.date instanceof Date
-          ? quote.date.toISOString().split("T")[0]
-          : typeof quote.date === "string"
-          ? quote.date.split("T")[0]
-          : new Date(quote.date * 1000).toISOString().split("T")[0];
+      // Simplify date transformation logic for better readability
+      let date;
+      if (quote.date instanceof Date) {
+        date = quote.date.toISOString().split("T")[0];
+      } else if (typeof quote.date === "string") {
+        date = quote.date.split("T")[0];
+      } else {
+        // Assume it's a Unix timestamp (seconds)
+        date = new Date(quote.date * 1000).toISOString().split("T")[0];
+      }
 
       return {
         date: date,
