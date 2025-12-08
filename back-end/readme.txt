@@ -1,13 +1,12 @@
-The back-end of your project will live in this directory.
+Back-end lives here (Node.js + Express).
 
-You will most likely initiate the back-end Node.js/Express.js server by running the "npm init" command from within this directory.
+Quick start
+- Install deps: `npm install`
+- Copy env: `cp .env.example .env` and set `MONGODB_URI`, `PORT`, `JWT_SECRET`
+- Run dev server: `npm run dev` (default http://localhost:3001)
 
+Mock data note
+- Front-end should set `USE_MOCK=false` so data comes from the API, not local mocks.
 
-# Mock System NOTE
-
-Please set `USE_MOCK=false` to avoid using Mock Data from the front-end. 
-All data should be fetched from the back-end from Sprint 2.
-
-#DATA STORAGE NITE
-
-By the end of Sprint 3 all data should be stored and fetched from a database.
+Data storage
+- All persistent data should be read/written via the database (Sprint 3+ goal).
