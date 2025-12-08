@@ -358,6 +358,32 @@ export default function TickerPickerPage() {
           />
         </div>
 
+        {/* Watchlists overview */}
+        <div className="tp-card p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-black">Your Watchlists</h3>
+            {isLoadingWatchlists && (
+              <span className="text-xs text-tp-text-dim">Loading...</span>
+            )}
+          </div>
+          {watchlists.length === 0 ? (
+            <p className="text-xs text-tp-text-dim">
+              No watchlists yet. Add a stock to start one.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {watchlists.map((wl) => (
+                <span
+                  key={wl.id}
+                  className="px-3 py-1 text-xs rounded-full bg-black text-white border border-black"
+                >
+                  {wl.name} ({wl.stocks?.length || 0})
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div>
           {isLoading ? (
             <div className="tp-card p-8 min-h-[600px] flex items-center justify-center">

@@ -163,18 +163,18 @@ export default function Screener({ stocks, watchlists = [], onAddToWatchlist }) 
                     </p>
                   ) : (
                     <div className="space-y-1">
-                      {watchlists.map((wl) => (
-                        <button
-                          key={wl.id}
-                          onClick={() =>
-                            handlePickWatchlist(stock.ticker, wl.id)
-                          }
-                          className="w-full text-left text-xs px-3 py-2 rounded-md hover:bg-tp-bg"
-                        >
-                          {wl.name} ({wl.stocks?.length || 0})
-                        </button>
-                      ))}
-                    </div>
+                  {watchlists.map((wl) => (
+                    <button
+                      key={wl.id}
+                      onClick={() =>
+                        handlePickWatchlist(stock.ticker, wl.id)
+                      }
+                      className="w-full text-left text-xs px-3 py-2 rounded-md bg-black text-white hover:bg-neutral-800"
+                    >
+                      {wl.name} ({wl.stocks?.length || 0})
+                    </button>
+                  ))}
+                </div>
                   )}
                 </div>
               )}
