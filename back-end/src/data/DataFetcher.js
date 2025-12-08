@@ -5,6 +5,7 @@ import {
   findDateGaps,
 } from "./PriceDataService.js";
 import mongoose from "mongoose";
+import { formatDate } from "../utils/dateUtils.js";
 
 // Reuse a single YahooFinance instance across all functions for better performance
 const yahooFinance = new YahooFinance();
@@ -252,17 +253,6 @@ export async function queryPriceData(
       throw error; // Throw original error
     }
   }
-}
-
-/**
- * Helper function to format a Date object to YYYY-MM-DD string
- * @private
- */
-function formatDate(date) {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
 }
 
 /**
