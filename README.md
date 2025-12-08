@@ -209,12 +209,14 @@ Features that explain financial concepts
 
 ## Project Status
 
-**Current Sprint:** Sprint 3
+**Current Sprint:** Sprint 4
 
-**Status:** Database Integration Phase
+**Status:** Deployment Phase
 
 We're currently:
 
+- **CI/CD Pipeline implemented** - GitHub Actions workflow for automated testing and building on every push and pull request
+- **Deployment preparation** - Setting up Digital Ocean deployment infrastructure
 - **MongoDB database integrated** with Mongoose for data persistence
 - **Price data caching system** - MongoDB stores historical OHLCV data with gap-filling strategy (checks DB first, fetches only missing dates from Yahoo Finance API)
 - **User authentication with MongoDB** - User registration, login, password updates, and email changes all use MongoDB with secure password hashing (PBKDF2)
