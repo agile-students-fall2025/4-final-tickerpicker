@@ -4,10 +4,10 @@
   "description": "<!-- # Project Repository",
   "main": "index.js",
   "scripts": {
-    "dev": "vite front-end",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:backend": "node back-end/server.js",
+    "test:backend": "npm --prefix back-end test",
+    "coverage:backend": "npm --prefix back-end run coverage"
   },
   "repository": {
     "type": "git",
@@ -29,12 +29,10 @@
     "yahoo-finance2": "^3.10.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.20",
     "chai": "^6.2.1",
     "mocha": "^11.7.5",
     "postcss": "^8.4.41",
-    "tailwindcss": "^3.4.15",
-    "vite": "^7.1.12"
+    "tailwindcss": "^3.4.15"
   }
 }
