@@ -1,13 +1,17 @@
 // back-end/test/watchlist.test.js
 import request from "supertest";
 import assert from "assert";
-import app from "../server.js";
 import { signJWT } from "../src/auth/jwt.js";
 import { User } from "../src/data/users.js";
 
-// Use JWT from env if provided, otherwise fall back to a test secret
+// Ensure test env and JWT secret are set before loading the app (requireAuth reads at module load)
+process.env.NODE_ENV = process.env.NODE_ENV || "test";
 const JWT_SECRET = process.env.JWT_SECRET || "test-secret";
 process.env.JWT_SECRET = JWT_SECRET;
+
+// Dynamically import app after env is set
+const { default: app } = await import("../server.js");
+
 const AUTH_HEADER = {
   Authorization: `Bearer ${signJWT({ sub: "test-user" }, JWT_SECRET, { expiresInSec: 3600 })}`,
 };
