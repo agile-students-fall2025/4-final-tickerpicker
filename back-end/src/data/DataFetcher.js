@@ -6,6 +6,9 @@ import {
 } from "./PriceDataService.js";
 import mongoose from "mongoose";
 
+// Reuse a single YahooFinance instance across all functions for better performance
+const yahooFinance = new YahooFinance();
+
 // Lightweight in-memory caches to avoid hammering upstream APIs
 const QUOTE_TTL_MS = 90 * 1000; // short TTL for price quotes
 const FUNDAMENTAL_TTL_MS = 6 * 60 * 60 * 1000; // longer TTL for fundamentals
@@ -273,8 +276,6 @@ async function fetchFromAPI(
   timeframe,
   getMetaData
 ) {
-  const yahooFinance = new YahooFinance();
-
   const data = await yahooFinance.chart(symbol, {
     period1: startDate,
     period2: endDate,
@@ -308,7 +309,6 @@ async function fetchFromAPI(
 
 // 批量获取quote数据 返回一个{[symbol]: quoteObject}的映射
 export async function fetchQuotes(symbols = [], batchSize = 20) {
-  const yahooFinance = new YahooFinance();
   const result = {};
   const now = Date.now();
 
@@ -379,7 +379,6 @@ export async function fetchQuotes(symbols = [], batchSize = 20) {
  * @returns {Promise<Object>} Map of {symbol: quoteObject}
  */
 export async function fetchQuotesParallel(symbols = [], batchSize = 20) {
-  const yahooFinance = new YahooFinance();
   const result = {};
 
   // Process symbols in batches
@@ -427,7 +426,6 @@ export async function getFundamentals(symbol) {
 
   if (!fundamentalsInFlight.has(key)) {
     const p = (async () => {
-      const yahooFinance = new YahooFinance();
       const data = await yahooFinance.quoteSummary(key, {
         modules: [
           "summaryDetail",
@@ -537,7 +535,6 @@ async function testDataFetching() {
  */
 export async function getCalendarEvents(symbol) {
   try {
-    const yahooFinance = new YahooFinance();
     // api call to get calendar events from yahoo finance
     const data = await yahooFinance.quoteSummary(symbol, {
       modules: [
@@ -571,8 +568,6 @@ export async function getCalendarEvents(symbol) {
  */
 export async function getEventsFromChart(symbol, startDate, endDate) {
   try {
-    const yahooFinance = new YahooFinance();
-
     const data = await yahooFinance.chart(symbol, {
       period1: startDate,
       period2: endDate,
