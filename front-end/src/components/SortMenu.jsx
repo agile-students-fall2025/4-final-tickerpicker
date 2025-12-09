@@ -1,11 +1,13 @@
-import React from "react";
+/**
+ * Define logic for dropdown menu that allows user to 
+ * sort stocks by the choosen metric.
+ */
+const METRICS = ['price','peRatio','marketCap','debtToEquity','beta']
+const METRICLABELS = ['Price', 'P/E Ratio', 'Market Cap', 'Debt To Equity', 'Beta']
 
-const metrics = ['price','peRatio','marketCap','debtToEquity','beta']
-const metricLabels = ['Price', 'P/E Ratio', 'Market Cap', 'Debt To Equity', 'Beta']
-
-const options = metrics.map( (metric,i) => {
+const options = METRICS.map( (metric, i) => {
     return (
-        <option key={metric} value={metric}>{metricLabels[i]}</option>
+        <option key={metric} value={metric}>{METRICLABELS[i]}</option>
     )
 })
 
@@ -53,7 +55,6 @@ export function sortStocks(stocks, metric){
     sorted.push(...low.slice(i))
     sorted.push(...high.slice(j))
     
-    //console.log(sorted);
     return sorted
 }
 
