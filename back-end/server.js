@@ -30,6 +30,31 @@ const PORT = process.env.PORT || 3001;
 //const mockNotificationStocks = new Set(); // Set of stock symbols that have notifications enabled
 const DEFAULT_DAYS_BEFORE = 60; // Default: notify 60 days before events
 
+const IS_TEST = process.env.NODE_ENV === "test";
+
+const testUser = {
+  id: "test-user",
+  email: "test@example.com",
+  username: "testuser",
+  watchlists: [], //{ id, name, tickers: [] }
+};
+
+const mockNotifications = new Map(); //Map<id, notification>
+let mockNotificationCounter = 1;
+
+async function findUserById(id) {
+  if (IS_TEST) {
+    return id === testUser.id ? testUser : null;
+  }
+  return await User.findOne({ id });
+}
+
+async function saveUser(user) {
+  if (IS_TEST) {
+    return user;
+  }
+  return await user.save();
+}
 
 // Middleware
 app.use(cors());
