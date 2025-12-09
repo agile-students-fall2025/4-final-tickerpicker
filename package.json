@@ -4,12 +4,19 @@
   "description": "<!-- # Project Repository",
   "main": "index.js",
   "scripts": {
+<<<<<<< HEAD
     "dev": "npm run build && node front-end/static-server.mjs",
     "build:css": "tailwindcss -c tailwind.config.js -i front-end/src/styles/globals.css -o front-end/dist/globals.css",
     "build:js": "esbuild front-end/src/main.jsx --bundle --outfile=front-end/dist/bundle.js --format=esm --jsx=automatic --loader:.css=empty",
     "build": "npm run build:css && npm run build:js",
     "preview": "node front-end/static-server.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
+=======
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:backend": "node back-end/server.js",
+    "test:backend": "npm --prefix back-end test",
+    "coverage:backend": "npm --prefix back-end run coverage"
+>>>>>>> 10e568f859f1e2e29b0320eb9c40abe849758e40
   },
   "repository": {
     "type": "git",
