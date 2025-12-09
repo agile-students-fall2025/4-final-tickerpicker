@@ -205,7 +205,8 @@ Features that explain financial concepts
 ## Project Links
 
 [Product Backlog](https://github.com/orgs/agile-students-fall2025/projects/20/views/1)
-[Task Board](https://github.com/orgs/agile-students-fall2025/projects/20/views/3)
+
+[Task Board](https://github.com/orgs/agile-students-fall2025/projects/20/views/20)
 
 ## Project Status
 
