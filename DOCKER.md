@@ -11,6 +11,8 @@ This project includes Docker containerization for both the frontend and backend 
 
 1. **Set up environment variables:**
 
+   The `.env` file must be in the **root directory** (same directory as `docker-compose.yml`).
+
    ```bash
    cp docker-compose.env.example .env
    ```
@@ -20,6 +22,11 @@ This project includes Docker containerization for both the frontend and backend 
    - `MONGODB_URI`: Your MongoDB connection string (MongoDB Atlas or local)
    - `JWT_SECRET`: A strong secret key for JWT token signing
    - `PORT`: Backend port (default: 3001)
+
+   **Important:** The `.env` file location is critical:
+
+   - ✅ **Correct**: `.env` in the root directory (where `docker-compose.yml` is)
+   - ❌ **Wrong**: `.env` in `back-end/` directory (that's for local development only)
 
 2. **Build and start containers:**
 
@@ -105,10 +112,28 @@ docker-compose down -v
 
 ## Environment Variables
 
-Required environment variables (set in `.env` file):
+### File Location
 
-- `MONGODB_URI`: MongoDB connection string
-- `JWT_SECRET`: Secret key for JWT authentication
+The `.env` file for Docker Compose must be in the **root directory** of the project (same location as `docker-compose.yml`).
+
+```
+project-root/
+├── docker-compose.yml
+├── .env                    ← Docker Compose reads from here
+├── docker-compose.env.example
+├── back-end/
+│   ├── .env               ← This is for local development only
+│   └── ...
+└── front-end/
+    └── ...
+```
+
+### Required Variables
+
+Required environment variables (set in root `.env` file):
+
+- `MONGODB_URI`: MongoDB connection string (e.g., `mongodb+srv://user:pass@cluster.mongodb.net/tickerpicker`)
+- `JWT_SECRET`: Secret key for JWT authentication (use a strong random string)
 - `PORT`: Backend server port (default: 3001)
 
 ## Development vs Production
@@ -142,14 +167,60 @@ For production:
 
 ### Port already in use
 
-- Change port mappings in `docker-compose.yml`
-- Or stop the service using the port
+If you see:
 
-### Build fails
+```
+Error response from daemon: Ports are not available: exposing port TCP 0.0.0.0:3001 -> 0.0.0.0:0: listen tcp 0.0.0.0:3001: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+```
+
+This means you have a local server running on that port. Options:
+
+1. **Stop the local server** (recommended):
+
+   - Stop any running `npm run dev` processes in your terminals
+   - Or find and kill the process: `netstat -ano | findstr :3001` (Windows) or `lsof -i :3001` (Mac/Linux)
+
+2. **Change Docker port mapping** in `docker-compose.yml`:
+   ```yaml
+   ports:
+     - "3002:3001" # Use 3002 on host instead
+   ```
+
+### Build fails with package-lock.json errors
+
+If you see errors like:
+
+```
+npm error `npm ci` can only install packages when your package.json and package-lock.json are in sync.
+npm error Invalid: lock file's mongoose@8.20.1 does not satisfy mongoose@9.0.1
+```
+
+This means your `package-lock.json` is out of sync with `package.json`. Fix it by:
+
+**For backend:**
+
+```bash
+cd back-end
+rm package-lock.json
+npm install
+```
+
+**For root (frontend build):**
+
+```bash
+# In the root directory
+rm package-lock.json
+npm install
+```
+
+The Dockerfiles use `npm install` instead of `npm ci`, so they should work even with minor mismatches, but it's best to keep lock files in sync.
+
+### Build fails (general)
 
 - Ensure all required files are present
 - Check Dockerfile syntax
 - Review build logs: `docker-compose build --no-cache`
+- Verify `.env` file is in the root directory (not in `back-end/`)
 
 ## Building Individual Images
 

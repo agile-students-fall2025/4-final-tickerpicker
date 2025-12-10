@@ -159,6 +159,26 @@ Frontend will run on `http://localhost:5173`
 
 Both servers must be running simultaneously for the application to work properly.
 
+## Docker Deployment
+
+This project includes Docker containerization for easy deployment. For detailed Docker setup instructions, environment variable configuration, and troubleshooting, see **[DOCKER.md](./DOCKER.md)**.
+
+**Quick Docker start:**
+
+```bash
+# Set up environment variables
+cp docker-compose.env.example .env
+# Edit .env with your MongoDB URI and JWT_SECRET
+
+# Build and run
+docker-compose up --build
+```
+
+Access the application at:
+
+- Frontend: http://localhost
+- Backend API: http://localhost:3001
+
 ## Product Backlog Themes
 
 Our user stories are organized into these themes:
