@@ -35,8 +35,6 @@ router.post("/login", async (req, res) => {
   if (!normEmail || !password) {
     return res.status(400).json({ error: "email and password are required" });
   }
-
-  const normEmail = norm(email);
   
   if (!EMAIL_REGEX.test(normEmail)) {
     return res.status(400).json({ error: "Invalid email format" });
@@ -149,8 +147,6 @@ router.put("/email", requireAuth, async (req, res) => {
   if (!normNewEmail || typeof newEmail !== "string") {
     return res.status(400).json({ error: "newEmail is required" });
   }
-  
-  const normNewEmail = norm(newEmail);
   
   if (!EMAIL_REGEX.test(normNewEmail)) {
     return res.status(400).json({ error: "Invalid email format" });
