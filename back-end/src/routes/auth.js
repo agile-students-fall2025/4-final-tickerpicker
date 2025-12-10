@@ -36,6 +36,8 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ error: "email and password are required" });
   }
 
+  const normEmail = norm(email);
+  
   if (!EMAIL_REGEX.test(normEmail)) {
     return res.status(400).json({ error: "Invalid email format" });
   }
@@ -47,9 +49,7 @@ router.post("/login", async (req, res) => {
     //<-- see password.js/verifyPassword()
     return res.status(401).json({ error: "Invalid email or password" });
   }
-  // END OF DB MODIFICATION INTEGRATION
 
-  // ??
   const accessToken = signJWT(
     { sub: user.id, username: user.username, roles: user.roles || [] },
     JWT_SECRET,
@@ -57,7 +57,6 @@ router.post("/login", async (req, res) => {
   );
 
   return res.json({
-    // ??
     accessToken,
     tokenType: "Bearer",
     expiresIn: 7200,
@@ -70,7 +69,7 @@ router.post("/login", async (req, res) => {
   });
 });
 
-// POST /api/auth/register (temporarily for development, will change after connecting to db)
+// POST /api/auth/register
 // body: { username, password }
 router.post("/register", async (req, res) => {
   const { email, username, password } = req.body || {};
@@ -93,7 +92,6 @@ router.post("/register", async (req, res) => {
     });
   }
 
-  // DB MODIFICATION INTEGRATION
   // if 'username' already in DB
   if (await User.findOne({ email: normEmail })) {
     console.log("email already exists:", email); //TEST
@@ -101,7 +99,7 @@ router.post("/register", async (req, res) => {
   }
 
   // register 'newUser' in DB
-  const { salt, hash, iterations, keylen, digest } = hashPassword(password); // <-- see password.js/hashPassword()
+  const { salt, hash, iterations, keylen, digest } = hashPassword(password);
   const newUser = new User({
     id: "u" + ((await User.countDocuments()) + 1),
     email: normEmail,
@@ -137,15 +135,12 @@ router.post("/register", async (req, res) => {
     });
 });
 
-// MODIFIED FOR DB INTEGRATION
 // PUT /api/auth/email
 // body: { newEmail }
 router.put("/email", requireAuth, async (req, res) => {
   const { newEmail } = req.body || {};
-  const userId = req.user?.sub; //<-- userId === null handler??
+  const userId = req.user?.sub;
 
-  // MODIFY FOR DB INTEGRATION
-  //const me = USERS.find(u => u.id === userId);
   // find 'me' in DB
   const me = await User.findOne({ id: userId });
   if (!me) return res.status(404).json({ error: "User not found" });
@@ -154,7 +149,9 @@ router.put("/email", requireAuth, async (req, res) => {
   if (!normNewEmail || typeof newEmail !== "string") {
     return res.status(400).json({ error: "newEmail is required" });
   }
-
+  
+  const normNewEmail = norm(newEmail);
+  
   if (!EMAIL_REGEX.test(normNewEmail)) {
     return res.status(400).json({ error: "Invalid email format" });
   }
@@ -166,7 +163,6 @@ router.put("/email", requireAuth, async (req, res) => {
   // update 'me' email/username in DB
   me.email = normNewEmail.trim();
   await me.save();
-  // END OF DB INTEGRATION MODIFICATION
 
   const accessToken = signJWT(
     { sub: me.id, username: me.username, roles: me.roles || [] },
@@ -187,7 +183,6 @@ router.put("/email", requireAuth, async (req, res) => {
   });
 });
 
-// MODIFIED FOR DB INTEGRATION
 // PUT /api/auth/password
 // body: { oldPassword, newPassword }
 router.put("/password", requireAuth, async (req, res) => {

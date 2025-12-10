@@ -1,8 +1,7 @@
 import { Router } from "express";
+const router = Router();
 import { queryPriceData, fetchQuotes } from "../data/DataFetcher.js";
 import { calculateSharpeRatio } from "../utils/SharpeRatio.js";
-
-const router = Router();
 
 // Simple in-memory caches to cut upstream calls
 const RECOMMENDED_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -71,13 +70,11 @@ router.get("/recommended-picks", async (req, res) => {
       await Promise.all(
         SPDR_ETFS.map(async (symbol) => {
           try {
+            // get data
             const priceData = await queryPriceData(
-              symbol,
-              startDateStr,
-              endDateStr,
-              "1d"
+              symbol, startDateStr, endDateStr, "1d"
             );
-
+            // verify data
             if (!priceData || priceData.length < 2) {
               console.warn(`Insufficient data for ${symbol}`);
               return null;

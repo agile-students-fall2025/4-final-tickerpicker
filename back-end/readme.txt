@@ -1,13 +1,29 @@
-The back-end of your project will live in this directory.
+Back-end lives here (Node.js + Express).
 
-You will most likely initiate the back-end Node.js/Express.js server by running the "npm init" command from within this directory.
+Quick start
+- Install deps: `npm install`
+- Copy env: `cp .env.example .env` and set `MONGODB_URI`, `PORT`, `JWT_SECRET`
+- Run dev server: `npm run dev` (default http://localhost:3001)
 
+Mock data note
+- Front-end should set `USE_MOCK=false` so data comes from the API, not local mocks.
 
-# Mock System NOTE
+Data storage
+- All persistent data should be read/written via the database (Sprint 3+ goal).
 
-Please set `USE_MOCK=false` to avoid using Mock Data from the front-end. 
-All data should be fetched from the back-end from Sprint 2.
+Key pieces
+- Server entry: `server.js` (sets up routes, auth middleware, DB connection)
+- Auth: JWT-based (`src/middleware/AuthRequirement.js`, `src/auth/jwt.js`)
+- Data fetching: `src/data/DataFetcher.js` (quotes, fundamentals, caching, batching)
+- Watchlists: stored on the User model (`src/data/users.js`), endpoints in `server.js`
+- Notifications: Mongoose model `src/models/Notifications.js`; routes in `server.js`
+- Dashboard/Home routes: `src/routes/dashboard.js`, `src/routes/home.js`
 
-#DATA STORAGE NITE
+Environment variables
+- `MONGODB_URI`: MongoDB connection string (Atlas/local)
+- `PORT`: Express port (defaults to 3001)
+- `JWT_SECRET`: secret for signing/verifying access tokens
 
-By the end of Sprint 3 all data should be stored and fetched from a database.
+Available scripts (package.json)
+- `npm run dev`: start backend with nodemon
+- `npm test`: run backend tests (supertest/mocha)

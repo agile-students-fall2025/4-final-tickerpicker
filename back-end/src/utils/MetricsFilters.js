@@ -1,8 +1,13 @@
 import { fetchQuotes, getFundamentals } from "../data/DataFetcher.js";
 
-// Check if a stock is within a given range for a given metrics. Will be called by other functions here in this module
-// yFinance sometimes give null or NaN for some stocks. To avoid having no stock displayed, the filter will "ignore" the
-// null or NaN value. And only if there's specific data, we filter them
+/**
+ * yFinance sometimes give null or NaN for some stocks. To avoid having no stock displayed, 
+ * the filter will "ignore" the null or NaN value. And only if there's specific data, we filter them
+ * @param {*} val Metric value
+ * @param {*} min Smallest possible value for metric
+ * @param {*} max Largest possible value for metric.
+ * @returns True if val is within (min,max), False otherwise
+ */
 function isWithinRange(val, min, max) {
   if (min === undefined && max === undefined) return true;
   if (val === null || val === undefined || Number.isNaN(val)) return true;

@@ -2,13 +2,12 @@
 import React from "react";
 
 import { Routes, Route, BrowserRouter } from "react-router-dom";
+
+// COMPONENTS
 import TopNavbar from "./components/TopNavbar.jsx";
 import LeftNavbar from "./components/LeftNavbar.jsx";
-
-import { useAuth } from "./context/AuthContext.jsx";
-
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-
+// PAGES
 import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
@@ -18,8 +17,8 @@ import WatchlistPage from "./pages/WatchlistPage.jsx";
 import TickerPickerPage from "./pages/TickerPickerPage.jsx";
 import StockPage from "./pages/StockPage.jsx";
 import Notifications from "./pages/Notifications.jsx";
-// Here I wrote these just for the team's convenience. If screener and watchlist gets
-//implemented and linked by routes then these can be commented out
+// CONTEXT
+import { useAuth } from "./context/AuthContext.jsx";
 
 export default function App() {
   const { isAuthenticated, user } = useAuth();
