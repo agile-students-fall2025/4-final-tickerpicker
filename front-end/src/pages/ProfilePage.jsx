@@ -171,43 +171,6 @@ export default function ProfilePage() {
 
 
 
-<div className="tp-card p-4 md:p-8">
-
-
-  <div className="flex flex-col gap-4">
-
-
-
-
-    {/* Email Updates Toggle */}
-    <button
-      type="button"
-      onClick={() => setEmailPriceAlerts(!emailPriceAlerts)}
-      className={`px-4 py-2 rounded-xl border text-sm transition ${
-        emailPriceAlerts
-          ? "bg-green-50 border-green-600 text-green-700"
-        : "bg-red-50 border-red-400 text-red-700 hover:bg-red-100"
-      }`}
-    >
-      {emailPriceAlerts ? "Email Price Updates: ON" : "Enable Email Price Updates OFF"}
-    </button>
-
-    {/* Text Updates Toggle */}
-    <button
-      type="button"
-      onClick={() => setTextPriceAlerts(!textPriceAlerts)}
-      className={`px-4 py-2 rounded-xl border text-sm transition ${
-        textPriceAlerts
-          ? "bg-green-50 border-green-600 text-green-700"
-        : "bg-red-50 border-red-400 text-red-700 hover:bg-red-100"
-      }`}
-    >
-      {textPriceAlerts ? "Text Price Updates: ON" : "Enable Text Price Updates OFF"}
-    </button>
-    
-
-  </div>
-</div>
 
 
             
