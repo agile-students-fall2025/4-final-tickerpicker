@@ -57,8 +57,8 @@ Thanks for your interest in contributing! This document outlines how our team wo
 
 - **When:** Monday and Friday mornings at 8:30 AM EST
 - **Duration:** ~1 hour (though standups should be brief, we use this time for team coordination)
-- **Where:** Discord voice channel
-- **Required attendance:** All team members must attend synchronously
+- **Where:** Discord voice channel / Zoom
+- **Required attendance:** All team members must attend **synchronously**
 - **Format:** Each person shares:
   - What they completed since last standup
   - What they're working on next
