@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * Define logic for dropdown menu that allows user to 
  * sort stocks by the choosen metric.
