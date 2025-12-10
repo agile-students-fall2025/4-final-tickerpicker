@@ -128,5 +128,5 @@ typings/
 **/.jekyll-cache
 **/_site/
 
- front-end/.env
- front-end/dist/
+front-end/.env
+front-end/dist
