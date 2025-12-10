@@ -14,7 +14,7 @@ const METRICS = {
 const OPTIMAL_RANGE_PER_SECT = {
     'P/E Ratio':        ['20-40',       '15-25',            '10-18'],
     'Debt-to-Equity':   ['< 1.0',       '1.5 -- 3',         '> 2.0'],
-    'Beta':             ['1.2 -- 1.6',  '0.6 -- 0.9',       '0.8 -- 1.3']
+    'Beta':             ['1.2 -- 1.6',  '0.4 -- 0.9',       '0.8 -- 1.3']
 }
 const SECTORS =         ['Tech/Growth', 'Defensive/Consumer Staples', 'Financials']
 
@@ -33,36 +33,39 @@ const INTERPRATION = {
     }
 }
 
-/*
-P/E ratio: 
-The optimal range for `${metric}` (per sector):
--   Tech / Growth: 20–40.
-    Tech firms often justify high P/Es because of strong growth potential — rapid innovation, scalable business models, expanding future earnings.
--   Defensive / Consumer Staples: 15 - 25. 
-    These firms tend to have stable demand, steady cash flows, and lower growth — so a moderate P/E range reflects that stability without overpaying. A P/E much above 25× often implies investors expect acceleration or premium for safety. 
--   Financials: 10–18.
-    Financial firms typically have slower growth and more cyclical earnings, so lower P/Es make sense.  
-*/
+// convert the above to bullet points
+const INTERPRATION_DE = Object.keys(INTERPRATION['Debt-to-Equity']).map( expression => {
+        return (
+            <li>
+                <span>{expression}: INTERPRATION['Debt-to-Equity'][expression]</span>
+            </li>
+        )
+});
+const INTERPRATION_BETA = Object.keys(INTERPRATION['Beta']).map( expression => {
+        return (
+            <li>
+                <span>{expression}: {INTERPRATION['Beta'][expression]}</span>
+            </li>
+        )
+});
 
-/*
-Beta: 
-β = 1.0 indicates that the asset moves in line with the market, that is, the market performance is exactly indicative of the asset’s performance
-β < 1.0 indicates the asset is less volatile than the market
-β > 1.0 indicates the asset moves more than the market
-β < 0 indicates the asset moves inversely with the market.
-
-The optimal range for beta (per sector):
-Tech & consumer discretionary: 1.2 – 1.5
-Industrials & financials: 1.0
-Consumer staples & utilities: 0.4 – 0.8
-*/
-
-const LEARNMETRICS = METRICS.map( (metric) => {
+const LEARNMETRICS = Object.keys(METRICS).map( metric => {
     return (
         <li key={metric}>
-            <div>
-                <span>{metric}</span>
-                <span>{METRICS[metric]}</span>
+            <div style="display: flex; flex-direction: row;">
+                {/* Left */}
+                <h2>{metrics}</h2>
+                {/* Right */}
+                <div style="display: flex; flex-direction: column;">
+                    {/* Definition */}
+                    <span>{METRICS[metric]}</span>  
+                    {/* More facts, specific to Beta and DE */}
+                    { (metric == 'Beta' || metric == 'Debt-to-Equity') && 
+                        (<ul>
+                            { (metric == 'Beta') ? INTERPRATION_BETA : INTERPRATION_DE }
+                        </ul>)
+                    }
+                </div>
             </div>
         </li>
     );
