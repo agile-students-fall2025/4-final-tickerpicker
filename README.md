@@ -72,7 +72,6 @@ If time permits, we'd like to add:
 - **Product Owner:** [Julien Soto-Raspa](https://github.com/jlnsr)
 - **Scrum Master:** [Muyao (Jerry) Kong](https://github.com/Jerry-K5050)
 
-
 ### Developers
 
 - [Lauren Throve](https://github.com/laurenst17)
@@ -219,6 +218,7 @@ Features that explain financial concepts
 We're currently:
 
 - **CI/CD Pipeline implemented** - GitHub Actions workflow for automated testing and building on every push and pull request
+- **Docker containerization** - Full Docker setup with docker-compose for easy deployment (see [DOCKER.md](./DOCKER.md))
 - **Deployment preparation** - Setting up Digital Ocean deployment infrastructure
 - **MongoDB database integrated** with Mongoose for data persistence
 - **Price data caching system** - MongoDB stores historical OHLCV data with gap-filling strategy (checks DB first, fetches only missing dates from Yahoo Finance API)
