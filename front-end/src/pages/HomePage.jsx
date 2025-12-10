@@ -10,7 +10,7 @@ const API_BASE_URL =
     : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
 
 export default function HomePage() {
-  const { isAuthenticated , fetchWithAuth } = useAuth();
+  const { isAuthenticated, fetchWithAuth } = useAuth();
 
   // Chart refs
   const nasdaqRef = useRef(null);
@@ -172,11 +172,18 @@ export default function HomePage() {
       },
     ];
 
+    let isMounted = true;
+
     const initializeCharts = async () => {
       setLoading(true);
       const errors = {};
 
       for (const config of chartConfigs) {
+        // Check if component is still mounted before each chart initialization
+        if (!isMounted) {
+          break;
+        }
+
         if (config.ref.current) {
           try {
             // Clear existing content
@@ -184,6 +191,11 @@ export default function HomePage() {
 
             // Create container creator function for this chart
             const containerCreator = (chartId, chartTitle, width, height) => {
+              // Double-check component is still mounted
+              if (!isMounted || !config.ref.current) {
+                return null;
+              }
+
               const containerDiv = document.createElement("div");
               containerDiv.id = chartId;
 
@@ -203,7 +215,7 @@ export default function HomePage() {
             };
 
             // Initialize chart
-            await ChartManager.initializeChart(
+            const chart = await ChartManager.initializeChart(
               config.symbol,
               startDate,
               endDate,
@@ -213,29 +225,38 @@ export default function HomePage() {
               config.height
             );
 
-            // Store chart ID for cleanup
-            const chartId = ChartManager.generateChartId(
-              config.symbol,
-              startDate,
-              endDate,
-              "1d"
-            );
-            chartIdsRef.current.push(chartId);
+            // Only store chart ID if chart was successfully created and component is still mounted
+            if (chart && isMounted) {
+              const chartId = ChartManager.generateChartId(
+                config.symbol,
+                startDate,
+                endDate,
+                "1d"
+              );
+              chartIdsRef.current.push(chartId);
+            }
           } catch (error) {
-            console.error(`Error initializing ${config.name} chart:`, error);
-            errors[config.name] = error.message;
+            // Ignore "Object is disposed" errors - they're expected if component unmounts
+            if (error.message && !error.message.includes("disposed")) {
+              console.error(`Error initializing ${config.name} chart:`, error);
+              errors[config.name] = error.message;
+            }
           }
         }
       }
 
-      setChartErrors(errors);
-      setLoading(false);
+      // Only update state if component is still mounted
+      if (isMounted) {
+        setChartErrors(errors);
+        setLoading(false);
+      }
     };
 
     initializeCharts();
 
     // Cleanup function
     return () => {
+      isMounted = false;
       chartIdsRef.current.forEach((chartId) => {
         try {
           if (ChartManager.hasChart(chartId)) {

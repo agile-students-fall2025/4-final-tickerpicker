@@ -55,23 +55,13 @@ const notificationSchema = new mongoose.Schema(
 // So front-end can still use `id` instead of `_id`
 notificationSchema.set("toJSON", {
   virtuals: true,
-  versionKey: false,
+  versionKey: false, // drop __v
   transform: (_, ret) => {
     // ret._id is ObjectId; keep string id and remove _id
     ret.id = ret._id.toString();
     delete ret._id;
   },
 });
-
-// change json output to current mock data 
-notificationSchema.set("toJSON", {
-    versionKey: false,  // drop __v
-    transform: (_, ret) => {
-      // expose id instead of _id for frontend
-      ret.id = ret._id.toString();
-      delete ret._id;
-    },
-  });
 
 const Notification = mongoose.model("Notification", notificationSchema);
 

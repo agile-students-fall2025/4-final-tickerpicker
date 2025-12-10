@@ -1,44 +1,53 @@
-// From ecosystem
-import { Router } from 'express';
+import { Router } from "express";
+import { User } from "../data/users.js";
+import { verifyPassword, hashPassword } from "../auth/password.js";
+import { signJWT } from "../auth/jwt.js";
+import { requireAuth } from "../middleware/AuthRequirement.js";
 import dotenv from "dotenv";
 dotenv.config();
-// From codebase
-import { User } from '../data/users.js';
-import { verifyPassword, hashPassword } from '../auth/password.js';
-import { signJWT } from '../auth/jwt.js';
-import { requireAuth } from '../middleware/AuthRequirement.js';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Validate JWT_SECRET is set
+if (!JWT_SECRET) {
+  console.error("ERROR: JWT_SECRET is not defined in environment variables!");
+  console.error("Please add JWT_SECRET to your .env file.");
+  console.error("Example: JWT_SECRET=your-secret-key-here");
+  process.exit(1);
+}
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 //helper: normalize email adress
 function norm(email) {
-  return String(email || '').trim().toLowerCase();
+  return String(email || "")
+    .trim()
+    .toLowerCase();
 }
 
 // POST /api/auth/login
 // body: { email, password }
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body || {};
-  
-  if (!email || !password ) {
-    return res.status(400).json({ error: 'email and password are required' });
+  const normEmail = norm(email);
+  if (!normEmail || !password) {
+    return res.status(400).json({ error: "email and password are required" });
   }
 
   const normEmail = norm(email);
   
   if (!EMAIL_REGEX.test(normEmail)) {
-    return res.status(400).json({ error: 'Invalid email format' });
+    return res.status(400).json({ error: "Invalid email format" });
   }
 
-  // verify 'user' and 'password'
-  const user = await User.findOne({email: normEmail});
+  // DB MODIFICATION INTEGRATION
+  const user = await User.findOne({ email: normEmail });
   // if 'user' with 'username' not in DB
   if (!user || !verifyPassword(password, user)) {
-    return res.status(401).json({ error: 'Invalid email or password' });
+    //<-- see password.js/verifyPassword()
+    return res.status(401).json({ error: "Invalid email or password" });
   }
 
   const accessToken = signJWT(
@@ -49,81 +58,108 @@ router.post('/login', async (req, res) => {
 
   return res.json({
     accessToken,
-    tokenType: 'Bearer',
+    tokenType: "Bearer",
     expiresIn: 7200,
-    user: { id: user.id, username: user.username, email: user.email, roles: user.roles || [] },
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      roles: user.roles || [],
+    },
   });
 });
 
 // POST /api/auth/register
 // body: { username, password }
-router.post('/register', async (req, res) => {
+router.post("/register", async (req, res) => {
   const { email, username, password } = req.body || {};
   const normEmail = norm(email);
 
   if (!normEmail || !username || !password) {
-    return res.status(400).json({ error: 'email, username and password are required' });
+    return res
+      .status(400)
+      .json({ error: "email, username and password are required" });
   }
 
   if (!EMAIL_REGEX.test(normEmail)) {
-    return res.status(400).json({ error: 'Invalid email format' });
+    return res.status(400).json({ error: "Invalid email format" });
   }
 
   if (!PASSWORD_REGEX.test(password)) {
     return res.status(400).json({
-      error: 'Password must be at least 8 characters and include a letter, a number, and a special character',
+      error:
+        "Password must be at least 8 characters and include a letter, a number, and a special character",
     });
   }
 
   // if 'username' already in DB
-  if (await User.findOne({email: normEmail})) {
-    return res.status(409).json({ error: 'email already exists' });
+  if (await User.findOne({ email: normEmail })) {
+    console.log("email already exists:", email); //TEST
+    return res.status(409).json({ error: "email already exists" });
   }
 
   // register 'newUser' in DB
   const { salt, hash, iterations, keylen, digest } = hashPassword(password);
   const newUser = new User({
-    id: 'u' + (await User.countDocuments() + 1),
+    id: "u" + ((await User.countDocuments()) + 1),
     email: normEmail,
     username: username.trim(),
     password: password,
     // cryptographic password fields
-    salt: salt, hash: hash, iterations: iterations, keylen: keylen, digest: digest,
+    salt: salt,
+    hash: hash,
+    iterations: iterations,
+    keylen: keylen,
+    digest: digest,
     // end of cryptographic password fields
   });
 
   // save 'newUser' to DB
   await newUser.save();
-  console.log('registered new user:', newUser.toJSON());//TEST
-  
-  return res.status(201).json({ message: 'registered', user: { id: newUser.id, username: newUser.username, email: newUser.email, roles: newUser.roles || [] } });
+  console.log("registered new user:", newUser.toJSON()); //TEST
+
+  /*const newUser = { id: 'u' + (USERS.length + 1), username, roles: ['user'], salt, hash, iterations, keylen, digest };
+  USERS.push(newUser);*/
+  // END OF DB MODIFICATION INTEGRATION
+
+  return res
+    .status(201)
+    .json({
+      message: "registered",
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        roles: newUser.roles || [],
+      },
+    });
 });
 
 // PUT /api/auth/email
 // body: { newEmail }
-router.put('/email', requireAuth, async (req, res) => {
+router.put("/email", requireAuth, async (req, res) => {
   const { newEmail } = req.body || {};
   const userId = req.user?.sub;
 
   // find 'me' in DB
-  const me = await User.findOne({id: userId});
-  if (!me) return res.status(404).json({ error: 'User not found' });
-  
-  // verify argument
-  if (!newEmail || typeof newEmail !== 'string') {
-      return res.status(400).json({ error: 'newEmail is required' });
+  const me = await User.findOne({ id: userId });
+  if (!me) return res.status(404).json({ error: "User not found" });
+
+  const normNewEmail = norm(newEmail);
+  if (!normNewEmail || typeof newEmail !== "string") {
+    return res.status(400).json({ error: "newEmail is required" });
   }
   
   const normNewEmail = norm(newEmail);
   
   if (!EMAIL_REGEX.test(normNewEmail)) {
-    return res.status(400).json({ error: 'Invalid email format' });
+    return res.status(400).json({ error: "Invalid email format" });
   }
 
-  if (me.email === normNewEmail) {
-    return res.status(409).json({ error: 'Email/username already in use' });
-  }
-  
+  //const exists = USERS.find(u => u.username === newEmail && u.id !== userId);
+  if (me.email === normNewEmail)
+    return res.status(409).json({ error: "Email/username already in use" });
+
   // update 'me' email/username in DB
   me.email = normNewEmail.trim();
   await me.save();
@@ -136,47 +172,60 @@ router.put('/email', requireAuth, async (req, res) => {
 
   return res.json({
     accessToken,
-    tokenType: 'Bearer',
+    tokenType: "Bearer",
     expiresIn: 7200,
-    user: { id: me.id, username: me.username, email: me.email, roles: me.roles || [] },
+    user: {
+      id: me.id,
+      username: me.username,
+      email: me.email,
+      roles: me.roles || [],
+    },
   });
 });
 
 // PUT /api/auth/password
 // body: { oldPassword, newPassword }
-router.put('/password', requireAuth, async (req, res) => {
+router.put("/password", requireAuth, async (req, res) => {
   const { oldPassword, newPassword } = req.body || {};
   const userId = req.user?.sub;
 
   if (!oldPassword || !newPassword) {
-    return res.status(400).json({ error: 'oldPassword and newPassword are required' });
+    return res
+      .status(400)
+      .json({ error: "oldPassword and newPassword are required" });
   }
   if (oldPassword === newPassword) {
-    return res.status(400).json({ error: 'New password cannot be the old password' });
+    return res
+      .status(400)
+      .json({ error: "New password cannot be the old password" });
   }
 
-  const me = await User.findOne({id: userId});
-  if (!me) return res.status(404).json({ error: 'User not found' });
+  // MODIFY FOR DB INTEGRATION
+  //const me = USERS.find(u => u.id === userId);
+  const me = await User.findOne({ id: userId });
+  if (!me) return res.status(404).json({ error: "User not found" });
 
   if (!verifyPassword(oldPassword, me)) {
-    return res.status(401).json({ error: 'Old password incorrect' });
+    return res.status(401).json({ error: "Old password incorrect" });
   }
 
   if (!PASSWORD_REGEX.test(newPassword)) {
     return res.status(400).json({
-      error: 'Password must be at least 8 characters and include a letter, a number, and a special character',
+      error:
+        "Password must be at least 8 characters and include a letter, a number, and a special character",
     });
   }
 
   // update credentials in DB
   const { salt, hash, iterations, keylen, digest } = hashPassword(newPassword);
-  me.password = newPassword;
+  me.password = newPassword; //<-- do we store the plain password??
   me.salt = salt;
   me.hash = hash;
   me.iterations = iterations;
   me.keylen = keylen;
   me.digest = digest;
-  
+  // END OF DB INTEGRATION MODIFICATION
+
   await me.save();
 
   const accessToken = signJWT(
@@ -186,11 +235,16 @@ router.put('/password', requireAuth, async (req, res) => {
   );
 
   return res.json({
-    message: 'Password updated',
+    message: "Password updated",
     accessToken,
-    tokenType: 'Bearer',
+    tokenType: "Bearer",
     expiresIn: 7200,
-    user: { id: me.id, username: me.username, email: me.email, roles: me.roles || [] },
+    user: {
+      id: me.id,
+      username: me.username,
+      email: me.email,
+      roles: me.roles || [],
+    },
   });
 });
 
