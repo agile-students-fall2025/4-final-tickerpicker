@@ -2,6 +2,7 @@
  * Define logic for dropdown menu that allows user to 
  * sort stocks by the choosen metric.
  */
+import React from "react"
 const METRICS = ['price','peRatio','marketCap','debtToEquity','beta']
 const METRICLABELS = ['Price', 'P/E Ratio', 'Market Cap', 'Debt To Equity', 'Beta']
 
