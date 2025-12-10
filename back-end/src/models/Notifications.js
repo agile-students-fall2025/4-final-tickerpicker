@@ -20,7 +20,7 @@ const notificationSchema = new mongoose.Schema(
     // earnings / dividend / test / communication
     eventType: {
       type: String,
-      enum: ["earnings", "dividend", "test", "communication"],
+      enum: ["earnings", "dividend", "test", "communication", "other"],
       default: "other",
     },
 

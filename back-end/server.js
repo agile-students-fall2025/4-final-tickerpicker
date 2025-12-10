@@ -42,6 +42,53 @@ const testUser = {
 const mockNotifications = new Map(); //Map<id, notification>
 let mockNotificationCounter = 1;
 
+// Minimal in-memory notification helpers for test runs (avoid Mongo dependency/timeouts)
+function createTestNotification(payload) {
+  const id = String(mockNotificationCounter++);
+  const now = new Date();
+
+  const notification = {
+    id,
+    userId: payload.userId || null,
+    symbol: payload.symbol ? payload.symbol.toUpperCase() : undefined,
+    eventType: payload.eventType || "test",
+    eventDate: payload.eventDate ? new Date(payload.eventDate) : undefined,
+    daysUntil: payload.daysUntil,
+    amount: payload.amount,
+    message: payload.message,
+    isRead: payload.isRead ?? false,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  mockNotifications.set(id, notification);
+  return notification;
+}
+
+function listTestNotifications({ unreadOnly, limit }) {
+  let results = Array.from(mockNotifications.values());
+  if (unreadOnly) {
+    results = results.filter((n) => !n.isRead);
+  }
+  if (limit) {
+    results = results.slice(0, limit);
+  }
+  return results;
+}
+
+function getTestUnreadCount() {
+  return Array.from(mockNotifications.values()).filter((n) => !n.isRead).length;
+}
+
+function markTestNotificationRead(id) {
+  const notification = mockNotifications.get(id);
+  if (!notification) return null;
+
+  const updated = { ...notification, isRead: true, updatedAt: new Date() };
+  mockNotifications.set(id, updated);
+  return updated;
+}
+
 async function findUserById(id) {
   if (IS_TEST) {
     return id === testUser.id ? testUser : null;
@@ -131,6 +178,19 @@ app.get("/api/notification-stocks", async (req, res) => {
 app.post("/api/notifications", async (req, res) => {
   try {
     const { userId, symbol, eventType, eventDate, daysUntil, amount, message } = req.body;
+
+    if (IS_TEST) {
+      const notification = createTestNotification({
+        userId,
+        symbol,
+        eventType,
+        eventDate,
+        daysUntil,
+        amount,
+        message,
+      });
+      return res.status(200).json(notification);
+    }
 
     const newNotification = new Notification({
       userId,
@@ -224,6 +284,14 @@ app.get("/api/notifications", async (req, res) => {
   try {
     const { unreadOnly, limit } = req.query;
 
+    if (IS_TEST) {
+      const notifications = listTestNotifications({
+        unreadOnly: unreadOnly === "true",
+        limit: limit ? parseInt(limit) : undefined,
+      });
+      return res.json(notifications);
+    }
+
     // Query notifications from the database
     let query = {};
     if (unreadOnly === "true") {
@@ -247,6 +315,9 @@ app.get("/api/notifications", async (req, res) => {
 // Counts unread notifications
 app.get("/api/notifications/unread-count", async (req, res) => {
   try {
+    if (IS_TEST) {
+      return res.json({ count: getTestUnreadCount() });
+    }
     // Fetch unread notifications count from the database
     const count = await Notification.countDocuments({ isRead: false });
 
@@ -264,6 +335,14 @@ app.get("/api/notifications/unread-count", async (req, res) => {
 app.put("/api/notifications/:notificationId/read", async (req, res) => {
   try {
     const { notificationId } = req.params;
+
+    if (IS_TEST) {
+      const notification = markTestNotificationRead(notificationId);
+      if (!notification) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+      return res.json({ success: true, notification });
+    }
 
     // Find the notification by ID and update its isRead status
     const notification = await Notification.findByIdAndUpdate(
