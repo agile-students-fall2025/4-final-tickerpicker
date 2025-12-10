@@ -1,0 +1,9 @@
+{
+  "exclude": [
+    "src/data/**",
+    "src/db/**",
+    "src/routes/auth.js",
+    "src/utils/SharpeRatio.js",
+    "src/utils/logger.js"
+  ]
+}
