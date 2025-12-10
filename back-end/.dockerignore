@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+.env
+.env.local
+.env.*.local
+coverage
+.nyc_output
+*.log
+.git
+.gitignore
+README.md
+readme.txt
+test
+*.test.js
+test.md
+
