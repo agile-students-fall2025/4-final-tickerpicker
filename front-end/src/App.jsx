@@ -61,6 +61,14 @@ export default function App() {
             <div className="w-full px-4 py-4 md:px-8 md:py-8 lg:px-12 lg:py-12 xl:px-20 xl:py-20 justify-center items-center">
               <Routes>
                 <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <HomePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/home"
                   element={
                     <ProtectedRoute>
@@ -114,7 +122,7 @@ export default function App() {
                   }
                 />
 
-              <Route
+                <Route
                   path="/stock/:ticker"
                   element={
                     <ProtectedRoute>
@@ -122,7 +130,6 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
-
               </Routes>
             </div>
           </main>

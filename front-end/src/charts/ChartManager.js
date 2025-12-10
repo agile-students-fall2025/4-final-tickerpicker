@@ -34,7 +34,7 @@ class ChartManager {
     // Merge default config with user options. User options override default config.
     // Don't pass width/height to getChartConfig - let lightweight-charts use container size
     const chartConfig = { ...getChartConfig(), ...options };
-    
+
     // Remove width/height from config as lightweight-charts uses container dimensions
     delete chartConfig.width;
     delete chartConfig.height;
@@ -248,10 +248,33 @@ class ChartManager {
       endDate,
       timeframe
     );
-    series.setData(data);
-    chart.timeScale().fitContent();
 
-    console.log("Created chart successfully");
+    // Check if chart still exists and is not disposed before setting data
+    // This prevents "Object is disposed" errors when component unmounts during data fetch
+    if (!this.hasChart(chartId)) {
+      console.warn(`Chart ${chartId} was removed before data could be set`);
+      return null;
+    }
+
+    // Verify the chart container is still in the DOM
+    const chartContainer = document.getElementById(chartId);
+    if (!chartContainer || !chartContainer.isConnected) {
+      console.warn(`Chart container ${chartId} is no longer in the DOM`);
+      return null;
+    }
+
+    try {
+      series.setData(data);
+      chart.timeScale().fitContent();
+      console.log("Created chart successfully");
+    } catch (error) {
+      // Chart might have been disposed during data fetch
+      if (error.message && error.message.includes("disposed")) {
+        console.warn(`Chart ${chartId} was disposed before data could be set`);
+        return null;
+      }
+      throw error; // Re-throw other errors
+    }
 
     return chart;
   }

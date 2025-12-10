@@ -15,7 +15,7 @@ export default function Notifications() {
         const sorted = [...list].sort((a, b) => {
           const da = a.eventDate ? new Date(a.eventDate) : null;
           const db = b.eventDate ? new Date(b.eventDate) : null;
-  
+
           // No event date then push to bottom (rare but possible)
           if (!da && !db) return 0;
           if (!da) return 1;
@@ -30,22 +30,36 @@ export default function Notifications() {
         setLoading(false);
       }
     };
-  
+
     fetchNotifications();
   }, []);
-  
 
   const markAsRead = async (id) => {
+    if (!id) {
+      console.error("Cannot mark notification as read: ID is undefined");
+      return;
+    }
+
     try {
-      const res = await fetch(`http://localhost:3001/api/notifications/${id}/read`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await fetch(
+        `http://localhost:3001/api/notifications/${id}/read`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       if (!res.ok) throw new Error("Failed to update");
 
       setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+        prev.map((n) => {
+          // Handle both id and _id for compatibility
+          const nId = n.id || n._id;
+          return nId === id ? { ...n, isRead: true } : n;
+        })
       );
+
+      // Dispatch event to notify TopNavbar to refresh unread count
+      window.dispatchEvent(new CustomEvent("notificationUpdated"));
     } catch (err) {
       console.error("Error marking notification as read:", err);
     }
@@ -54,7 +68,13 @@ export default function Notifications() {
   const openNotification = (notification) => {
     setSelectedNotification(notification);
     if (!notification.isRead) {
-      markAsRead(notification._id);
+      // Use id (from MongoDB transform) or fallback to _id
+      const notificationId = notification.id || notification._id;
+      if (notificationId) {
+        markAsRead(notificationId);
+      } else {
+        console.error("Notification missing ID:", notification);
+      }
     }
   };
 
@@ -69,11 +89,11 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen px-4 sm:px-6 lg:px-10 pt-24 pb-10">
-      
       {/* 🔹 TOP NOTIFICATIONS BAR */}
       <div className="tp-card p-4 mb-6 text-black flex items-center justify-between">
         <span className="font-medium text-sm">
-          You have {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
+          You have {unreadCount} unread notification
+          {unreadCount !== 1 ? "s" : ""}
         </span>
 
         {unreadCount > 0 && (
@@ -107,7 +127,11 @@ export default function Notifications() {
           <div className="flex flex-col gap-3">
             {notifications.map((notif) => (
               <button
-                key={notif._id}
+                key={
+                  notif.id ||
+                  notif._id ||
+                  `notif-${notif.symbol}-${notif.createdAt}`
+                }
                 onClick={() => openNotification(notif)}
                 className={`tp-card text-left px-4 py-3 hover:brightness-105 transition ${
                   notif.isRead ? "opacity-80" : ""
