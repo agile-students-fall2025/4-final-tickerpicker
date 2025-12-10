@@ -133,6 +133,8 @@ Then edit the `.env` file and add your MongoDB Atlas connection string. See `.en
 
 ### Running the Application
 
+**Note** It is recommended to rename the front-end and back-end terminal accordingly so that you don't mix them up. If you wish to contribute, you can also have a seperate terminal specifically for other operations (such as git).
+
 **1. Start the Backend Server:**
 
 ```bash
