@@ -32,32 +32,25 @@ jobs:
           port: ${{ secrets.DO_PORT }}
           script: |
             set -e
-
+            
             echo "Deploying commit: $DEPLOY_SHA"
-
+            
             cd $DEPLOY_PATH
-
+            
+            # Pull latest code
             git fetch --all --prune
             git reset --hard $DEPLOY_SHA
-
-            # Root (front-end build)
-            npm ci
-            npm run build
-
-            # Back-end
-            cd back-end
-            npm ci
-
-            # Restart strategy (choose one you actually use)
-            if command -v pm2 >/dev/null 2>&1; then
-              pm2 describe "$PM2_APP_NAME" >/dev/null 2>&1 && pm2 restart "$PM2_APP_NAME" || pm2 start server.js --name "$PM2_APP_NAME"
-              pm2 save
-            elif command -v systemctl >/dev/null 2>&1; then
-              sudo systemctl restart "$SYSTEMD_SERVICE_NAME"
-            else
-              echo "No pm2/systemd detected. Please restart the service manually."
-            fi
+            
+            # Rebuild and restart Docker containers
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d
+            
+            # Clean up old images to save space
+            docker system prune -f
+            
+            # Verify deployment
+            docker compose ps
+            echo "Deployment completed successfully!"
         env:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
-          SYSTEMD_SERVICE_NAME: ${{ secrets.SYSTEMD_SERVICE_NAME }}

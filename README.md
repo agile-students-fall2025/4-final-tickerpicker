@@ -179,6 +179,15 @@ Access the application at:
 - Frontend: http://localhost
 - Backend API: http://localhost:3001
 
+## Production Deployment
+
+Our application is deployed on DigitalOcean using Docker containers.
+
+- **Live Application**: http://174.138.59.87/
+- **Backend API**: http://174.138.59.87:3001
+- **Health Check**: http://174.138.59.87:3001/api/health
+- **Deployment Guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions, team access, and update procedures.
+
 ## Product Backlog Themes
 
 Our user stories are organized into these themes:
