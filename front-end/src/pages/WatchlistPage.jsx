@@ -5,7 +5,7 @@ const USE_MOCK = false;
 const API_BASE_URL =
   typeof window !== "undefined" && window.location.hostname === "localhost"
     ? "http://localhost:3001"
-    : "If we no longer use localhost then we switch to the actual domain (after deployment maybe?)"; // TODO
+    : ""; // Empty string = relative paths (nginx will proxy)
 
 export default function WatchlistPage() {
   const { isAuthenticated, fetchWithAuth } = useAuth();

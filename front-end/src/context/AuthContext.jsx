@@ -15,7 +15,10 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 
 const AuthContext = createContext(null);
-const API_BASE_URL = "http://localhost:3001";
+// Use relative paths in production (nginx will proxy), localhost for local dev
+const API_BASE_URL = typeof window !== "undefined" && window.location.hostname === "localhost"
+  ? "http://localhost:3001"
+  : ""; // Empty string = relative paths
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;

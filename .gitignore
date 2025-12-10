@@ -130,3 +130,8 @@ typings/
 
 front-end/.env
 front-end/dist
+
+auth-routes.test.js
+home-routes.test.js
+server-endpoints.test.js
+utils.test.js

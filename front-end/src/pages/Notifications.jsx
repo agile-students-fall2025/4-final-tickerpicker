@@ -8,7 +8,7 @@ export default function Notifications() {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await fetch("http://localhost:3001/api/notifications");
+        const res = await fetch("/api/notifications");
         if (!res.ok) throw new Error("Failed to fetch notifications");
         const data = await res.json();
         const list = Array.isArray(data) ? data : [];
@@ -41,13 +41,10 @@ export default function Notifications() {
     }
 
     try {
-      const res = await fetch(
-        `http://localhost:3001/api/notifications/${id}/read`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const res = await fetch(`/api/notifications/${id}/read`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+      });
       if (!res.ok) throw new Error("Failed to update");
 
       setNotifications((prev) =>
