@@ -4,9 +4,11 @@
   "description": "<!-- # Project Repository",
   "main": "index.js",
   "scripts": {
-    "dev": "vite front-end",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "npm run build && node front-end/static-server.mjs",
+    "build:css": "tailwindcss -c tailwind.config.js -i front-end/src/styles/globals.css -o front-end/dist/globals.css",
+    "build:js": "esbuild front-end/src/main.jsx --bundle --outfile=front-end/dist/bundle.js --format=esm --jsx=automatic --loader:.css=empty",
+    "build": "npm run build:css && npm run build:js",
+    "preview": "node front-end/static-server.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -29,12 +31,11 @@
     "yahoo-finance2": "^3.10.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.0",
     "autoprefixer": "^10.4.20",
     "chai": "^6.2.1",
+    "esbuild": "^0.24.0",
     "mocha": "^11.7.5",
     "postcss": "^8.4.41",
-    "tailwindcss": "^3.4.15",
-    "vite": "^7.1.12"
+    "tailwindcss": "^3.4.15"
   }
 }
