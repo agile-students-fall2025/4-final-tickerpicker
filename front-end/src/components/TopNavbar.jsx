@@ -26,7 +26,7 @@ export default function Navbar() {
     if (!isAuthenticated) return;
 
     try {
-      const res = await fetch("http://localhost:3001/api/notifications");
+      const res = await fetch("/api/notifications");
 
       const data = await res.json();
 
@@ -44,9 +44,7 @@ export default function Navbar() {
     if (!isAuthenticated) return;
 
     try {
-      const res = await fetch(
-        "http://localhost:3001/api/notifications/unread-count"
-      );
+      const res = await fetch("/api/notifications/unread-count");
       if (!res.ok) return;
 
       const data = await res.json();

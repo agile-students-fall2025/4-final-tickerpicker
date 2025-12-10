@@ -282,7 +282,7 @@ class ChartManager {
   async fetchPriceData(symbol, startDate, endDate, timeframe) {
     try {
       const response = await fetch(
-        `http://localhost:3001/api/price-data/${symbol}?startDate=${startDate}&endDate=${endDate}&timeframe=${timeframe}`
+        `/api/price-data/${symbol}?startDate=${startDate}&endDate=${endDate}&timeframe=${timeframe}`
       );
 
       if (!response.ok) {
