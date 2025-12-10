@@ -666,6 +666,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRouter);
 
 // this 'server.js' calls 'connectToDatabase()' from 'connection.js'
+/* c8 ignore start */
 if (process.env.NODE_ENV !== "test") {
   // Connect to MongoDB before starting the server
   connectToDatabase()
@@ -686,6 +687,7 @@ if (process.env.NODE_ENV !== "test") {
       });
     });
 }
+/* c8 ignore stop */
 
 
 export default app;
