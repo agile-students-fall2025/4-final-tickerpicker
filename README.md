@@ -54,7 +54,7 @@ If time permits, we'd like to add:
 
 ### Sprint 1 Roles
 
-- **Product Owner:** [Muyao (Jerry) Kong](https://github.com/Jerry-K5050)
+- **Product Owner:** [Muyao (Jerry) Kong](https://github.com/Muyao-Kong)
 - **Scrum Master:** [Apoorv Belgundi](https://github.com/apoorvib)
 
 ### Sprint 2 Roles
@@ -70,7 +70,7 @@ If time permits, we'd like to add:
 ### Sprint 4 Roles
 
 - **Product Owner:** [Julien Soto-Raspa](https://github.com/jlnsr)
-- **Scrum Master:** [Muyao (Jerry) Kong](https://github.com/Jerry-K5050)
+- **Scrum Master:** [Muyao (Jerry) Kong](https://github.com/Muyao-Kong)
 
 ### Developers
 
@@ -78,7 +78,7 @@ If time permits, we'd like to add:
 - [Apoorv Belgundi](https://github.com/apoorvib)
 - [Michael Mvano](https://github.com/michx02)
 - [Julien Soto-Raspa](https://github.com/jlnsr)
-- [Muyao (Jerry) Kong](https://github.com/Jerry-K5050)
+- [Muyao (Jerry) Kong](https://github.com/Muyao-Kong)
 
 _Note: Scrum Master and Product Owner roles rotate each sprint so everyone gets experience in each role._
 
